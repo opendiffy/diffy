@@ -47,8 +47,9 @@ determines that there is nothing wrong and that the error can be ignored.
 The example.sh script included here builds and launches example servers as well as a diffy instance. Verify 
 that the following ports are available (9000, 9100, 9200, 8880, 8881, & 8888) and run `./example/run.sh start`.
 
-Once your local Diffy instance is deployed, you send it a few requests 
-like `curl --header "Canonical-Resource: Json" localhost:8880/json?Twitter`. You can then go to your browser at 
+Once your local Diffy instance is deployed, you send it a few requests by running `./example/traffic.sh`.
+
+You can now go to your browser at 
 [http://localhost:8888](http://localhost:8888) to see what the differences across our example instances look like.
 
 # Digging deeper
