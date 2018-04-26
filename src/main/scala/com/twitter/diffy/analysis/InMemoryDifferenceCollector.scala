@@ -103,7 +103,7 @@ class InMemoryDifferenceCollector {
   }
 
   def prefix(field: Field): Future[Iterable[DifferenceResult]] = Future {
-    (fields flatMap {
+    (fields.toIterable flatMap {
       case (Field(endpoint, path), value)
         if endpoint == field.endpoint && path.startsWith(field.prefix) => value
       case _ => Nil
