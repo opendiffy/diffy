@@ -2,8 +2,8 @@ package ai.diffy.workflow
 
 import javax.inject.{Named, Inject}
 
-import com.twitter.diffy.analysis.{RawDifferenceCounter, DifferenceCounter, EndpointMetadata}
-import com.twitter.diffy.util.EmailSender
+import ai.diffy.analysis.{RawDifferenceCounter, DifferenceCounter, EndpointMetadata}
+import ai.diffy.util.EmailSender
 import com.twitter.finagle.util.DefaultTimer
 import com.twitter.finagle.stats.StatsReceiver
 import com.twitter.logging.Logger

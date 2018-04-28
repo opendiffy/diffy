@@ -1,6 +1,6 @@
 package ai.diffy.proxy
 
-import com.twitter.diffy.ParentSpec
+import ai.diffy.ParentSpec
 import com.twitter.finagle.Service
 import com.twitter.util._
 import org.junit.runner.RunWith

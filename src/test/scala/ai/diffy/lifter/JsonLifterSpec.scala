@@ -1,6 +1,6 @@
 package ai.diffy.lifter
 
-import com.twitter.diffy.ParentSpec
+import ai.diffy.ParentSpec
 import org.junit.runner.RunWith
 import org.scalatest.junit.JUnitRunner
 

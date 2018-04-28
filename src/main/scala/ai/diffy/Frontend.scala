@@ -2,7 +2,7 @@ package ai.diffy
 
 import javax.inject.Inject
 
-import com.twitter.diffy.proxy.Settings
+import ai.diffy.proxy.Settings
 import com.twitter.finatra.http.Controller
 import com.twitter.finagle.http.Request
 

@@ -2,9 +2,9 @@ package ai.diffy.proxy
 
 import java.net.SocketAddress
 
-import com.twitter.diffy.analysis.{DifferenceAnalyzer, JoinedDifferences, InMemoryDifferenceCollector}
-import com.twitter.diffy.lifter.{HttpLifter, Message}
-import com.twitter.diffy.proxy.DifferenceProxy.NoResponseException
+import ai.diffy.analysis.{DifferenceAnalyzer, JoinedDifferences, InMemoryDifferenceCollector}
+import ai.diffy.lifter.{HttpLifter, Message}
+import ai.diffy.proxy.DifferenceProxy.NoResponseException
 import com.twitter.finagle.{Service, Http, Filter}
 import com.twitter.finagle.http.{Status, Response, Method, Request}
 import com.twitter.util.{Try, Future}

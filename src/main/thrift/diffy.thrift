@@ -1,4 +1,4 @@
-namespace java com.twitter.diffy.thriftjava
+namespace java ai.diffy.thriftjava
 #@namespace scala com.twitter.diffy.thriftscala
 
 struct Responses {

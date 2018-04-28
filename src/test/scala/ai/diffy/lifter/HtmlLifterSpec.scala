@@ -1,7 +1,7 @@
 package ai.diffy.lifter
 
-import com.twitter.diffy.ParentSpec
-import com.twitter.diffy.compare.{Difference, PrimitiveDifference}
+import ai.diffy.ParentSpec
+import ai.diffy.compare.{Difference, PrimitiveDifference}
 import org.jsoup.Jsoup
 import org.junit.runner.RunWith
 import org.scalatest.junit.JUnitRunner

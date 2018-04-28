@@ -2,9 +2,9 @@ package ai.diffy.workflow
 
 import javax.inject.Inject
 
-import com.twitter.diffy.analysis.{JoinedEndpoint, DifferencesFilterFactory, JoinedDifferences}
-import com.twitter.diffy.proxy.Settings
-import com.twitter.diffy.util.{SimpleMessage, EmailSender}
+import ai.diffy.analysis.{JoinedEndpoint, DifferencesFilterFactory, JoinedDifferences}
+import ai.diffy.proxy.Settings
+import ai.diffy.util.{SimpleMessage, EmailSender}
 import com.twitter.finatra.http.internal.marshalling.mustache.MustacheService
 import com.twitter.logging.Logger
 import com.twitter.util.{Duration, Future}

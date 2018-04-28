@@ -1,7 +1,7 @@
 package ai.diffy.workflow
 
-import com.twitter.diffy.ParentSpec
-import com.twitter.diffy.analysis.{RawDifferenceCounter, EndpointMetadata, DifferenceCounter}
+import ai.diffy.ParentSpec
+import ai.diffy.analysis.{RawDifferenceCounter, EndpointMetadata, DifferenceCounter}
 import com.twitter.finagle.stats.InMemoryStatsReceiver
 import com.twitter.util.{Future, MockTimer, Time}
 import com.twitter.util.TimeConversions._

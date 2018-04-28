@@ -1,6 +1,6 @@
 package ai.diffy.analysis
 
-import com.twitter.diffy.compare.Difference
+import ai.diffy.compare.Difference
 import com.twitter.util.Future
 
 trait EndpointMetadata {

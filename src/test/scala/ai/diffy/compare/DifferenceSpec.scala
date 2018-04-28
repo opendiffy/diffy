@@ -1,6 +1,6 @@
 package ai.diffy.compare
 
-import com.twitter.diffy.lifter.JsonLifter
+import ai.diffy.lifter.JsonLifter
 import java.nio.ByteBuffer
 import org.junit.runner.RunWith
 import org.scalatest.FunSpec

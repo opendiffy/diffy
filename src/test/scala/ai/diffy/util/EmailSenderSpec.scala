@@ -2,7 +2,7 @@ package ai.diffy.util
 
 import java.util.Date
 
-import com.twitter.diffy.ParentSpec
+import ai.diffy.ParentSpec
 import com.twitter.logging.Logger
 import com.twitter.util.Await
 import org.junit.runner.RunWith

@@ -1,7 +1,7 @@
 package ai.diffy.compare
 
 import com.fasterxml.jackson.databind.JsonNode
-import com.twitter.diffy.lifter.{StringLifter, FieldMap, JsonLifter}
+import ai.diffy.lifter.{StringLifter, FieldMap, JsonLifter}
 import com.twitter.util.Memoize
 import java.nio.ByteBuffer
 import scala.language.postfixOps

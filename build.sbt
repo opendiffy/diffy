@@ -1,7 +1,7 @@
 import ReleaseTransformations._
 
 lazy val buildSettings = Seq(
-  organization := "com.twitter",
+  organization := "ai.diffy",
   scalaVersion := "2.11.7",
   crossScalaVersions := Seq("2.10.5", "2.11.7")
 )
@@ -65,7 +65,7 @@ lazy val baseSettings = Seq(
 )
 
 lazy val docSettings = site.settings ++ ghpages.settings ++ site.includeScaladoc("docs") :+ (
-  git.remoteRepo := "git@github.com:twitter/diffy.git"
+  git.remoteRepo := "git@github.com:opendiffy/diffy.git"
 )
 
 lazy val diffy = project.in(file("."))
@@ -81,7 +81,7 @@ lazy val diffy = project.in(file("."))
 lazy val publishSettings = Seq(
   releaseCrossBuild := true,
   releasePublishArtifactsAction := PgpKeys.publishSigned.value,
-  homepage := Some(url("https://github.com/twitter/diffy")),
+  homepage := Some(url("https://github.com/opendiffy/diffy")),
   licenses := Seq("Apache 2.0" -> url("http://www.apache.org/licenses/LICENSE-2.0")),
   publishMavenStyle := true,
   publishArtifact in Test := false,
@@ -94,11 +94,11 @@ lazy val publishSettings = Seq(
       Some("releases"  at nexus + "service/local/staging/deploy/maven2")
   },
   autoAPIMappings := true,
-  apiURL := Some(url("https://twitter.github.io/diffy/docs/")),
+  apiURL := Some(url("https://opendiffy.github.io/diffy/docs/")),
   scmInfo := Some(
     ScmInfo(
-      url("https://github.com/twitter/diffy"),
-      "scm:git:git@github.com:twitter/diffy.git"
+      url("https://github.com/opendiffy/diffy"),
+      "scm:git:git@github.com:opendiffy/diffy.git"
     )
   ),
   pomExtra := (

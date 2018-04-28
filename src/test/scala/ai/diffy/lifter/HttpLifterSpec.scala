@@ -2,8 +2,8 @@ package ai.diffy.lifter
 
 import com.fasterxml.jackson.databind.JsonNode
 import com.google.common.net.MediaType
-import com.twitter.diffy.ParentSpec
-import com.twitter.diffy.lifter.HttpLifter.MalformedJsonContentException
+import ai.diffy.ParentSpec
+import ai.diffy.lifter.HttpLifter.MalformedJsonContentException
 import com.twitter.io.Charsets
 import com.twitter.util.{Await, Throw, Try}
 import org.jboss.netty.buffer.ChannelBuffers

@@ -1,9 +1,9 @@
 package ai.diffy
 
 import ai.diffy.thriftscala.DifferenceResult
-import com.twitter.diffy.analysis._
-import com.twitter.diffy.thriftscala._
-import com.twitter.diffy.lifter.JsonLifter
+import ai.diffy.analysis._
+import ai.diffy.thriftscala._
+import ai.diffy.lifter.JsonLifter
 
 import scala.language.postfixOps
 

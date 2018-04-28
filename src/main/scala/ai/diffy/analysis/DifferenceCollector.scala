@@ -2,19 +2,18 @@ package ai.diffy.analysis
 
 import javax.inject.Inject
 
+import ai.diffy.compare.{Difference, PrimitiveDifference}
+import ai.diffy.lifter.{JsonLifter, Message}
 import ai.diffy.thriftscala.{DifferenceResult, Responses}
-import com.twitter.diffy.compare.{Difference, PrimitiveDifference}
-import com.twitter.diffy.lifter.{JsonLifter, Message}
-import com.twitter.diffy.thriftscala._
 import com.twitter.finagle.tracing.Trace
 import com.twitter.logging._
-import com.twitter.util.{Future, Time}
 import com.twitter.util.StorageUnitConversions._
+import com.twitter.util.{Future, Time}
 
 import scala.util.Random
 
 object DifferenceAnalyzer {
-  val UndefinedEndpoint = Some("Undefined_endpoint")
+  val UndefinedEndpoint = Some("undefined_endpoint")
   val log = Logger(classOf[DifferenceAnalyzer])
   log.setUseParentHandlers(false)
   log.addHandler(

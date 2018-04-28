@@ -2,6 +2,9 @@ package ai.diffy
 
 import javax.inject.Inject
 
+import ai.diffy.analysis.{DifferencesFilterFactory, JoinedEndpoint}
+import ai.diffy.proxy._
+import ai.diffy.workflow.{FunctionalReport, ReportGenerator}
 import com.twitter.finagle.http.{Request, Response}
 import com.twitter.finagle.{Service, SimpleFilter}
 import com.twitter.finatra.http.Controller

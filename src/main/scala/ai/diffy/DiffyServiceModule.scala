@@ -5,6 +5,9 @@ import com.twitter.inject.TwitterModule
 import com.twitter.util.TimeConversions._
 import java.net.InetSocketAddress
 import javax.inject.Singleton
+
+import ai.diffy.analysis.{InMemoryDifferenceCollector, InMemoryDifferenceCounter, NoiseDifferenceCounter, RawDifferenceCounter}
+import ai.diffy.proxy.{Settings, Target}
 import com.twitter.util.Duration
 
 object DiffyServiceModule extends TwitterModule {

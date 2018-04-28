@@ -2,11 +2,11 @@ package ai.diffy
 
 import java.net.InetSocketAddress
 
-import com.twitter.diffy.proxy._
+import ai.diffy.proxy._
 import com.twitter.util.TimeConversions._
 import org.scalatest.mock.MockitoSugar
-import com.twitter.diffy.analysis._
-import com.twitter.diffy.compare.Difference
+import ai.diffy.analysis._
+import ai.diffy.compare.Difference
 
 object TestHelper extends MockitoSugar {
   lazy val testSettings = Settings(

@@ -1,9 +1,11 @@
 package ai.diffy.proxy
 
+import java.util.concurrent.atomic.AtomicInteger
 import javax.inject.Singleton
+
 import com.google.inject.Provides
-import com.twitter.diffy.analysis._
-import com.twitter.diffy.lifter.Message
+import ai.diffy.analysis._
+import ai.diffy.lifter.Message
 import com.twitter.finagle._
 import com.twitter.inject.TwitterModule
 import com.twitter.logging.Logger
@@ -13,6 +15,7 @@ object DifferenceProxyModule extends TwitterModule {
   @Provides
   @Singleton
   def providesDifferenceProxy(
+    timer: Timer,
     settings: Settings,
     collector: InMemoryDifferenceCollector,
     joinedDifferences: JoinedDifferences,
@@ -59,37 +62,39 @@ trait DifferenceProxy {
   val analyzer: DifferenceAnalyzer
 
   private[this] lazy val multicastHandler =
-    new SequentialMulticastService(Seq(primary.client, candidate.client, secondary.client))
+    new SequentialMulticastService(Seq(primary, candidate, secondary) map { _.client })
 
+  val outstandingRequests = new AtomicInteger(0)
   def proxy = new Service[Req, Rep] {
     override def apply(req: Req): Future[Rep] = {
-      val rawResponses =
+      outstandingRequests.incrementAndGet()
+      val rawResponses: Future[Seq[Try[Rep]]] =
         multicastHandler(req) respond {
           case Return(_) => log.debug("success networking")
           case Throw(t) => log.debug(t, "error networking")
         }
 
       val responses: Future[Seq[Message]] =
-        rawResponses flatMap { reps =>
-          Future.collect(reps map liftResponse) respond {
-            case Return(rs) =>
-              log.debug(s"success lifting ${rs.head.endpoint}")
+        rawResponses flatMap { rs =>
+          Future.collect(rs map {case r => (liftResponse(r))})
+        } respond {
+          case Return(rs) =>
+            log.debug(s"success lifting ${rs.head.endpoint}")
 
-            case Throw(t) => log.debug(t, "error lifting")
-          }
+          case Throw(t) => log.debug(t, "error lifting")
         }
 
-      responses foreach {
+      responses flatMap  {
         case Seq(primaryResponse, candidateResponse, secondaryResponse) =>
           liftRequest(req) respond {
             case Return(m) =>
               log.debug(s"success lifting request for ${m.endpoint}")
 
             case Throw(t) => log.debug(t, "error lifting request")
-          } foreach { req =>
+          } map { req =>
             analyzer(req, candidateResponse, primaryResponse, secondaryResponse)
           }
-      }
+      } respond { _ => outstandingRequests.decrementAndGet }
 
       NoResponseExceptionFuture
     }

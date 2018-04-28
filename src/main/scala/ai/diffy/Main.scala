@@ -1,7 +1,7 @@
 package ai.diffy
 
-import com.twitter.diffy.proxy._
-import com.twitter.diffy.workflow._
+import ai.diffy.proxy._
+import ai.diffy.workflow._
 import com.twitter.finatra.http.HttpServer
 import com.twitter.finatra.http.routing.HttpRouter
 

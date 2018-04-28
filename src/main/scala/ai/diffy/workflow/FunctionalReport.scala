@@ -2,7 +2,7 @@ package ai.diffy.workflow
 
 import javax.inject.Inject
 
-import com.twitter.diffy.proxy.Settings
+import ai.diffy.proxy.Settings
 import com.twitter.finagle.util.DefaultTimer
 import com.twitter.util.{Timer, Time}
 

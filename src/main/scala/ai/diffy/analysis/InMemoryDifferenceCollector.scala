@@ -1,7 +1,7 @@
 package ai.diffy.analysis
 
-import com.twitter.diffy.compare.Difference
-import com.twitter.diffy.thriftscala._
+import ai.diffy.compare.Difference
+import ai.diffy.thriftscala._
 import com.twitter.util.Future
 import java.util.concurrent.atomic.AtomicInteger
 
@@ -106,7 +106,7 @@ class InMemoryDifferenceCollector {
   }
 
   def prefix(field: Field): Future[Iterable[DifferenceResult]] = Future {
-    (fields.toIterable flatMap {
+    (fields.toSeq flatMap {
       case (Field(endpoint, path), value)
         if endpoint == field.endpoint && path.startsWith(field.prefix) => value
       case _ => Nil

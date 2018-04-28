@@ -1,21 +1,24 @@
-import java.net.InetSocketAddress;
-import java.io.IOException;
-import java.io.OutputStream;
-import java.util.function.Function;
-import java.util.stream.Stream;
+package ai.diffy;
 
 import com.sun.net.httpserver.HttpExchange;
 import com.sun.net.httpserver.HttpHandler;
 import com.sun.net.httpserver.HttpServer;
+
+import java.io.IOException;
+import java.io.OutputStream;
+import java.net.InetSocketAddress;
+import java.util.Random;
+import java.util.function.Function;
 
 public class ExampleServers {
     public static void main(String[] args) throws Exception {
         int primary = Integer.parseInt(args[0]);
         int secondary = Integer.parseInt(args[1]);
         int candidate = Integer.parseInt(args[2]);
-        Thread p = new Thread(() -> bind(primary, x -> x.toLowerCase()));
-        Thread s = new Thread(() -> bind(secondary, x -> x.toLowerCase()));
-        Thread c = new Thread(() -> bind(candidate, x -> x.toUpperCase()));
+        Random rng = new Random();
+        Thread p = new Thread(() -> bind(primary, x -> { try{Thread.sleep((long) (50 * rng.nextGaussian()));} catch (Exception e) {} return x.toLowerCase();}));
+        Thread s = new Thread(() -> bind(secondary, x -> { try{Thread.sleep((long) (50 * rng.nextGaussian()));} catch (Exception e) {} return x.toLowerCase();}));
+        Thread c = new Thread(() -> bind(candidate, x -> { try{Thread.sleep((long) (60 * rng.nextGaussian()));} catch (Exception e) {} return x.toUpperCase();}));
         p.start();
         s.start();
         c.start();
@@ -61,7 +64,6 @@ class Handler implements HttpHandler {
     public void handle(HttpExchange t) throws IOException {
         String name  = lambda.apply(t.getRequestURI().getQuery());
         String response = String.format(template, name, System.currentTimeMillis());
-        System.out.println(response);
         t.getResponseHeaders().add("Content-Type", contentType);
         t.sendResponseHeaders(200, response.length());
         OutputStream os = t.getResponseBody();

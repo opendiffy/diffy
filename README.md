@@ -4,7 +4,7 @@
 [![Coverage status](https://img.shields.io/codecov/c/github/opendiffy/diffy/master.svg)](https://codecov.io/github/opendiffy/diffy)
 [![Project status](https://img.shields.io/badge/status-active-brightgreen.svg)](#status)
 [![Gitter](https://img.shields.io/badge/gitter-join%20chat-green.svg)](https://gitter.im/twitter/diffy)
-[![Maven Central](https://img.shields.io/maven-central/v/com.twitter/diffy_2.11.svg)](https://maven-badges.herokuapp.com/maven-central/com.twitter/diffy_2.11)
+[![Maven Central](https://img.shields.io/maven-central/v/ai/diffy_2.11.svg)](https://maven-badges.herokuapp.com/maven-central/ai/diffy_2.11)
 
 ## Status
 

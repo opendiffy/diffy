@@ -4,9 +4,9 @@ import java.io.File
 import java.util.zip.ZipFile
 
 import ai.diffy.scrooge.ZippedFileImporter
-import com.twitter.diffy.analysis.{DifferenceAnalyzer, InMemoryDifferenceCollector, JoinedDifferences}
-import com.twitter.diffy.lifter.{MapLifterPool, Message, ThriftLifter}
-import com.twitter.diffy.scrooge._
+import ai.diffy.analysis.{DifferenceAnalyzer, InMemoryDifferenceCollector, JoinedDifferences}
+import ai.diffy.lifter.{MapLifterPool, Message, ThriftLifter}
+import ai.diffy.scrooge._
 import com.twitter.finagle.{Resolver, Thrift, ThriftMux}
 import com.twitter.finagle.thrift.{ClientId, ThriftClientRequest}
 import com.twitter.util.{Future, Try}
