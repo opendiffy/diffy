@@ -3,12 +3,11 @@ package ai.diffy.proxy
 import java.io.File
 import java.util.zip.ZipFile
 
-import ai.diffy.scrooge.ZippedFileImporter
 import ai.diffy.analysis.{DifferenceAnalyzer, InMemoryDifferenceCollector, JoinedDifferences}
 import ai.diffy.lifter.{MapLifterPool, Message, ThriftLifter}
-import ai.diffy.scrooge._
-import com.twitter.finagle.{Resolver, Thrift, ThriftMux}
+import ai.diffy.scrooge.ZippedFileImporter
 import com.twitter.finagle.thrift.{ClientId, ThriftClientRequest}
+import com.twitter.finagle.{Resolver, Thrift, ThriftMux}
 import com.twitter.util.{Future, Try}
 
 import scala.collection.JavaConversions._
