@@ -83,6 +83,36 @@ start using Diffy to compare three instances of your service:
 
 7. Watch the differences show up in your browser at [http://localhost:8888](http://localhost:8888).
 
+## Using Diffy with Docker
+
+You can pull the [official docker image](https://hub.docker.com/r/diffy/) with `docker pull diffy/diffy`
+
+And run it with
+```
+docker run -ti \
+  -p 8880:8880 -p 8881:8881 -p 8888:8888 \
+  diffy/diffy \
+    -candidate=localhost:9992 \
+    -master.primary=localhost:9990 \
+    -master.secondary=localhost:9991 \
+    -service.protocol=http \
+    -serviceName="Test-Service" \
+    -proxy.port=:8880 \
+    -admin.port=:8881 \
+    -http.port=:8888 \
+    -rootUrl=localhost:8888
+```
+
+You should now be able to point to:
+ - http://localhost:8888 to see the web interface
+ - http://localhost:8881/admin for admin console
+ - Use port 8880 to make the API requests
+
+*NOTE*: You can  pull the [sample service](https://hub.docker.com/r/diffy/example-service/) and deploy the `production` (primary, secondary) and `candidate` tags to start playing with diffy right away.
+
+You can always build the image from source with `docker build -t diffy .`
+
+
 ## FAQ's
    For safety reasons `POST`, `PUT`, ` DELETE ` are ignored by default . Add ` -allowHttpSideEffects=true ` to your command line arguments to enable these verbs.
 
