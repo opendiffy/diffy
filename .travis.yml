@@ -1,0 +1,24 @@
+language: scala
+
+scala:
+  - 2.10.5
+  - 2.11.7
+
+jdk:
+  - oraclejdk7
+  - oraclejdk8
+
+cache:
+  directories:
+    - $HOME/.ivy2/cache
+    - $HOME/.sbt/boot/scala-$TRAVIS_SCALA_VERSION
+
+before_script: unset SBT_OPTS
+
+script: sbt clean coverage test coverageReport
+
+after_script:
+  - find $HOME/.sbt -name "*.lock" | xargs rm
+  - find $HOME/.ivy2 -name "ivydata-*.properties" | xargs rm
+
+after_success: bash <(curl -s https://codecov.io/bash)
