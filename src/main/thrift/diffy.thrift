@@ -1,5 +1,5 @@
 namespace java ai.diffy.thriftjava
-#@namespace scala com.twitter.diffy.thriftscala
+#@namespace scala ai.diffy.thriftscala
 
 struct Responses {
   # Responses from each of the different instances in JSON format
