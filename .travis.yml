@@ -15,7 +15,7 @@ cache:
 
 before_script: unset SBT_OPTS
 
-script: sbt clean coverage test coverageReport
+script: sbt clean test
 
 after_script:
   - find $HOME/.sbt -name "*.lock" | xargs rm
