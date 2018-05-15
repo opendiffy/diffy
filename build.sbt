@@ -25,7 +25,7 @@ lazy val testDependencies = Seq(
   "org.scalatest" %% "scalatest" % "2.2.5"
 )
 
-lazy val finatraVersion = "2.0.0.M2"
+lazy val finatraVersion = "2.1.6"
 
 lazy val finatraDependencies = Seq(
   "com.twitter.finatra" %% "finatra-http" % finatraVersion,
@@ -50,9 +50,10 @@ lazy val baseSettings = Seq(
   ),
   scalacOptions in (Compile, console) := compilerOptions,
   libraryDependencies ++= Seq(
-    "com.twitter" %% "finagle-http" % "6.28.0",
-    "com.twitter" %% "finagle-thriftmux" % "6.28.0",
-    "com.twitter" %% "scrooge-generator" % "4.0.0",
+    "com.twitter" %% "finagle-http" % "6.35.0",
+    "com.twitter" %% "finagle-thriftmux" % "6.35.0",
+    "com.twitter" %% "scrooge-generator" % "4.7.0",
+    "com.twitter" %% "scrooge-core" % "4.7.0",
     "javax.mail" % "mail" % "1.4.7",
     "org.jsoup" % "jsoup" % "1.7.2",
     "org.scala-lang" % "scala-compiler" % scalaVersion.value

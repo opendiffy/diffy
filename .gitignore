@@ -15,5 +15,6 @@ lib_managed/
 .ivyjars
 out/
 sbt-launch.jar
+sbt_launch/
 example/ai/diffy/*.class
 differences.log

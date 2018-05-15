@@ -1,11 +1,10 @@
 package ai.diffy.workflow
 
 import javax.inject.Inject
-
-import ai.diffy.analysis.{JoinedEndpoint, DifferencesFilterFactory, JoinedDifferences}
+import ai.diffy.analysis.{DifferencesFilterFactory, JoinedDifferences, JoinedEndpoint}
 import ai.diffy.proxy.Settings
-import ai.diffy.util.{SimpleMessage, EmailSender}
-import com.twitter.finatra.http.internal.marshalling.mustache.MustacheService
+import ai.diffy.util.{EmailSender, SimpleMessage}
+import com.twitter.finatra.http.marshalling.mustache.MustacheService
 import com.twitter.logging.Logger
 import com.twitter.util.{Duration, Future}
 
@@ -53,7 +52,7 @@ class ReportGenerator @Inject()(
       to = settings.teamEmail,
       bcc = settings.teamEmail,
       subject = buildSubject(report.serviceName, report.criticalDiffs),
-      body = new String(mustacheService.createChannelBuffer("cron_report.mustache", report).toByteBuffer.array)
+      body = mustacheService.createString("cron_report.mustache", report)
     )
   }
 

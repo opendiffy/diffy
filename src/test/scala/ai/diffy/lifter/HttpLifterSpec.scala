@@ -1,12 +1,11 @@
 package ai.diffy.lifter
 
-import com.fasterxml.jackson.databind.JsonNode
-import com.google.common.net.MediaType
 import ai.diffy.ParentSpec
 import ai.diffy.lifter.HttpLifter.MalformedJsonContentException
-import com.twitter.io.Charsets
+import com.fasterxml.jackson.databind.JsonNode
+import com.google.common.net.MediaType
+import com.twitter.finagle.http._
 import com.twitter.util.{Await, Throw, Try}
-import org.jboss.netty.buffer.ChannelBuffers
 import org.jboss.netty.handler.codec.http._
 import org.junit.runner.RunWith
 import org.scalatest.Matchers._
@@ -18,7 +17,7 @@ import scala.collection.mutable.ArrayBuffer
 @RunWith(classOf[JUnitRunner])
 class HttpLifterSpec extends ParentSpec {
   object Fixture {
-    val reqUri = "/0/accounts"
+    val reqUri = "http://localhost:0/0/accounts"
 
     val jsonContentType = MediaType.JSON_UTF_8.toString
     val textContentType = MediaType.PLAIN_TEXT_UTF_8.toString
@@ -49,19 +48,21 @@ class HttpLifterSpec extends ParentSpec {
 
     val testException = new Exception("test exception")
 
-    def request(method: HttpMethod, uri: String, body: Option[String] = None): HttpRequest = {
-      val req = new DefaultHttpRequest(HttpVersion.HTTP_1_1, method, uri)
-      body foreach { b => req.setContent(ChannelBuffers.wrappedBuffer(b.getBytes(Charsets.Utf8)))}
+    def request(method: Method, uri: String, body: Option[String] = None): Request = {
+      val req = Request(Version.Http11, method, uri)
+      body foreach { req.setContentString }
       req
     }
 
-    def response(status: HttpResponseStatus, body: String): HttpResponse = {
-      val resp = new DefaultHttpResponse(HttpVersion.HTTP_1_1, status)
-      resp.headers()
-        .add(HttpHeaders.Names.CONTENT_LENGTH, body.length)
+    def response(status: HttpResponseStatus, body: String): Response = {
+
+      val resp = Response()
+      resp.setStatusCode(status.getCode)
+      resp.headerMap
+        .add(HttpHeaders.Names.CONTENT_LENGTH, body.length.toString)
         .add(HttpHeaders.Names.CONTENT_TYPE, jsonContentType)
         .add(HttpLifter.ControllerEndpointHeaderName, controllerEndpoint)
-      resp.setContent(ChannelBuffers.wrappedBuffer(body.getBytes(Charsets.Utf8)))
+      resp.setContentString(body)
       resp
     }
   }
@@ -71,8 +72,8 @@ class HttpLifterSpec extends ParentSpec {
     describe("LiftRequest") {
       it("lift simple Get request") {
         val lifter = new HttpLifter(false)
-        val req = request(HttpMethod.GET, reqUri)
-        req.headers().add("Canonical-Resource", "endpoint")
+        val req = request(Method.Get, reqUri)
+        req.headerMap.add("Canonical-Resource", "endpoint")
 
         val msg = Await.result(lifter.liftRequest(req))
         val resultFieldMap = msg.result.asInstanceOf[FieldMap[String]]
@@ -84,8 +85,8 @@ class HttpLifterSpec extends ParentSpec {
       it("lift simple Post request") {
         val lifter = new HttpLifter(false)
         val requestBody = "request_body"
-        val req = request(HttpMethod.POST, reqUri, Some(requestBody))
-        req.headers().add("Canonical-Resource", "endpoint")
+        val req = request(Method.Post, reqUri, Some(requestBody))
+        req.headerMap.add("Canonical-Resource", "endpoint")
 
         val msg = Await.result(lifter.liftRequest(req))
         val resultFieldMap = msg.result.asInstanceOf[FieldMap[String]]
@@ -128,7 +129,7 @@ class HttpLifterSpec extends ParentSpec {
       it("only compare headers when ContentType header was not set") {
         val lifter = new HttpLifter(false)
         val resp = response(HttpResponseStatus.OK, validJsonBody)
-        resp.headers.remove(HttpHeaders.Names.CONTENT_TYPE)
+        resp.headerMap.remove(HttpHeaders.Names.CONTENT_TYPE)
 
         val msg = Await.result(lifter.liftResponse(Try(resp)))
         val resultFieldMap = msg.result
@@ -139,7 +140,7 @@ class HttpLifterSpec extends ParentSpec {
       it("returns FieldMap when ContentType header is Html") {
         val lifter = new HttpLifter(false)
         val resp = response(HttpResponseStatus.OK, validHtmlBody)
-        resp.headers.set(HttpHeaders.Names.CONTENT_TYPE, MediaType.HTML_UTF_8.toString)
+        resp.headerMap.set(HttpHeaders.Names.CONTENT_TYPE, MediaType.HTML_UTF_8.toString)
 
         val msg = Await.result(lifter.liftResponse(Try(resp)))
         val resultFieldMap = msg.result
@@ -150,8 +151,7 @@ class HttpLifterSpec extends ParentSpec {
       it("throw ContentTypeNotSupportedException when ContentType header is not Json or Html") {
         val lifter = new HttpLifter(false)
         val resp = response(HttpResponseStatus.OK, validJsonBody)
-        resp.headers.remove(HttpHeaders.Names.CONTENT_TYPE)
-          .add(HttpHeaders.Names.CONTENT_TYPE, textContentType)
+        resp.headerMap.update(HttpHeaders.Names.CONTENT_TYPE, textContentType)
 
         val thrown = the [Exception] thrownBy {
           Await.result(lifter.liftResponse(Try(resp)))
@@ -163,7 +163,7 @@ class HttpLifterSpec extends ParentSpec {
       it("return None as controller endpoint when action header was not set") {
         val lifter = new HttpLifter(false)
         val resp = response(HttpResponseStatus.OK, validJsonBody)
-        resp.headers.remove(HttpLifter.ControllerEndpointHeaderName)
+        resp.headerMap.remove(HttpLifter.ControllerEndpointHeaderName)
         val msg = Await.result(lifter.liftResponse(Try(resp)))
 
         msg.endpoint should equal (None)
@@ -181,7 +181,7 @@ class HttpLifterSpec extends ParentSpec {
       it("only compares header when Content-Length is zero") {
         val lifter = new HttpLifter(false)
         val resp = response(HttpResponseStatus.OK, "")
-        resp.headers.set(HttpHeaders.Names.CONTENT_TYPE, MediaType.GIF.toString)
+        resp.headerMap.set(HttpHeaders.Names.CONTENT_TYPE, MediaType.GIF.toString)
 
         val msg = Await.result(lifter.liftResponse(Try(resp)))
         val resultFieldMap = msg.result
@@ -191,7 +191,7 @@ class HttpLifterSpec extends ParentSpec {
       def checkJsonContentTypeIsLifted(contentType: String): Unit = {
         val lifter = new HttpLifter(false)
         val resp = response(HttpResponseStatus.OK, validJsonBody)
-        resp.headers.set(HttpHeaders.Names.CONTENT_TYPE, contentType)
+        resp.headerMap.set(HttpHeaders.Names.CONTENT_TYPE, contentType)
 
         val msg = Await.result(lifter.liftResponse(Try(resp)))
         val resultFieldMap = msg.result.asInstanceOf[FieldMap[Map[String, Any]]]

@@ -1,5 +1,6 @@
 package ai.diffy.proxy
 
+import com.twitter.finagle.http.{Request, Response}
 import com.twitter.finagle.thrift.ThriftClientRequest
 import com.twitter.finagle.{Addr, Name, Service}
 import com.twitter.util.{Time, Var}
@@ -55,5 +56,5 @@ case class ThriftService(
 }
 
 case class HttpService(
-  override val client: Service[HttpRequest, HttpResponse])
-extends ClientService[HttpRequest, HttpResponse]
+  override val client: Service[Request, Response])
+extends ClientService[Request, Response]

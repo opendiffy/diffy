@@ -55,14 +55,14 @@ class StartupFeatureTest extends Test {
   "verify present differences via API" in {
     val response =
       Await.result(Http.fetchUrl(s"http://${server.externalHttpHostAndPort}/api/1/endpoints/undefined_endpoint/stats"))
-    assertResult(HttpResponseStatus.OK)(response.getStatus)
-    assert(new String(response.getContent.array()).contains(""""differences":1"""))
+    assertResult(HttpResponseStatus.OK.getCode)(response.getStatusCode())
+    assert(response.getContentString().contains(""""differences":1"""))
   }
 
   "verify absent endpoint in API" in {
     val response =
       Await.result(Http.fetchUrl(s"http://${server.externalHttpHostAndPort}/api/1/endpoints/json/stats"))
-    assertResult(HttpResponseStatus.OK)(response.getStatus)
-    assertResult("""{"error":"key not found: json"}""")(new String(response.getContent.array()))
+    assertResult(HttpResponseStatus.OK.getCode)(response.getStatusCode)
+    assertResult("""{"error":"key not found: json"}""")(response.getContentString())
   }
 }

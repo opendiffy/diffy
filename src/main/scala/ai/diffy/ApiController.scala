@@ -199,7 +199,7 @@ class ApiController @Inject()(
 class AllowLocalAccess extends SimpleFilter[Request, Response] {
   def apply(request: Request, service: Service[Request, Response]): Future[Response] = {
     service(request) map { response =>
-      response.headers.set("Access-Control-Allow-Origin", "http://localhost:8888")
+      response.headerMap.set("Access-Control-Allow-Origin", "http://localhost:8888")
       response
     }
   }

@@ -2,24 +2,23 @@ package ai.diffy.proxy
 
 import java.net.SocketAddress
 
-import ai.diffy.analysis.{DifferenceAnalyzer, JoinedDifferences, InMemoryDifferenceCollector}
+import ai.diffy.analysis.{DifferenceAnalyzer, InMemoryDifferenceCollector, JoinedDifferences}
 import ai.diffy.lifter.{HttpLifter, Message}
 import ai.diffy.proxy.DifferenceProxy.NoResponseException
-import com.twitter.finagle.{Service, Http, Filter}
-import com.twitter.finagle.http.{Status, Response, Method, Request}
-import com.twitter.util.{Try, Future}
-import org.jboss.netty.handler.codec.http.{HttpResponse, HttpRequest}
+import com.twitter.finagle.http.{Method, Request, Response, Status}
+import com.twitter.finagle.{Filter, Http, Service}
+import com.twitter.util.{Future, Try}
 
 object HttpDifferenceProxy {
   val okResponse = Future.value(Response(Status.Ok))
 
   val noResponseExceptionFilter =
-    new Filter[HttpRequest, HttpResponse, HttpRequest, HttpResponse] {
+    new Filter[Request, Response, Request, Response] {
       override def apply(
-        request: HttpRequest,
-        service: Service[HttpRequest, HttpResponse]
-      ): Future[HttpResponse] = {
-        service(request).rescue[HttpResponse] { case NoResponseException =>
+        request: Request,
+        service: Service[Request, Response]
+      ): Future[Response] = {
+        service(request).rescue[Response] { case NoResponseException =>
           okResponse
         }
       }
@@ -30,8 +29,8 @@ trait HttpDifferenceProxy extends DifferenceProxy {
   val servicePort: SocketAddress
   val lifter = new HttpLifter(settings.excludeHttpHeadersComparison)
 
-  override type Req = HttpRequest
-  override type Rep = HttpResponse
+  override type Req = Request
+  override type Rep = Response
   override type Srv = HttpService
 
   override def serviceFactory(serverset: String, label: String) =
@@ -43,10 +42,10 @@ trait HttpDifferenceProxy extends DifferenceProxy {
       HttpDifferenceProxy.noResponseExceptionFilter andThen proxy
     )
 
-  override def liftRequest(req: HttpRequest): Future[Message] =
+  override def liftRequest(req: Request): Future[Message] =
     lifter.liftRequest(req)
 
-  override def liftResponse(resp: Try[HttpResponse]): Future[Message] =
+  override def liftResponse(resp: Try[Response]): Future[Message] =
     lifter.liftResponse(resp)
 }
 
@@ -57,9 +56,9 @@ object SimpleHttpDifferenceProxy {
    * "allowHttpSideEffects" flag is set to false.
    */
   lazy val httpSideEffectsFilter =
-    Filter.mk[HttpRequest, HttpResponse, HttpRequest, HttpResponse] { (req, svc) =>
+    Filter.mk[Request, Response, Request, Response] { (req, svc) =>
       val hasSideEffects =
-        Set(Method.Post, Method.Put, Method.Delete).contains(Request(req).method)
+        Set(Method.Post, Method.Put, Method.Delete).map(_.toString()).contains(req.method.toString())
 
       if (hasSideEffects) DifferenceProxy.NoResponseExceptionFuture else svc(req)
     }
