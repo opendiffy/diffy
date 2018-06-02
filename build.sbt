@@ -52,8 +52,8 @@ lazy val baseSettings = Seq(
   libraryDependencies ++= Seq(
     "com.twitter" %% "finagle-http" % "6.35.0",
     "com.twitter" %% "finagle-thriftmux" % "6.35.0",
-    "com.twitter" %% "scrooge-generator" % "4.7.0",
-    "com.twitter" %% "scrooge-core" % "4.7.0",
+    "com.twitter" %% "scrooge-generator" % "4.13.0",
+    "com.twitter" %% "scrooge-core" % "4.13.0",
     "javax.mail" % "mail" % "1.4.7",
     "org.jsoup" % "jsoup" % "1.7.2",
     "org.scala-lang" % "scala-compiler" % scalaVersion.value
