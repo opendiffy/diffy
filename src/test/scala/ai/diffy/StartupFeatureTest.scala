@@ -2,14 +2,15 @@ package ai.diffy
 
 import java.net.ServerSocket
 
-import com.google.inject.Stage
 import ai.diffy.proxy.DifferenceProxy
+import com.google.common.collect.ImmutableMap
+import com.google.inject.Stage
 import com.twitter.finagle.Http
 import com.twitter.finagle.util.DefaultTimer
-import com.twitter.finatra.http.test.EmbeddedHttpServer
+import com.twitter.finatra.http.EmbeddedHttpServer
 import com.twitter.inject.Test
-import com.twitter.util.{Await, Future, FuturePool}
 import com.twitter.util.TimeConversions._
+import com.twitter.util.{Await, Future, FuturePool}
 import org.jboss.netty.handler.codec.http.HttpResponseStatus
 
 class StartupFeatureTest extends Test {
@@ -28,20 +29,22 @@ class StartupFeatureTest extends Test {
   lazy val differenceProxy = diffy.injector.instance[DifferenceProxy]
 
   val server = new EmbeddedHttpServer(
-    stage = Stage.PRODUCTION,
     twitterServer = diffy,
-    extraArgs = Seq(
-      s"-proxy.port=:$d",
-      s"-candidate=localhost:$c",
-      s"-master.primary=localhost:$p",
-      s"-master.secondary=localhost:$s",
-      "-service.protocol=http"))
+    flags = ImmutableMap.of[String, String](
+      "proxy.port", s":$d",
+      "candidate", s"localhost:$c",
+      "master.primary", s"localhost:$p",
+      "master.secondary", s"localhost:$s",
+      "service.protocol", "http"
+    ),
+    stage = Stage.PRODUCTION
+  )
 
-  "verify startup" in {
+  test("verify startup") {
     server.assertHealthy()
   }
 
-  "verify DifferenceCollector" in {
+  test("verify DifferenceCollector") {
     assert(differenceProxy.collector.fields.isEmpty)
     Await.result(Http.fetchUrl(s"http://localhost:$d/json?Twitter").liftToTry)
     var tries = 0
@@ -52,14 +55,14 @@ class StartupFeatureTest extends Test {
     assert(!differenceProxy.collector.fields.isEmpty)
   }
 
-  "verify present differences via API" in {
+  test("verify present differences via API") {
     val response =
       Await.result(Http.fetchUrl(s"http://${server.externalHttpHostAndPort}/api/1/endpoints/undefined_endpoint/stats"))
     assertResult(HttpResponseStatus.OK.getCode)(response.getStatusCode())
     assert(response.getContentString().contains(""""differences":1"""))
   }
 
-  "verify absent endpoint in API" in {
+  test("verify absent endpoint in API") {
     val response =
       Await.result(Http.fetchUrl(s"http://${server.externalHttpHostAndPort}/api/1/endpoints/json/stats"))
     assertResult(HttpResponseStatus.OK.getCode)(response.getStatusCode)

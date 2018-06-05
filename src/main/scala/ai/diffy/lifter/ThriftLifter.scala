@@ -2,33 +2,35 @@ package ai.diffy.lifter
 
 import com.twitter.scrooge.ast._
 import com.twitter.scrooge.frontend.{Importer, ResolvedDocument, ThriftParser, TypeResolver}
-import com.twitter.util.{Future, Memoize, NoStacktrace, Try}
+import com.twitter.util.{Future, Memoize, Return, Throw, Try}
 import org.apache.thrift.protocol._
 import org.apache.thrift.TApplicationException
 import org.apache.thrift.transport.{TMemoryInputTransport, TTransport}
+
+import scala.util.control.NoStackTrace
 
 object ThriftLifter {
   private[lifter] val FileNameRegex = ".*?([^/]+)\\.[^/]+$".r
 
   case class InvalidMessageTypeException(messageType: Byte)
     extends RuntimeException("Invalid message type")
-    with NoStacktrace
+    with NoStackTrace
 
   case class MethodNotFoundException(method: String)
     extends RuntimeException("Method not found: %s".format(method))
-    with NoStacktrace
+    with NoStackTrace
 
   case class FieldOutOfBoundsException(id: Int)
     extends RuntimeException("Field out of bounds: %d".format(id))
-    with NoStacktrace
+    with NoStackTrace
 
   case class UnexpectedThriftTypeException(thriftType: String)
     extends RuntimeException("Unexpected thrift type: %s".format(thriftType))
-    with NoStacktrace
+    with NoStackTrace
 
   case class InvalidServiceException(service: String)
     extends RuntimeException("Invalid service: %s".format(service))
-    with NoStacktrace
+    with NoStackTrace
 
   private[this] def filename(path: String): Option[String] =
     path match {
@@ -74,18 +76,16 @@ class ThriftLifter(
   def apply(transport: TTransport): Try[Message] =
     apply(protocolFactory.getProtocol(transport))
 
-  def apply(proto: TProtocol): Try[Message] = Try { readMessage(proto) }
-
-  def readMessage(proto: TProtocol): Message = {
+  def apply(proto: TProtocol): Try[Message] = {
     val msg = proto.readMessageBegin()
     val result = msg.`type` match {
       case TMessageType.EXCEPTION =>
-        val exception = TApplicationException.read(proto)
+        val exception = TApplicationException.readFrom(proto)
         proto.readMessageEnd()
-        throw exception
+        Throw(exception)
 
       case mType =>
-        readMethod(proto, msg.name, mType)
+        Return(readMethod(proto, msg.name, mType))
     }
     proto.readMessageEnd()
     result

@@ -2,8 +2,8 @@ import ReleaseTransformations._
 
 lazy val buildSettings = Seq(
   organization := "ai.diffy",
-  scalaVersion := "2.11.7",
-  crossScalaVersions := Seq("2.10.5", "2.11.7")
+  scalaVersion := "2.11.11",
+  crossScalaVersions := Seq("2.11.11", "2.12.4")
 )
 
 lazy val compilerOptions = Seq(
@@ -21,23 +21,24 @@ lazy val compilerOptions = Seq(
 lazy val testDependencies = Seq(
   "junit" % "junit" % "4.8.1",
   "org.mockito" % "mockito-all" % "1.8.5",
-  "org.scalacheck" %% "scalacheck" % "1.12.4",
-  "org.scalatest" %% "scalatest" % "2.2.5"
+  "org.scalatest" %% "scalatest" % "3.0.0",
+  "org.scalacheck" %% "scalacheck" % "1.13.4"
 )
 
-lazy val finatraVersion = "2.1.6"
+lazy val finagleVersion = "18.5.0"
+lazy val injectVersion = finagleVersion//"2.1.6"
 
 lazy val finatraDependencies = Seq(
-  "com.twitter.finatra" %% "finatra-http" % finatraVersion,
-  "com.twitter.finatra" %% "finatra-http" % finatraVersion % "test" classifier "tests",
-  "com.twitter.inject" %% "inject-app" % finatraVersion % "test",
-  "com.twitter.inject" %% "inject-app" % finatraVersion % "test" classifier "tests",
-  "com.twitter.inject" %% "inject-core" % finatraVersion % "test",
-  "com.twitter.inject" %% "inject-core" % finatraVersion % "test" classifier "tests",
-  "com.twitter.inject" %% "inject-modules" % finatraVersion % "test",
-  "com.twitter.inject" %% "inject-modules" % finatraVersion % "test" classifier "tests",
-  "com.twitter.inject" %% "inject-server" % finatraVersion % "test",
-  "com.twitter.inject" %% "inject-server" % finatraVersion % "test" classifier "tests"
+  "com.twitter" %% "finatra-http" % finagleVersion,
+  "com.twitter" %% "finatra-http" % finagleVersion % "test" classifier "tests",
+  "com.twitter" %% "inject-app" % injectVersion % "test",
+  "com.twitter" %% "inject-app" % injectVersion % "test" classifier "tests",
+  "com.twitter" %% "inject-core" % injectVersion % "test",
+  "com.twitter" %% "inject-core" % injectVersion % "test" classifier "tests",
+  "com.twitter" %% "inject-modules" % injectVersion % "test",
+  "com.twitter" %% "inject-modules" % injectVersion % "test" classifier "tests",
+  "com.twitter" %% "inject-server" % injectVersion % "test",
+  "com.twitter" %% "inject-server" % injectVersion % "test" classifier "tests"
 )
 
 lazy val baseSettings = Seq(
@@ -50,10 +51,10 @@ lazy val baseSettings = Seq(
   ),
   scalacOptions in (Compile, console) := compilerOptions,
   libraryDependencies ++= Seq(
-    "com.twitter" %% "finagle-http" % "6.35.0",
-    "com.twitter" %% "finagle-thriftmux" % "6.35.0",
-    "com.twitter" %% "scrooge-generator" % "4.13.0",
-    "com.twitter" %% "scrooge-core" % "4.13.0",
+    "com.twitter" %% "finagle-http" % finagleVersion,
+    "com.twitter" %% "finagle-thriftmux" % finagleVersion,
+    "com.twitter" %% "scrooge-generator" % finagleVersion,
+    "com.twitter" %% "scrooge-core" % finagleVersion,
     "javax.mail" % "mail" % "1.4.7",
     "org.jsoup" % "jsoup" % "1.7.2",
     "org.scala-lang" % "scala-compiler" % scalaVersion.value

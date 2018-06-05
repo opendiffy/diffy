@@ -31,9 +31,3 @@ struct DifferenceResult {
   # Responses from primary, secondary and candidate
   7: Responses responses
 }
-
-service SampleService {
-  string get(
-    1: string request
-  )
-}

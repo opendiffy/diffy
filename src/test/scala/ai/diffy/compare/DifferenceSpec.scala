@@ -2,10 +2,10 @@ package ai.diffy.compare
 
 import ai.diffy.lifter.JsonLifter
 import java.nio.ByteBuffer
+
 import org.junit.runner.RunWith
-import org.scalatest.FunSpec
+import org.scalatest.{FunSpec, MustMatchers}
 import org.scalatest.junit.JUnitRunner
-import org.scalatest.matchers.MustMatchers
 import org.scalatest.mock.MockitoSugar
 
 @RunWith(classOf[JUnitRunner])

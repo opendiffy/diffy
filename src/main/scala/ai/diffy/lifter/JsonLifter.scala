@@ -4,16 +4,17 @@ import com.fasterxml.jackson.core.JsonToken
 import com.fasterxml.jackson.databind.{JsonNode, ObjectMapper}
 import com.fasterxml.jackson.module.scala.DefaultScalaModule
 import com.fasterxml.jackson.module.scala.experimental.ScalaObjectMapper
-import com.twitter.util.{Try, NoStacktrace}
+import com.twitter.util.Try
 
 import scala.collection.JavaConversions._
 import scala.language.postfixOps
 import scala.reflect.runtime.universe.runtimeMirror
 import scala.tools.reflect.ToolBox
+import scala.util.control.NoStackTrace
 
 object JsonLifter {
   object JsonNull
-  object JsonParseError extends Exception with NoStacktrace
+  object JsonParseError extends Exception with NoStackTrace
 
   val toolbox = runtimeMirror(getClass.getClassLoader).mkToolBox()
 
