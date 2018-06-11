@@ -1,19 +1,40 @@
 #!/bin/bash
 
-sbtver=0.13.17
-sbtdir=sbt_launch
-sbtbin=./$sbtdir/sbt/bin/sbt
+sbtver=1.1.4
+sbtjar=sbt-launch.jar
+sbtsha128=ac6b13b709e3c0e3a8b2b3bf3031ec57660cb813
 
-sbtrepo=https://sbt-downloads.cdnedge.bluemix.net/releases/v1.1.5
-sbtzip=sbt-1.1.5.zip
+sbtrepo="https://repo1.maven.org/maven2/org/scala-sbt/sbt-launch"
 
-if [ ! -f $sbtbin ]; then
-  echo "downloading $sbtjar" 1>&2
-  if ! curl --location --silent --fail --remote-name $sbtrepo/$sbtzip; then
+if [ ! -f $sbtjar ]; then
+  echo "downloading $PWD/$sbtjar" 1>&2
+  if ! curl --location --silent --fail --remote-name $sbtrepo/$sbtver/$sbtjar; then
     exit 1
   fi
-  unzip $sbtzip -d $sbtdir
+fi
+
+checksum=`openssl dgst -sha1 $sbtjar | awk '{ print $2 }'`
+if [ "$checksum" != $sbtsha128 ]; then
+  echo "bad $PWD/$sbtjar.  delete $PWD/$sbtjar and run $0 again."
+  exit 1
 fi
 
 [ -f ~/.sbtconfig ] && . ~/.sbtconfig
-$sbtbin "$@"
+
+java -ea                          \
+  $SBT_OPTS                       \
+  $JAVA_OPTS                      \
+  -Djava.net.preferIPv4Stack=true \
+  -XX:+AggressiveOpts             \
+  -XX:+UseParNewGC                \
+  -XX:+UseConcMarkSweepGC         \
+  -XX:+CMSParallelRemarkEnabled   \
+  -XX:+CMSClassUnloadingEnabled   \
+  -XX:ReservedCodeCacheSize=128m  \
+  -XX:SurvivorRatio=128           \
+  -XX:MaxTenuringThreshold=0      \
+  -Xss8M                          \
+  -Xms512M                        \
+  -Xmx2G                          \
+  -server                         \
+  -jar $sbtjar "$@"

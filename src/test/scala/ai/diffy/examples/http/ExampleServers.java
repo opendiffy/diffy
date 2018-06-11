@@ -1,4 +1,4 @@
-package ai.diffy;
+package ai.diffy.examples.http;
 
 import com.sun.net.httpserver.HttpExchange;
 import com.sun.net.httpserver.HttpHandler;

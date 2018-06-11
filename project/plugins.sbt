@@ -1,13 +1,23 @@
+//resolvers ++= Seq(
+//  "Twitter's Repository" at "https://maven.twttr.com/",
+//  "jgit-repo" at "http://download.eclipse.org/jgit/maven"
+//)
 resolvers ++= Seq(
-  "Twitter's Repository" at "https://maven.twttr.com/",
-  "jgit-repo" at "http://download.eclipse.org/jgit/maven"
+  Classpaths.sbtPluginReleases,
+  Resolver.sonatypeRepo("snapshots")
 )
 
-addSbtPlugin("com.eed3si9n" % "sbt-assembly" % "0.13.0")
-addSbtPlugin("com.github.gseitz" % "sbt-release" % "1.0.0")
-addSbtPlugin("com.jsuereth" % "sbt-pgp" % "1.0.0")
-addSbtPlugin("com.twitter" %% "scrooge-sbt-plugin" % "4.7.0")
-addSbtPlugin("com.typesafe.sbt" % "sbt-ghpages" % "0.5.3")
-addSbtPlugin("com.typesafe.sbt" % "sbt-site" % "0.8.1")
-addSbtPlugin("net.virtual-void" % "sbt-dependency-graph" % "0.9.0")
+val releaseVersion = "18.5.0"
 
+addSbtPlugin("com.twitter" % "scrooge-sbt-plugin" % releaseVersion)
+
+addSbtPlugin("com.typesafe.sbt" % "sbt-site" % "1.3.0")
+addSbtPlugin("com.eed3si9n" % "sbt-unidoc" % "0.4.1")
+addSbtPlugin("com.eed3si9n" % "sbt-assembly" % "0.14.5")
+addSbtPlugin("io.get-coursier" % "sbt-coursier" % "1.0.0-RC13")
+addSbtPlugin("pl.project13.scala" % "sbt-jmh" % "0.2.27")
+addSbtPlugin("org.scoverage" % "sbt-scoverage" % "1.5.1")
+
+//addSbtPlugin("com.github.gseitz" % "sbt-release" % "1.0.0")
+//addSbtPlugin("com.jsuereth" % "sbt-pgp" % "1.0.0")
+addSbtPlugin("net.virtual-void" % "sbt-dependency-graph" % "0.9.0")

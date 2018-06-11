@@ -5,17 +5,26 @@ scala:
   - 2.12.4
 
 jdk:
-  - oraclejdk7
   - oraclejdk8
+
+env:
+  - JAVA_OPTS="-DSKIP_FLAKY=true -Dsbt.log.noformat=true"
 
 cache:
   directories:
-    - $HOME/.ivy2/cache
-    - $HOME/.sbt/boot/scala-$TRAVIS_SCALA_VERSION
+   - $HOME/.ivy2
+   - $HOME/.sbt/boot/scala-$TRAVIS_SCALA_VERSION
+
+before_cache:
+  # Tricks to avoid unnecessary cache updates
+  - find $HOME/.ivy2 -name "ivydata-*.properties" -delete
+  - find $HOME/.sbt -name "*.lock" -delete
 
 before_script: unset SBT_OPTS
 
-script: sbt clean test
+script:
+  - travis_retry ./sbt ++$TRAVIS_SCALA_VERSION clean coverage test coverageReport
+  - ./sbt ++$TRAVIS_SCALA_VERSION coverageAggregate
 
 after_script:
   - find $HOME/.sbt -name "*.lock" | xargs rm

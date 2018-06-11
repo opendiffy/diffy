@@ -7,13 +7,13 @@ then
    ./sbt assembly
 
     echo "Build primary, secondary, and candidate servers" && \
-    javac -d example src/test/scala/ai/diffy/ExampleServers.java && \
+    javac -d example src/test/scala/ai/diffy/examples/http/ExampleServers.java && \
 
     echo "Deploy primary, secondary, and candidate servers" && \
     java -cp example ai.diffy.ExampleServers 9000 9100 9200 & \
 
     echo "Deploy Diffy" && \
-    java -jar ./target/scala-2.11/diffy-server.jar \
+    java -jar ./target/scala-2.12/diffy-server.jar \
     -candidate='localhost:9200' \
     -master.primary='localhost:9000' \
     -master.secondary='localhost:9100' \
