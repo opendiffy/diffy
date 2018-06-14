@@ -85,7 +85,7 @@ object InMemoryDifferenceCollector {
 class InMemoryDifferenceCollector {
   import InMemoryDifferenceCollector._
 
-  val requestsPerField: Int = 5
+  val requestsPerField: Int = 100
   val fields = mutable.Map.empty[Field, mutable.Queue[DifferenceResult]]
 
   private[this] def sanitizePath(p: String) = p.stripSuffix("/").stripPrefix("/")
@@ -98,9 +98,10 @@ class InMemoryDifferenceCollector {
           mutable.Queue.empty[DifferenceResult]
         )
 
-      if (queue.size < requestsPerField) {
-        queue.enqueue(dr)
+      if (queue.size >= requestsPerField) {
+        queue.dequeue()
       }
+      queue.enqueue(dr)
     }
     Future.value(dr)
   }

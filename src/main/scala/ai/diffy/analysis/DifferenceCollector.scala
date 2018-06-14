@@ -13,14 +13,14 @@ import com.twitter.util.{Future, Time}
 import scala.util.Random
 
 object DifferenceAnalyzer {
-  val UndefinedEndpoint = Some("undefined_endpoint")
+  val UndefinedEndpoint = Some("Undefined_endpoint")
   val log = Logger(classOf[DifferenceAnalyzer])
   log.setUseParentHandlers(false)
   log.addHandler(
     FileHandler(
-      filename = "differences.log",
-      rollPolicy = Policy.MaxSize(128.megabytes),
-      rotateCount = 2
+      filename = "/mnt/diffStore/differences.log",
+      rollPolicy = Policy.Hourly,
+      rotateCount = 24 * 30 // Keep 30 days of logs
     )()
   )
 
