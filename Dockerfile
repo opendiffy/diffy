@@ -1,11 +1,11 @@
-FROM hseeberger/scala-sbt
+FROM bitbucketpipelines/scala-sbt:scala-2.12
 
 RUN apt-get update
 
 ADD . /usr/local/src
 WORKDIR /usr/local/src
 RUN ./sbt assembly
-RUN mv target/scala-2.11 /bin/diffy
+RUN mv target/scala-2.12 /bin/diffy
 
 ENTRYPOINT ["java", "-jar", "/bin/diffy/diffy-server.jar"]
 
