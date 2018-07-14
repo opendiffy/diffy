@@ -10,7 +10,7 @@ then
     javac -d example src/test/scala/ai/diffy/examples/http/ExampleServers.java && \
 
     echo "Deploy primary, secondary, and candidate servers" && \
-    java -cp example ai.diffy.ExampleServers 9000 9100 9200 & \
+    java -cp example ai.diffy.examples.http.ExampleServers 9000 9100 9200 & \
 
     echo "Deploy Diffy" && \
     java -jar ./target/scala-2.12/diffy-server.jar \
