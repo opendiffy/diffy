@@ -96,7 +96,9 @@ lazy val finatraDependencies = Seq(
   "com.twitter" %% "inject-modules" % finagleVersion % "test",
   "com.twitter" %% "inject-modules" % finagleVersion % "test" classifier "tests",
   "com.twitter" %% "inject-server" % finagleVersion % "test",
-  "com.twitter" %% "inject-server" % finagleVersion % "test" classifier "tests"
+  "com.twitter" %% "inject-server" % finagleVersion % "test" classifier "tests",
+  "com.twitter" %% "twitter-server-logback-classic" % finagleVersion,
+  "ch.qos.logback" % "logback-classic" % versions.logback
 )
 
 lazy val scroogeDependencies = Seq(
