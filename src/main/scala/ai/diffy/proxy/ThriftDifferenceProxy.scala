@@ -7,6 +7,7 @@ import ai.diffy.analysis.{DifferenceAnalyzer, InMemoryDifferenceCollector, Joine
 import ai.diffy.lifter.{MapLifterPool, Message, ThriftLifter}
 import ai.diffy.scrooge.ZippedFileImporter
 import com.twitter.finagle.thrift.{ClientId, ThriftClientRequest}
+import com.twitter.finagle.tracing.NullTracer
 import com.twitter.finagle.{Resolver, Thrift, ThriftMux}
 import com.twitter.util.{Future, Try}
 
@@ -53,8 +54,12 @@ case class ThriftDifferenceProxy (
         .withClientId(clientId)
         .newClient(serverset, label).toService
     } else {
-      val config = if(settings.useFramedThriftTransport) Thrift.client else Thrift.client.withBufferedTransport
-      config.withClientId(clientId).newClient(serverset, label).toService
+      val config = if(settings.useFramedThriftTransport) {
+        Thrift.client
+      } else {
+        Thrift.client.withBufferedTransport
+      }
+      config.withTracer(NullTracer).withClientId(clientId).newClient(serverset, label).toService
     }
 
     ThriftService(client, Resolver.eval(serverset))
@@ -67,8 +72,12 @@ case class ThriftDifferenceProxy (
         proxy map { req: Array[Byte] => new ThriftClientRequest(req, false) }
       )
     } else {
-      val config = if(settings.useFramedThriftTransport) Thrift.server else Thrift.server.withBufferedTransport()
-      config.serve(
+      val config = if(settings.useFramedThriftTransport) {
+        Thrift.server
+      } else {
+        Thrift.server.withBufferedTransport()
+      }
+      config.withTracer(NullTracer).serve(
         settings.servicePort,
         proxy map { req: Array[Byte] => new ThriftClientRequest(req, false) }
       )
