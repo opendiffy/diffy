@@ -25,6 +25,7 @@ case class Settings(
   allowHttpSideEffects: Boolean,
   excludeHttpHeadersComparison: Boolean,
   skipEmailsWhenNoErrors: Boolean,
-  httpsPort: String)
+  httpsPort: String,
+  useFramedThriftTransport: Boolean)
 
 case class Target(path: String)

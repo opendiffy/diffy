@@ -49,9 +49,12 @@ case class ThriftDifferenceProxy (
 
   override def serviceFactory(serverset: String, label: String) = {
     val client = if (settings.enableThriftMux) {
-      ThriftMux.client.withClientId(clientId).newClient(serverset, label).toService
+      ThriftMux.client
+        .withClientId(clientId)
+        .newClient(serverset, label).toService
     } else {
-      Thrift.client.withClientId(clientId).newClient(serverset, label).toService
+      val config = if(settings.useFramedThriftTransport) Thrift.client else Thrift.client.withBufferedTransport
+      config.withClientId(clientId).newClient(serverset, label).toService
     }
 
     ThriftService(client, Resolver.eval(serverset))
@@ -64,7 +67,8 @@ case class ThriftDifferenceProxy (
         proxy map { req: Array[Byte] => new ThriftClientRequest(req, false) }
       )
     } else {
-      Thrift.serve(
+      val config = if(settings.useFramedThriftTransport) Thrift.server else Thrift.server.withBufferedTransport()
+      config.serve(
         settings.servicePort,
         proxy map { req: Array[Byte] => new ThriftClientRequest(req, false) }
       )

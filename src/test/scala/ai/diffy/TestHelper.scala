@@ -30,7 +30,8 @@ object TestHelper extends MockitoSugar {
     allowHttpSideEffects = true,
     excludeHttpHeadersComparison = true,
     skipEmailsWhenNoErrors = false,
-    httpsPort = "443"
+    httpsPort = "443",
+    useFramedThriftTransport = false
   )
 
   def makeEmptyJoinedDifferences = {
