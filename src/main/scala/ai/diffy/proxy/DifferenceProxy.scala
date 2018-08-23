@@ -1,12 +1,13 @@
 package ai.diffy.proxy
 
 import java.util.concurrent.atomic.AtomicInteger
-import javax.inject.Singleton
 
+import javax.inject.Singleton
 import com.google.inject.Provides
 import ai.diffy.analysis._
 import ai.diffy.lifter.Message
 import com.twitter.finagle._
+import com.twitter.finagle.tracing.Trace
 import com.twitter.inject.TwitterModule
 import com.twitter.logging.Logger
 import com.twitter.util._
@@ -67,6 +68,7 @@ trait DifferenceProxy {
   val outstandingRequests = new AtomicInteger(0)
   def proxy = new Service[Req, Rep] {
     override def apply(req: Req): Future[Rep] = {
+      Trace.disable()
       outstandingRequests.incrementAndGet()
       val rawResponses: Future[Seq[Try[Rep]]] =
         multicastHandler(req) respond {
