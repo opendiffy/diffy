@@ -59,7 +59,13 @@ case class ThriftDifferenceProxy (
       } else {
         Thrift.client.withBufferedTransport
       }
-      config.withTracer(NullTracer).withClientId(clientId).newClient(serverset, label).toService
+
+      config
+        .withNoAttemptTTwitterUpgrade
+        .withTracer(NullTracer)
+        .withClientId(clientId)
+        .newClient(serverset, label)
+        .toService
     }
 
     ThriftService(client, Resolver.eval(serverset))
