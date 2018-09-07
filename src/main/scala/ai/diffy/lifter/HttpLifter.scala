@@ -41,72 +41,27 @@ class HttpLifter(excludeHttpHeadersComparison: Boolean) {
   }
 
   def liftResponse(resp: Try[Response]): Future[Message] = {
+    log.info(s"$resp")
     Future.const(resp) flatMap { r: Response =>
-      val mediaTypeOpt: Option[MediaType] =
-        r.headerMap.get(HttpHeaders.CONTENT_TYPE) map { MediaType.parse }
-      
-      val contentLengthOpt = r.headerMap.get(HttpHeaders.CONTENT_LENGTH)
 
       /** header supplied by macaw, indicating the controller reached **/
       val controllerEndpoint = r.headerMap.get(ControllerEndpointHeaderName)
 
-      (mediaTypeOpt, contentLengthOpt) match {
-        /** When Content-Length is 0, only compare headers **/
-        case (_, Some(length)) if length.toInt == 0 =>
-          Future.const(
-            Try(Message(controllerEndpoint, FieldMap(headersMap(r))))
-          )
-
-        /** When Content-Type is set as application/json, lift as Json **/
-        case (Some(mediaType), _) if mediaType.is(MediaType.JSON_UTF_8) || mediaType.toString == "application/json" => {
-          val jsonContentTry = Try {
-            JsonLifter.decode(r.getContentString())
-          }
-
-          Future.const(jsonContentTry map { jsonContent =>
-            val responseMap = Map(
-              r.getStatusCode().toString -> (Map(
-                "content" -> jsonContent,
-                "chunked" -> r.isChunked
-              ) ++ headersMap(r))
-            )
-
-            Message(controllerEndpoint, FieldMap(responseMap))
-          }).rescue { case t: Throwable =>
-            Future.exception(new MalformedJsonContentException(t))
-          }
-        }
-
-        /** When Content-Type is set as text/html, lift as Html **/
-        case (Some(mediaType), _)
-          if mediaType.is(MediaType.HTML_UTF_8) || mediaType.toString == "text/html" => {
-            val htmlContentTry = Try {
-              HtmlLifter.lift(HtmlLifter.decode(r.getContentString()))
-            }
-
-            Future.const(htmlContentTry map { htmlContent =>
-              val responseMap = Map(
-                r.getStatusCode().toString -> (Map(
-                  "content" -> htmlContent,
-                  "chunked" -> r.isChunked
-                ) ++ headersMap(r))
-              )
-
-              Message(controllerEndpoint, FieldMap(responseMap))
-            })
-          }
-
-        /** When content type is not set, only compare headers **/
-        case (None, _) => {
-          Future.const(Try(
-            Message(controllerEndpoint, FieldMap(headersMap(r)))))
-        }
-
-        case (Some(mediaType), _) => {
-          log.debug(s"Content type: $mediaType is not supported")
-          contentTypeNotSupportedExceptionFuture(mediaType.toString)
-        }
+      val stringContentTry = Try {
+        StringLifter.lift(r.getContentString())
       }
+
+      Future.const(stringContentTry map { stringContent =>
+        val responseMap = Map(
+          r.getStatusCode().toString -> (Map(
+            "content" -> stringContent,
+            "chunked" -> r.isChunked
+          ) ++ headersMap(r))
+        )
+
+        Message(controllerEndpoint, FieldMap(responseMap))
+      })
+
     }
   }
 }

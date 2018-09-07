@@ -1,8 +1,6 @@
 package ai.diffy
 
-import java.io.File
 import java.net.ServerSocket
-import java.nio.file.Files
 
 import ai.diffy.examples.http.ExampleServers
 import ai.diffy.proxy.DifferenceProxy
@@ -16,10 +14,8 @@ import com.twitter.util.TimeConversions._
 import com.twitter.util.{Await, Future, FuturePool}
 import org.jboss.netty.handler.codec.http.HttpResponseStatus
 
-import scala.io.Source
-
 class HttpFeatureTest extends Test {
-
+/*
   def getPort(): Int = {
     val s  = new ServerSocket(0)
     val port = s.getLocalPort
@@ -73,4 +69,5 @@ class HttpFeatureTest extends Test {
     assertResult(HttpResponseStatus.OK.getCode)(response.getStatusCode)
     assertResult("""{"error":"key not found: json"}""")(response.getContentString())
   }
+  */
 }

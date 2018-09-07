@@ -4,7 +4,7 @@ if [ "$1" = "start" ];
 then
 
     echo "Build Diffy" && \
-   ./sbt assembly
+    #./sbt assembly
 
     echo "Build primary, secondary, and candidate servers" && \
     javac -d example src/test/scala/ai/diffy/examples/http/ExampleServers.java && \
@@ -29,7 +29,7 @@ then
     sleep 2
 
     echo "Send some traffic to your Diffy instance"
-    for i in {1..20}
+    for i in {1..10}
     do
         sleep 0.1
         curl -s -i -H "Canonical-Resource : json" http://localhost:8880/json?Mixpanel > /dev/null

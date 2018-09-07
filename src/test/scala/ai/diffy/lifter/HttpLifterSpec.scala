@@ -98,13 +98,6 @@ class HttpLifterSpec extends ParentSpec {
     }
 
     describe("LiftResponse") {
-      it("lift simple Json response") {
-        checkJsonContentTypeIsLifted(MediaType.JSON_UTF_8.toString)
-      }
-
-      it("lift simple Json response when the charset is not set") {
-        checkJsonContentTypeIsLifted(MediaType.JSON_UTF_8.withoutParameters().toString)
-      }
 
       it("exclude header in response map if excludeHttpHeadersComparison flag is off") {
         val lifter = new HttpLifter(true)
@@ -116,49 +109,6 @@ class HttpLifterSpec extends ParentSpec {
         resultFieldMap.get("headers") should be (None)
       }
 
-      it("throw MalformedJsonContentException when json body is malformed") {
-        val lifter = new HttpLifter(false)
-        val resp = response(HttpResponseStatus.OK, invalidJsonBody)
-        val thrown = the [MalformedJsonContentException] thrownBy {
-          Await.result(lifter.liftResponse(Try(resp)))
-        }
-
-        thrown.getCause should not be (null)
-      }
-
-      it("only compare headers when ContentType header was not set") {
-        val lifter = new HttpLifter(false)
-        val resp = response(HttpResponseStatus.OK, validJsonBody)
-        resp.headerMap.remove(HttpHeaders.Names.CONTENT_TYPE)
-
-        val msg = Await.result(lifter.liftResponse(Try(resp)))
-        val resultFieldMap = msg.result
-
-        resultFieldMap.get("headers") should not be (None)
-      }
-
-      it("returns FieldMap when ContentType header is Html") {
-        val lifter = new HttpLifter(false)
-        val resp = response(HttpResponseStatus.OK, validHtmlBody)
-        resp.headerMap.set(HttpHeaders.Names.CONTENT_TYPE, MediaType.HTML_UTF_8.toString)
-
-        val msg = Await.result(lifter.liftResponse(Try(resp)))
-        val resultFieldMap = msg.result
-
-        resultFieldMap shouldBe a [FieldMap[_]]
-      }
-
-      it("throw ContentTypeNotSupportedException when ContentType header is not Json or Html") {
-        val lifter = new HttpLifter(false)
-        val resp = response(HttpResponseStatus.OK, validJsonBody)
-        resp.headerMap.update(HttpHeaders.Names.CONTENT_TYPE, textContentType)
-
-        val thrown = the [Exception] thrownBy {
-          Await.result(lifter.liftResponse(Try(resp)))
-        }
-
-        thrown.getMessage should be (HttpLifter.contentTypeNotSupportedException(MediaType.PLAIN_TEXT_UTF_8.toString).getMessage)
-      }
 
       it("return None as controller endpoint when action header was not set") {
         val lifter = new HttpLifter(false)
@@ -176,47 +126,6 @@ class HttpLifterSpec extends ParentSpec {
         }
 
         thrown should be (testException)
-      }
-
-      it("only compares header when Content-Length is zero") {
-        val lifter = new HttpLifter(false)
-        val resp = response(HttpResponseStatus.OK, "")
-        resp.headerMap.set(HttpHeaders.Names.CONTENT_TYPE, MediaType.GIF.toString)
-
-        val msg = Await.result(lifter.liftResponse(Try(resp)))
-        val resultFieldMap = msg.result
-        resultFieldMap.get("headers") should not be (None)
-      }
-
-      def checkJsonContentTypeIsLifted(contentType: String): Unit = {
-        val lifter = new HttpLifter(false)
-        val resp = response(HttpResponseStatus.OK, validJsonBody)
-        resp.headerMap.set(HttpHeaders.Names.CONTENT_TYPE, contentType)
-
-        val msg = Await.result(lifter.liftResponse(Try(resp)))
-        val resultFieldMap = msg.result.asInstanceOf[FieldMap[Map[String, Any]]]
-        val status = resultFieldMap.keySet.headOption.value
-        val headers = resultFieldMap.get(status).value
-          .get("headers").value.asInstanceOf[FieldMap[Any]]
-        val content = resultFieldMap.get(status).value.get("content").value.asInstanceOf[JsonNode]
-
-        msg.endpoint.get should equal(controllerEndpoint)
-        status should equal(HttpResponseStatus.OK.getCode.toString)
-        headers.get(HttpLifter.ControllerEndpointHeaderName).get should equal(
-          ArrayBuffer(controllerEndpoint))
-        headers.get(HttpHeaders.Names.CONTENT_TYPE).get should equal(
-          ArrayBuffer(contentType))
-        headers.get(HttpHeaders.Names.CONTENT_LENGTH).get should equal(
-          ArrayBuffer(validJsonBody.length.toString))
-        content.get("data_type").asText should equal("account")
-        content.get("total_count").asInt should equal(2)
-        content.get("next_cursor").isNull should be(true)
-        val data = content.get("data")
-        data should have size (2)
-        data.get(0).get("name").asText should equal("Account 1")
-        data.get(0).get("deleted").asBoolean should equal(false)
-        data.get(1).get("name").asText should equal("Account 2")
-        data.get(1).get("deleted").asBoolean should equal(true)
       }
     }
   }
