@@ -16,5 +16,5 @@ lib_managed/
 out/
 sbt-launch.jar
 sbt_launch/
-example/ai/diffy/*.class
+example/ai/diffy/examples/http/
 differences.log
