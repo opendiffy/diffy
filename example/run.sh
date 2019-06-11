@@ -4,7 +4,7 @@ if [ "$1" = "start" ];
 then
 
     echo "Build Diffy" && \
-    #./sbt assembly
+    ./sbt assembly
 
     echo "Build primary, secondary, and candidate servers" && \
     javac -d example src/test/scala/ai/diffy/examples/http/ExampleServers.java && \
@@ -48,4 +48,3 @@ then
 else
     echo "Please make sure ports 9000, 9100, 9200, 8880, 8881, & 8888 are available before running \"example/run.sh start\""
 fi
-

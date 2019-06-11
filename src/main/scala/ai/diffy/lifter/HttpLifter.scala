@@ -35,9 +35,23 @@ class HttpLifter(excludeHttpHeadersComparison: Boolean) {
   }
 
   def liftRequest(req: Request): Future[Message] = {
-    val canonicalResource = req.headerMap.get("Canonical-Resource")
-    val body = req.getContentString()
-    Future.value(Message(canonicalResource, FieldMap(Map("request"-> req.toString, "body" -> body))))
+    val headers = req.headerMap
+    val canonicalResource = headers.get("Canonical-Resource")
+    val params = req.getParams()
+    val body = StringLifter.lift(req.getContentString())
+    Future.value(
+      Message(
+        canonicalResource,
+        FieldMap(
+          Map(
+            "request"-> req.toString,
+            "headers" -> headers,
+            "params" -> params,
+            "body" -> body
+          )
+        )
+      )
+    )
   }
 
   def liftResponse(resp: Try[Response]): Future[Message] = {
