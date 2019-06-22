@@ -1,5 +1,5 @@
 # build image
-FROM bitbucketpipelines/scala-sbt:scala-2.12 as builder 
+FROM mozilla/sbt:8u212_1.2.8 as builder
 
 RUN apt-get update
 
