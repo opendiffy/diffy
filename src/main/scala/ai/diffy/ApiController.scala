@@ -159,9 +159,9 @@ class ApiController @Inject()(
   get("/api/1/info") { req: Request =>
     (proxy match {
       case thrift: ThriftDifferenceProxy => Map(
-        "candidate" -> thriftServiceToMap(settings.candidate.path, thrift.candidate),
-        "primary" -> thriftServiceToMap(settings.primary.path, thrift.primary),
-        "secondary" -> thriftServiceToMap(settings.secondary.path, thrift.secondary),
+        "candidate" -> thriftServiceToMap(settings.candidate, thrift.candidate),
+        "primary" -> thriftServiceToMap(settings.primary, thrift.primary),
+        "secondary" -> thriftServiceToMap(settings.secondary, thrift.secondary),
         "thrift_jar" -> settings.pathToThriftJar,
         "service_class" -> settings.serviceClass,
         "service_name" -> settings.serviceName,
@@ -172,9 +172,9 @@ class ApiController @Inject()(
       )
 
       case http: HttpDifferenceProxy => Map(
-        "candidate" -> httpServiceToMap(settings.candidate.path, http.candidate),
-        "primary" -> httpServiceToMap(settings.primary.path, http.primary),
-        "secondary" -> httpServiceToMap(settings.secondary.path, http.secondary),
+        "candidate" -> httpServiceToMap(settings.candidate, http.candidate),
+        "primary" -> httpServiceToMap(settings.primary, http.primary),
+        "secondary" -> httpServiceToMap(settings.secondary, http.secondary),
         "protocol" -> "http"
       )
     }) ++ Map("last_reset" -> proxy.lastReset.inMillis)

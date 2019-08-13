@@ -2,6 +2,7 @@ package ai.diffy.proxy
 
 import java.util.concurrent.atomic.AtomicInteger
 
+import ai.diffy.IsotopeSdkModule.IsotopeClient
 import javax.inject.Singleton
 import com.google.inject.Provides
 import ai.diffy.analysis._
@@ -20,12 +21,13 @@ object DifferenceProxyModule extends TwitterModule {
     settings: Settings,
     collector: InMemoryDifferenceCollector,
     joinedDifferences: JoinedDifferences,
-    analyzer: DifferenceAnalyzer
+    analyzer: DifferenceAnalyzer,
+    isotopeClient: IsotopeClient
   ): DifferenceProxy =
     settings.protocol match {
-      case "thrift" => ThriftDifferenceProxy(settings, collector, joinedDifferences, analyzer)
-      case "http" => SimpleHttpDifferenceProxy(settings, collector, joinedDifferences, analyzer)
-      case "https" => SimpleHttpsDifferenceProxy(settings, collector, joinedDifferences, analyzer)
+      case "thrift" => ThriftDifferenceProxy(settings, collector, joinedDifferences, analyzer, isotopeClient)
+      case "http" => SimpleHttpDifferenceProxy(settings, collector, joinedDifferences, analyzer, isotopeClient)
+      case "https" => SimpleHttpsDifferenceProxy(settings, collector, joinedDifferences, analyzer, isotopeClient)
     }
 }
 
@@ -52,15 +54,17 @@ trait DifferenceProxy {
   def liftResponse(rep: Try[Rep]): Future[Message]
 
   // Clients for services
-  val candidate = serviceFactory(settings.candidate.path, "candidate")
-  val primary   = serviceFactory(settings.primary.path, "primary")
-  val secondary = serviceFactory(settings.secondary.path, "secondary")
+  val candidate = serviceFactory(settings.candidate, "candidate")
+  val primary   = serviceFactory(settings.primary, "primary")
+  val secondary = serviceFactory(settings.secondary, "secondary")
 
   val collector: InMemoryDifferenceCollector
 
   val joinedDifferences: JoinedDifferences
 
   val analyzer: DifferenceAnalyzer
+
+  val isotopeClient: IsotopeClient
 
   private[this] lazy val multicastHandler =
     new SequentialMulticastService(Seq(primary, candidate, secondary) map { _.client })
@@ -95,6 +99,7 @@ trait DifferenceProxy {
             case Throw(t) => log.debug(t, "error lifting request")
           } map { req =>
             analyzer(req, candidateResponse, primaryResponse, secondaryResponse)
+//            isotopeClient.save()
           }
       } respond { _ => outstandingRequests.decrementAndGet }
 

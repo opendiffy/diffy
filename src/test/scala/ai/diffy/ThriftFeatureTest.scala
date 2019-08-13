@@ -8,16 +8,13 @@ import java.util.zip.{ZipEntry, ZipOutputStream}
 import ai.diffy.examples.thrift.ExampleServers
 import ai.diffy.proxy.DifferenceProxy
 import ai.diffy.thriftscala.Adder
-import com.google.common.collect.ImmutableMap
 import com.google.inject.Stage
-import com.sun.nio.zipfs.ZipFileSystem
-import com.twitter.finagle.{Http, ThriftMux}
+import com.twitter.finagle.http.Status
 import com.twitter.finagle.util.DefaultTimer
+import com.twitter.finagle.{Http, ThriftMux}
 import com.twitter.finatra.http.EmbeddedHttpServer
 import com.twitter.inject.Test
-import com.twitter.util.TimeConversions._
-import com.twitter.util.{Await, Future, FuturePool}
-import org.jboss.netty.handler.codec.http.HttpResponseStatus
+import com.twitter.util.{Await, Duration, Future, FuturePool}
 
 import scala.io.Source
 
@@ -72,7 +69,7 @@ class ThriftFeatureTest extends Test {
     Await.result(client.add(1, 1).liftToTry)
     var tries = 0
     while(differenceProxy.outstandingRequests.get() > 0 && tries < 10) {
-      Await.result(Future.sleep(1.seconds)(DefaultTimer.twitter))
+      Await.result(Future.sleep(Duration.fromSeconds(1))(DefaultTimer.twitter))
       tries = tries + 1
     }
     assert(!differenceProxy.collector.fields.isEmpty)
@@ -81,14 +78,15 @@ class ThriftFeatureTest extends Test {
   test("verify present differences via API") {
     val response =
       Await.result(Http.fetchUrl(s"http://${server.externalHttpHostAndPort}/api/1/endpoints/add/stats"))
-    assertResult(HttpResponseStatus.OK.getCode)(response.getStatusCode())
+    assertResult(Status.Ok)(response.status)
     assert(response.getContentString().contains(""""differences":1"""))
   }
 
   test("verify absent endpoint in API") {
     val response =
       Await.result(Http.fetchUrl(s"http://${server.externalHttpHostAndPort}/api/1/endpoints/subtract/stats"))
-    assertResult(HttpResponseStatus.OK.getCode)(response.getStatusCode)
+    assertResult(Status.Ok)(response.status)
     assertResult("""{"error":"key not found: subtract"}""")(response.getContentString())
   }
+
 }

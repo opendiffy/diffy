@@ -1,10 +1,9 @@
 package ai.diffy.workflow
 
 import ai.diffy.ParentSpec
-import ai.diffy.analysis.{RawDifferenceCounter, EndpointMetadata, DifferenceCounter}
+import ai.diffy.analysis.{DifferenceCounter, EndpointMetadata, RawDifferenceCounter}
 import com.twitter.finagle.stats.InMemoryStatsReceiver
-import com.twitter.util.{Future, MockTimer, Time}
-import com.twitter.util.TimeConversions._
+import com.twitter.util.{Duration, Future, MockTimer, Time}
 import org.junit.runner.RunWith
 import org.mockito.Mockito._
 import org.scalatest.junit.JUnitRunner
@@ -31,7 +30,7 @@ class DifferenceStatsMonitorSpec extends ParentSpec {
         monitor.schedule()
         timer.tasks.size must be(1)
         stats.gauges.size must be(0)
-        tc.advance(1.minute)
+        tc.advance(Duration.fromMinutes(1))
         timer.tick()
         timer.tasks.size must be(1)
         stats.gauges.size must be(2)

@@ -1,18 +1,13 @@
 package ai.diffy.lifter
 
 import ai.diffy.ParentSpec
-import ai.diffy.lifter.HttpLifter.MalformedJsonContentException
-import com.fasterxml.jackson.databind.JsonNode
 import com.google.common.net.MediaType
 import com.twitter.finagle.http._
+import com.twitter.finatra.http.HttpHeaders
 import com.twitter.util.{Await, Throw, Try}
-import org.jboss.netty.handler.codec.http._
 import org.junit.runner.RunWith
 import org.scalatest.Matchers._
-import org.scalatest.OptionValues._
 import org.scalatest.junit.JUnitRunner
-
-import scala.collection.mutable.ArrayBuffer
 
 @RunWith(classOf[JUnitRunner])
 class HttpLifterSpec extends ParentSpec {
@@ -54,13 +49,13 @@ class HttpLifterSpec extends ParentSpec {
       req
     }
 
-    def response(status: HttpResponseStatus, body: String): Response = {
+    def response(status: Status, body: String): Response = {
 
       val resp = Response()
-      resp.setStatusCode(status.getCode)
+      resp.status = status
       resp.headerMap
-        .add(HttpHeaders.Names.CONTENT_LENGTH, body.length.toString)
-        .add(HttpHeaders.Names.CONTENT_TYPE, jsonContentType)
+        .add(HttpHeaders.ContentLength, body.length.toString)
+        .add(HttpHeaders.ContentType, jsonContentType)
         .add(HttpLifter.ControllerEndpointHeaderName, controllerEndpoint)
       resp.setContentString(body)
       resp
@@ -101,7 +96,7 @@ class HttpLifterSpec extends ParentSpec {
 
       it("exclude header in response map if excludeHttpHeadersComparison flag is off") {
         val lifter = new HttpLifter(true)
-        val resp = response(HttpResponseStatus.OK, validJsonBody)
+        val resp = response(Status.Ok, validJsonBody)
 
         val msg = Await.result(lifter.liftResponse(Try(resp)))
         val resultFieldMap = msg.result
@@ -112,7 +107,7 @@ class HttpLifterSpec extends ParentSpec {
 
       it("return None as controller endpoint when action header was not set") {
         val lifter = new HttpLifter(false)
-        val resp = response(HttpResponseStatus.OK, validJsonBody)
+        val resp = response(Status.Ok, validJsonBody)
         resp.headerMap.remove(HttpLifter.ControllerEndpointHeaderName)
         val msg = Await.result(lifter.liftResponse(Try(resp)))
 

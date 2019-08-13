@@ -2,19 +2,19 @@ package ai.diffy
 
 import java.net.InetSocketAddress
 
-import ai.diffy.proxy._
-import com.twitter.util.TimeConversions._
-import org.scalatest.mock.MockitoSugar
 import ai.diffy.analysis._
 import ai.diffy.compare.Difference
+import ai.diffy.proxy._
+import com.twitter.util.Duration
+import org.scalatest.mock.MockitoSugar
 
 object TestHelper extends MockitoSugar {
   lazy val testSettings = Settings(
     datacenter = "test",
     servicePort = new InetSocketAddress(9999),
-    candidate = mock[Target],
-    primary = mock[Target],
-    secondary = mock[Target],
+    candidate = "candidate",
+    primary = "primary",
+    secondary = "secondary",
     protocol = "test",
     clientId = "test",
     pathToThriftJar = "test",
@@ -25,7 +25,7 @@ object TestHelper extends MockitoSugar {
     relativeThreshold = 0.0,
     absoluteThreshold = 0.0,
     teamEmail = "test",
-    emailDelay = 0.seconds,
+    emailDelay = Duration.fromSeconds(0),
     rootUrl = "test",
     allowHttpSideEffects = true,
     excludeHttpHeadersComparison = true,

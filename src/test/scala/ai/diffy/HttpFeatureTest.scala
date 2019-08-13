@@ -7,15 +7,13 @@ import ai.diffy.proxy.DifferenceProxy
 import com.google.common.collect.ImmutableMap
 import com.google.inject.Stage
 import com.twitter.finagle.Http
+import com.twitter.finagle.http.Status
 import com.twitter.finagle.util.DefaultTimer
 import com.twitter.finatra.http.EmbeddedHttpServer
 import com.twitter.inject.Test
-import com.twitter.util.TimeConversions._
-import com.twitter.util.{Await, Future, FuturePool}
-import org.jboss.netty.handler.codec.http.HttpResponseStatus
+import com.twitter.util.{Await, Duration, Future, FuturePool}
 
 class HttpFeatureTest extends Test {
-/*
   def getPort(): Int = {
     val s  = new ServerSocket(0)
     val port = s.getLocalPort
@@ -50,7 +48,7 @@ class HttpFeatureTest extends Test {
     Await.result(Http.fetchUrl(s"http://localhost:$d/json?Twitter").liftToTry)
     var tries = 0
     while(differenceProxy.outstandingRequests.get() > 0 && tries < 10) {
-      Await.result(Future.sleep(1.seconds)(DefaultTimer.twitter))
+      Await.result(Future.sleep(Duration.fromSeconds(1))(DefaultTimer.twitter))
       tries = tries + 1
     }
     assert(!differenceProxy.collector.fields.isEmpty)
@@ -59,15 +57,14 @@ class HttpFeatureTest extends Test {
   test("verify present differences via API") {
     val response =
       Await.result(Http.fetchUrl(s"http://${server.externalHttpHostAndPort}/api/1/endpoints/undefined_endpoint/stats"))
-    assertResult(HttpResponseStatus.OK.getCode)(response.getStatusCode())
+    assertResult(Status.Ok)(response.status)
     assert(response.getContentString().contains(""""differences":1"""))
   }
 
   test("verify absent endpoint in API") {
     val response =
       Await.result(Http.fetchUrl(s"http://${server.externalHttpHostAndPort}/api/1/endpoints/json/stats"))
-    assertResult(HttpResponseStatus.OK.getCode)(response.getStatusCode)
+    assertResult(Status.Ok)(response.status)
     assertResult("""{"error":"key not found: json"}""")(response.getContentString())
   }
-  */
 }

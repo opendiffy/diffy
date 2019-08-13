@@ -2,7 +2,6 @@
 
 if [ "$1" = "start" ];
 then
-
     echo "Build Diffy" && \
     ./sbt assembly
 

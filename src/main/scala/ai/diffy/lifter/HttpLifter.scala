@@ -55,7 +55,7 @@ class HttpLifter(excludeHttpHeadersComparison: Boolean) {
   }
 
   def liftResponse(resp: Try[Response]): Future[Message] = {
-    log.info(s"$resp")
+    log.debug(s"$resp")
     Future.const(resp) flatMap { r: Response =>
 
       /** header supplied by macaw, indicating the controller reached **/
@@ -67,7 +67,7 @@ class HttpLifter(excludeHttpHeadersComparison: Boolean) {
 
       Future.const(stringContentTry map { stringContent =>
         val responseMap = Map(
-          r.getStatusCode().toString -> (Map(
+          r.statusCode.toString -> (Map(
             "content" -> stringContent,
             "chunked" -> r.isChunked
           ) ++ headersMap(r))

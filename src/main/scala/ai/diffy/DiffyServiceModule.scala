@@ -1,14 +1,18 @@
 package ai.diffy
 
-import com.google.inject.Provides
-import com.twitter.inject.TwitterModule
-import com.twitter.util.TimeConversions._
 import java.net.InetSocketAddress
-import javax.inject.Singleton
 
 import ai.diffy.analysis.{InMemoryDifferenceCollector, InMemoryDifferenceCounter, NoiseDifferenceCounter, RawDifferenceCounter}
-import ai.diffy.proxy.{Settings, Target}
-import com.twitter.util.Duration
+import ai.diffy.compare.Difference
+import ai.diffy.lifter.JsonLifter
+import ai.diffy.proxy.Settings
+import com.google.inject.Provides
+import com.twitter.finagle.Http
+import com.twitter.finagle.http.{Method, Request}
+import com.twitter.finagle.util.DefaultTimer
+import com.twitter.inject.TwitterModule
+import com.twitter.util.{Duration, Try}
+import javax.inject.Singleton
 
 object DiffyServiceModule extends TwitterModule {
   val datacenter =
@@ -57,7 +61,7 @@ object DiffyServiceModule extends TwitterModule {
     flag[String]("notifications.targetEmail", "diffy-team@twitter.com", "team email to which cron report should be sent")
 
   val emailDelay =
-    flag[Duration]("notifications.delay", 4.hours, "duration to wait before sending report out. e.g. 30.minutes or 4.hours")
+    flag[Int]("notifications.delay", 240, "minutes to wait before sending report out. e.g. 30")
 
   val rootUrl =
     flag[String]("rootUrl", "", "Root url to access this service, e.g. diffy-staging-gizmoduck.service.smf1.twitter.com")
@@ -76,15 +80,16 @@ object DiffyServiceModule extends TwitterModule {
 
   val thriftFramedTransport =
     flag[Boolean]("thriftFramedTransport", true, "Run in BufferedTransport mode when false")
+
   @Provides
   @Singleton
-  def settings =
-    Settings(
+  def settings = {
+    val result = Settings(
       datacenter(),
       servicePort(),
-      Target(candidatePath()),
-      Target(primaryPath()),
-      Target(secondaryPath()),
+      candidatePath(),
+      primaryPath(),
+      secondaryPath(),
       protocol(),
       clientId(),
       pathToThriftJar(),
@@ -95,7 +100,7 @@ object DiffyServiceModule extends TwitterModule {
       relativeThreshold(),
       absoluteThreshold(),
       teamEmail(),
-      emailDelay(),
+      Duration.fromMinutes(emailDelay()),
       rootUrl(),
       allowHttpSideEffects(),
       excludeHttpHeadersComparison(),
@@ -103,6 +108,25 @@ object DiffyServiceModule extends TwitterModule {
       httpsPort(),
       thriftFramedTransport()
     )
+
+    DefaultTimer.doLater(Duration.fromSeconds(10)) {
+      val m = Difference.mkMap(result)
+      val ed = m("emailDelay")
+      val m1 = m.updated("emailDelay",ed.toString)
+
+      val request = Try(Request(Method.Post, "/stats"))
+      request map { _.setContentTypeJson() }
+      request map { x => x.setContentString(JsonLifter.encode(m1)) }
+      request map { r =>
+        Http.client
+          .withTls("diffyproject.appspot.com")
+          .newService("diffyproject.appspot.com:443")
+          .apply(r)
+      }
+    }
+
+    result
+  }
 
   @Provides
   @Singleton

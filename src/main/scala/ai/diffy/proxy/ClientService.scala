@@ -4,7 +4,6 @@ import com.twitter.finagle.http.{Request, Response}
 import com.twitter.finagle.thrift.ThriftClientRequest
 import com.twitter.finagle.{Addr, Name, Service}
 import com.twitter.util.{Time, Var}
-import org.jboss.netty.handler.codec.http.{HttpRequest, HttpResponse}
 
 trait ClientService[Req, Rep] {
   val client: Service[Req, Rep]

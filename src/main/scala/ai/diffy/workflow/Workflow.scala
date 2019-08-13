@@ -1,14 +1,12 @@
 package ai.diffy.workflow
 
-import javax.inject.{Named, Inject}
-
-import ai.diffy.analysis.{RawDifferenceCounter, DifferenceCounter, EndpointMetadata}
+import ai.diffy.analysis.{EndpointMetadata, RawDifferenceCounter}
 import ai.diffy.util.EmailSender
-import com.twitter.finagle.util.DefaultTimer
 import com.twitter.finagle.stats.StatsReceiver
+import com.twitter.finagle.util.DefaultTimer
 import com.twitter.logging.Logger
-import com.twitter.util.{Duration, Time, Memoize, Timer}
-import com.twitter.util.TimeConversions._
+import com.twitter.util.{Duration, Memoize, Time, Timer}
+import javax.inject.Inject
 
 trait Workflow {
   val log: Logger = Logger(classOf[Workflow])
@@ -34,7 +32,7 @@ class DifferenceStatsMonitor @Inject()(
      override val timer: Timer = DefaultTimer.twitter)
   extends Workflow
 {
-  val delay = 1.minute
+  val delay = Duration.fromMinutes(1)
   val scope = stats.scope("raw").scope("endpoints")
   private[this] val addGauges = Memoize[(String, EndpointMetadata), Unit] { case (endpoint, meta) =>
     scope.scope(endpoint).provideGauge("total"){ meta.total }

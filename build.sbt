@@ -1,15 +1,16 @@
-import scala.language.reflectiveCalls
-import scoverage.ScoverageKeys
+import sbt.util
 
-concurrentRestrictions in Global += Tags.limit(Tags.Test, 1)
+import scala.language.reflectiveCalls
+
+logLevel := util.Level.Info
 
 val diffyVersion = "2.0.0-SNAPSHOT"
-val finagleVersion = "18.5.0"
+val finagleVersion = "19.8.0"
 
 lazy val buildSettings = Seq(
   version := diffyVersion,
-  scalaVersion := "2.12.4",
-  crossScalaVersions := Seq("2.11.11", "2.12.4"),
+  scalaVersion := "2.12.8",
+  crossScalaVersions := Seq("2.11.12", "2.12.8"),
   scalaModuleInfo := scalaModuleInfo.value.map(_.withOverrideScalaVersion(true)),
   fork in Test := true,
   javaOptions in Test ++= travisTestJavaOptions
@@ -48,27 +49,32 @@ lazy val versions = new {
   // will return "HEAD", because travis-ci checks out a specific sha.
   val travisBranch = sys.env.getOrElse("TRAVIS_BRANCH", "")
 
+  // All Twitter library releases are date versioned as YY.MM.patch
+  val twLibVersion = finagleVersion
+
+  val agrona = "0.9.22"
+  val bijectionCore = "0.9.5"
   val commonsCodec = "1.9"
-  val commonsFileupload = "1.3.1"
-  val commonsIo = "2.4"
+  val commonsFileupload = "1.4"
   val commonsLang = "2.6"
-  val guava = "19.0"
+  val fastutil = "8.1.1"
   val guice = "4.0"
-  val jackson = "2.8.4"
+  val jackson = "2.9.9"
   val jodaConvert = "1.2"
   val jodaTime = "2.5"
   val junit = "4.12"
+  val kafka = "2.2.0"
   val libThrift = "0.10.0"
   val logback = "1.1.7"
   val mockito = "1.9.5"
   val mustache = "0.8.18"
   val nscalaTime = "2.14.0"
+  val rocksdbjni = "5.14.2"
   val scalaCheck = "1.13.4"
   val scalaGuice = "4.1.0"
   val scalaTest = "3.0.0"
-  val servletApi = "2.5"
   val slf4j = "1.7.21"
-  val snakeyaml = "1.12"
+  val snakeyaml = "1.24"
   val specs2 = "2.4.17"
 }
 
@@ -98,6 +104,7 @@ lazy val finatraDependencies = Seq(
   "com.twitter" %% "inject-server" % finagleVersion % "test",
   "com.twitter" %% "inject-server" % finagleVersion % "test" classifier "tests",
   "com.twitter" %% "twitter-server-logback-classic" % finagleVersion,
+  "io.netty" % "netty-tcnative-boringssl-static" % "2.0.25.Final",
   "ch.qos.logback" % "logback-classic" % versions.logback
 )
 
@@ -105,7 +112,9 @@ lazy val scroogeDependencies = Seq(
   "com.twitter" %% "finagle-http" % finagleVersion,
   "com.twitter" %% "finagle-thriftmux" % finagleVersion,
   "com.twitter" %% "scrooge-generator" % finagleVersion,
-  "com.twitter" %% "scrooge-core" % finagleVersion
+  "com.twitter" %% "scrooge-generator" % finagleVersion % "test" classifier "tests",
+  "com.twitter" %% "scrooge-core" % finagleVersion,
+  "com.twitter" %% "scrooge-core" % finagleVersion % "test" classifier "tests"
 )
 lazy val testDependencies = Seq(
   "org.mockito" % "mockito-core" %  versions.mockito % Test,
@@ -201,7 +210,7 @@ lazy val slf4jSimpleTestDependency = Seq(
 )
 
 lazy val projectSettings = baseSettings ++ buildSettings ++ publishSettings ++ slf4jSimpleTestDependency ++ Seq(
-  organization := "ai.twitter"
+  organization := "ai.diffy"
 )
 
 lazy val diffy = project.in(file("."))

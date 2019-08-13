@@ -1,14 +1,12 @@
 package ai.diffy.analysis
 
-import javax.inject.Inject
-
 import ai.diffy.compare.{Difference, PrimitiveDifference}
 import ai.diffy.lifter.{JsonLifter, Message}
 import ai.diffy.thriftscala.{DifferenceResult, Responses}
 import com.twitter.finagle.tracing.Trace
 import com.twitter.logging._
-import com.twitter.util.StorageUnitConversions._
-import com.twitter.util.{Future, Time}
+import com.twitter.util.{Future, StorageUnit, Time}
+import javax.inject.Inject
 
 import scala.util.Random
 
@@ -19,7 +17,7 @@ object DifferenceAnalyzer {
   log.addHandler(
     FileHandler(
       filename = "differences.log",
-      rollPolicy = Policy.MaxSize(128.megabytes),
+      rollPolicy = Policy.MaxSize(StorageUnit.fromMegabytes(128)),
       rotateCount = 2
     )()
   )

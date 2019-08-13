@@ -8,10 +8,16 @@ import com.twitter.finatra.http.routing.HttpRouter
 object Main extends MainService
 
 class MainService extends HttpServer {
+  //Set root log level to INFO to suppress chatty libraries
+  org.slf4j.LoggerFactory.getLogger(org.slf4j.Logger.ROOT_LOGGER_NAME)
+    .asInstanceOf[ch.qos.logback.classic.Logger]
+    .setLevel(ch.qos.logback.classic.Level.INFO)
+
   override val name = "diffy"
 
   override val modules =
     Seq(
+      IsotopeSdkModule,
       DiffyServiceModule,
       DifferenceProxyModule,
       TimerModule

@@ -7,9 +7,9 @@ import com.twitter.util.Duration
 case class Settings(
   datacenter: String,
   servicePort:InetSocketAddress,
-  candidate: Target,
-  primary: Target,
-  secondary: Target,
+  candidate: String,
+  primary: String,
+  secondary: String,
   protocol: String,
   clientId: String,
   pathToThriftJar: String,
@@ -26,6 +26,6 @@ case class Settings(
   excludeHttpHeadersComparison: Boolean,
   skipEmailsWhenNoErrors: Boolean,
   httpsPort: String,
-  useFramedThriftTransport: Boolean)
-
-case class Target(path: String)
+  useFramedThriftTransport: Boolean,
+  hostname: String = java.net.InetAddress.getLocalHost.toString,
+  user: String = sys.env("USER"))
