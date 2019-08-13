@@ -2,7 +2,7 @@ package ai.diffy.proxy
 
 import java.net.InetSocketAddress
 
-import com.twitter.util.Duration
+import com.twitter.util.{Duration, Try}
 
 case class Settings(
   datacenter: String,
@@ -27,5 +27,5 @@ case class Settings(
   skipEmailsWhenNoErrors: Boolean,
   httpsPort: String,
   useFramedThriftTransport: Boolean,
-  hostname: String = java.net.InetAddress.getLocalHost.toString,
-  user: String = sys.env("USER"))
+  hostname: String = Try(java.net.InetAddress.getLocalHost.toString).getOrElse("unknown"),
+  user: String = Try(sys.env("USER")).getOrElse("unknown"))
