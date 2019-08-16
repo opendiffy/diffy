@@ -235,10 +235,3 @@ def aggregatedProjects = Seq[sbt.ProjectReference](diffy)
 def mappingContainsAnyPath(mapping: (File, String), paths: Seq[String]): Boolean = {
   paths.foldLeft(false)(_ || mapping._1.getPath.contains(_))
 }
-
-lazy val site = (project in file("doc"))
-  .enablePlugins(SphinxPlugin)
-  .settings(
-    baseSettings ++ buildSettings ++ Seq(
-      scalacOptions in doc ++= Seq("-doc-title", "Diffy", "-doc-version", version.value),
-      includeFilter in Sphinx := ("*.html" | "*.png" | "*.svg" | "*.js" | "*.css" | "*.gif" | "*.txt")))

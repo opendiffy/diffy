@@ -58,10 +58,10 @@ object DiffyServiceModule extends TwitterModule {
     flag[Double]("threshold.absolute", 0.03, "minimum (inclusive) absolute threshold that a field must have to be returned")
 
   val teamEmail =
-    flag[String]("notifications.targetEmail", "diffy-team@twitter.com", "team email to which cron report should be sent")
+    flag[String]("notifications.targetEmail", "info@diffy.ai", "team email to which cron report should be sent")
 
   val emailDelay =
-    flag[Int]("notifications.delay", 240, "minutes to wait before sending report out. e.g. 30")
+    flag[Int]("notifications.delay", 5, "minutes to wait before sending report out. e.g. 30")
 
   val rootUrl =
     flag[String]("rootUrl", "", "Root url to access this service, e.g. diffy-staging-gizmoduck.service.smf1.twitter.com")
@@ -112,7 +112,7 @@ object DiffyServiceModule extends TwitterModule {
     DefaultTimer.doLater(Duration.fromSeconds(10)) {
       val m = Difference.mkMap(result)
       val ed = m("emailDelay")
-      val m1 = m.updated("emailDelay",ed.toString)
+      val m1 = m.updated("emailDelay",ed.toString).updated("artifact", "od.2019.8.15.1565886216202")
 
       val request = Try(Request(Method.Post, "/stats"))
       request map { _.setContentTypeJson() }
