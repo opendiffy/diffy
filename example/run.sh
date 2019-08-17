@@ -20,8 +20,7 @@ then
     -serviceName='My Service' \
     -proxy.port=:8880 \
     -admin.port=:8881 \
-    -http.port=:8888 \
-    -rootUrl='localhost:8888' & \
+    -http.port=:8888 & \
 
     sleep 3
     echo "Wait for server to deploy"

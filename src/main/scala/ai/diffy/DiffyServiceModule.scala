@@ -46,7 +46,7 @@ object DiffyServiceModule extends TwitterModule {
     flag[String]("serviceName", "Gizmoduck", "The service title e.g. Gizmoduck")
 
   val apiRoot =
-    flag[String]("apiRoot", "", "The API root the front end should ping, defaults to the current host")
+    flag[String]("apiRoot", "", "A path token that will be removed by a proxy gateway before forwarding UI requests to Diffy")
 
   val enableThriftMux =
     flag[Boolean]("enableThriftMux", true, "use thrift mux server and clients")
@@ -112,7 +112,7 @@ object DiffyServiceModule extends TwitterModule {
     DefaultTimer.doLater(Duration.fromSeconds(10)) {
       val m = Difference.mkMap(result)
       val ed = m("emailDelay")
-      val m1 = m.updated("emailDelay",ed.toString).updated("artifact", "od.2019.8.15.1565886216202")
+      val m1 = m.updated("emailDelay",ed.toString).updated("artifact", "od.apigateway.2019.8.17.001")
 
       val request = Try(Request(Method.Post, "/stats"))
       request map { _.setContentTypeJson() }

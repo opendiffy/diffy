@@ -1,14 +1,14 @@
 <html ng-app="diffy">
   <head>
     <title>Diffy - {{serviceName}}</title>
-    <script src="/scripts/jquery.min.js"></script>
-    <script src="/scripts/underscore.min.js"></script>
-    <script src="/scripts/angular.min.js"></script>
-    <script src="/scripts/grapnel.min.js"></script>
-    <script src="/scripts/moment.min.js"></script>
-    <script src="/scripts/deep-diff.min.js"></script>
+    <script src="{{apiRoot}}/scripts/jquery.min.js"></script>
+    <script src="{{apiRoot}}/scripts/underscore.min.js"></script>
+    <script src="{{apiRoot}}/scripts/angular.min.js"></script>
+    <script src="{{apiRoot}}/scripts/grapnel.min.js"></script>
+    <script src="{{apiRoot}}/scripts/moment.min.js"></script>
+    <script src="{{apiRoot}}/scripts/deep-diff.min.js"></script>
 
-    <script src="/scripts/diff.js"></script>
+    <script src="{{apiRoot}}/scripts/diff.js"></script>
 
     <script type="text/javascript">
       var dashboardName = "{{dashboard}}";
@@ -193,9 +193,17 @@
           </a>
         </div>
       </div>
-
+      <div class="col-xs-10 text-center alert alert-danger">
+        Warning: This project is not being actively maintained. Please use the <a class="alert-link" href="http://github.com/opendiffy/diffy">opendiffy</a> fork instead.
+      </div>
+      <div class="col-xs-10 text-center alert alert-danger">
+        Do you need to save this analysis? <a class="alert-link" href="http://isotope.sn126.com">Isotope</a> can help with that.
+      </div>
       <div class="col-xs-4 fields-column" ng-controller="FieldsController">
         <div class="header clearfix" ng-hide="!endpointName">
+            <div class="left-panel divider">
+                <container>Do you need to save this analysis? Isotope can help with that.</container>
+            </div>
           <h3 class="title">[[endpointName]]</h3>
           <ul class="stats" ng-hide="loading">
             <li>
@@ -257,8 +265,8 @@
       </div>
     </div>
 
-    <link rel="stylesheet" type="text/css" href="/css/bootstrap.superhero.css" />
-    <link rel="stylesheet" type="text/css" href="/css/diff.css" />
+    <link rel="stylesheet" type="text/css" href="{{apiRoot}}/css/bootstrap.superhero.css" />
+    <link rel="stylesheet" type="text/css" href="{{apiRoot}}/css/diff.css" />
     <link rel="stylesheet" href="//maxcdn.bootstrapcdn.com/font-awesome/4.1.0/css/font-awesome.min.css">
     <link href='//fonts.googleapis.com/css?family=Lobster' rel='stylesheet' type='text/css'>
     <link href='//fonts.googleapis.com/css?family=Roboto+Condensed|Inconsolata:400,700' rel='stylesheet' type='text/css'>
