@@ -39,7 +39,7 @@ class EmailSender(log: Logger, send: MimeMessage => Unit = Transport.send) {
       try {
         send(message)
       } catch { case e =>
-        log.error(e, "failed to send message")
+        log.error("Failed to send email report. Ensure Diffy can access port 25.")
       }
     }
 }

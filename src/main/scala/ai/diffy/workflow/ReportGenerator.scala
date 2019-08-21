@@ -1,18 +1,19 @@
 package ai.diffy.workflow
 
-import javax.inject.Inject
 import ai.diffy.analysis.{DifferencesFilterFactory, JoinedDifferences, JoinedEndpoint}
+import ai.diffy.lifter.JsonLifter
 import ai.diffy.proxy.Settings
-import ai.diffy.util.{EmailSender, SimpleMessage}
+import ai.diffy.util.{DiffyProject, EmailSender, SimpleMessage}
 import com.twitter.finatra.http.marshalling.mustache.MustacheService
 import com.twitter.logging.Logger
 import com.twitter.util.{Duration, Future}
+import javax.inject.Inject
 
 case class Endpoint(endpointName: String, count: Long, fields: Iterable[Field])
 case class Field(fieldName: String, relativeDifference: String, absoluteDifference: String)
 
 case class ReportData(
-    delay: Duration,
+    delay: String,
     rootUrl: String,
     serviceName: String,
     criticalDiffs: Int,
@@ -80,14 +81,16 @@ class ReportGenerator @Inject()(
 
     val fieldCount = criticalEndpoints.map(_.fields.size).sum
 
-    ReportData(
-      settings.emailDelay,
+    val report = ReportData(
+      settings.emailDelay.toString(),
       normalizeUrl(settings.rootUrl),
       settings.serviceName,
       fieldCount,
       criticalEndpoints,
       passingEndpoints
     )
+    DiffyProject.log(JsonLifter.encode(report))
+    report
   }
 
   def conditionallySendReport(reportData: ReportData) =
@@ -98,6 +101,7 @@ class ReportGenerator @Inject()(
     }
 
   def sendEmail = {
+
     joinedDifferences.endpoints map { extractReport _ andThen conditionallySendReport }
   }
 

@@ -29,12 +29,13 @@ class HttpFeatureTest extends Test {
 
   val server = new EmbeddedHttpServer(
     twitterServer = diffy,
-    flags = ImmutableMap.of[String, String](
-      "proxy.port", s":$d",
-      "candidate", s"localhost:$c",
-      "master.primary", s"localhost:$p",
-      "master.secondary", s"localhost:$s",
-      "service.protocol", "http"
+    flags = Map(
+      "proxy.port" -> s":$d",
+      "candidate" -> s"localhost:$c",
+      "master.primary" -> s"localhost:$p",
+      "master.secondary" -> s"localhost:$s",
+      "service.protocol" -> "http",
+      "summary.targetEmail" ->"test"
     ),
     stage = Stage.PRODUCTION
   )

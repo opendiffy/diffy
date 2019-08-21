@@ -1,9 +1,9 @@
 package ai.diffy
 
 import javax.inject.Inject
-
 import ai.diffy.analysis.{DifferencesFilterFactory, JoinedEndpoint}
 import ai.diffy.proxy._
+import ai.diffy.util.DiffyProject
 import ai.diffy.workflow.{FunctionalReport, ReportGenerator}
 import com.twitter.finagle.http.{Request, Response}
 import com.twitter.finagle.{Service, SimpleFilter}
@@ -25,7 +25,7 @@ class ApiController @Inject()(
   extends Controller
 {
   import ApiController._
-
+  DiffyProject.settings(settings)
   val thresholdFilter =
     DifferencesFilterFactory(settings.relativeThreshold, settings.absoluteThreshold)
 
@@ -51,6 +51,7 @@ class ApiController @Inject()(
     )
 
   get("/api/1/overview") { req: Request =>
+    DiffyProject.log(req.uri)
     val excludeNoise = req.params.getBooleanOrElse("exclude_noise", true)
     val includeWeights = req.params.getBooleanOrElse("include_weights", false)
 
@@ -62,14 +63,17 @@ class ApiController @Inject()(
   }
 
   get("/api/1/report") { req: Request =>
+    DiffyProject.log(req.uri)
     reportGenerator.extractReportFromDifferences
   }
 
   get("/api/1/endpoints") { req: Request =>
+    DiffyProject.log(req.uri)
     proxy.joinedDifferences.raw.counter.endpoints map Renderer.endpoints
   }
 
   get("/api/1/endpoints/:endpoint/stats") { req: Request =>
+    DiffyProject.log(req.uri)
     val excludeNoise = req.params.getBooleanOrElse("exclude_noise", true)
     val includeWeights = req.params.getBooleanOrElse("include_weights", false)
 
@@ -86,6 +90,7 @@ class ApiController @Inject()(
   }
 
   get("/api/1/endpoints/:endpoint/fields/:path/results") { req: Request =>
+    DiffyProject.log(req.uri)
     (
       req.params.get("endpoint"),
       req.params.get("path")
@@ -108,6 +113,7 @@ class ApiController @Inject()(
   }
 
   get("/api/1/endpoints/:endpoint/fields/:path/results/:index") { req: Request =>
+    DiffyProject.log(req.uri)
     (
       req.params.get("endpoint"),
       req.params.get("path"),
@@ -131,6 +137,7 @@ class ApiController @Inject()(
   }
 
   get("/api/1/requests/:id") { req: Request =>
+    DiffyProject.log(req.uri)
     req.params.get("id") map { id =>
       proxy.collector(id.toLong) map { dr =>
         Renderer.differenceResult(
@@ -145,6 +152,7 @@ class ApiController @Inject()(
   }
 
   get("/api/1/clear") { req: Request =>
+    DiffyProject.log(req.uri)
     proxy.clear() map { _ =>
       workflow.schedule()
       Renderer.success("Diffs cleared")
@@ -152,11 +160,13 @@ class ApiController @Inject()(
   }
 
   post("/api/1/email") { req: Request =>
+    DiffyProject.log(req.uri)
     reportGenerator.sendEmail
     Renderer.success("Sent report e-mail.")
   }
 
   get("/api/1/info") { req: Request =>
+    DiffyProject.log(req.uri)
     (proxy match {
       case thrift: ThriftDifferenceProxy => Map(
         "candidate" -> thriftServiceToMap(settings.candidate, thrift.candidate),

@@ -18,6 +18,8 @@ then
     -master.secondary='localhost:9100' \
     -service.protocol='http' \
     -serviceName='My Service' \
+    -summary.delay='1' \
+    -summary.targetEmail='info@diffy.ai' \
     -proxy.port=:8880 \
     -admin.port=:8881 \
     -http.port=:8888 & \

@@ -4,14 +4,13 @@ import java.net.InetSocketAddress
 
 import ai.diffy.analysis.{InMemoryDifferenceCollector, InMemoryDifferenceCounter, NoiseDifferenceCounter, RawDifferenceCounter}
 import ai.diffy.compare.Difference
-import ai.diffy.lifter.JsonLifter
 import ai.diffy.proxy.Settings
+import ai.diffy.util.DiffyProject
 import com.google.inject.Provides
-import com.twitter.finagle.Http
-import com.twitter.finagle.http.{Method, Request}
+import com.twitter.app.Flag
 import com.twitter.finagle.util.DefaultTimer
 import com.twitter.inject.TwitterModule
-import com.twitter.util.{Duration, Try}
+import com.twitter.util.Duration
 import javax.inject.Singleton
 
 object DiffyServiceModule extends TwitterModule {
@@ -58,10 +57,10 @@ object DiffyServiceModule extends TwitterModule {
     flag[Double]("threshold.absolute", 0.03, "minimum (inclusive) absolute threshold that a field must have to be returned")
 
   val teamEmail =
-    flag[String]("notifications.targetEmail", "isotope@sn126.com", "team email to which cron report should be sent")
+    flag[String]("summary.targetEmail", "team email to which cron report should be sent")
 
   val emailDelay =
-    flag[Int]("notifications.delay", 5, "minutes to wait before sending report out. e.g. 30")
+    flag[Int]("summary.delay", 5, "minutes to wait before sending report out. e.g. 5")
 
   val rootUrl =
     flag[String]("rootUrl", "", "Root url to access this service, e.g. diffy-staging-gizmoduck.service.smf1.twitter.com")
@@ -83,8 +82,8 @@ object DiffyServiceModule extends TwitterModule {
 
   @Provides
   @Singleton
-  def settings = {
-    val result = Settings(
+  def settings =
+    Settings(
       datacenter(),
       servicePort(),
       candidatePath(),
@@ -106,27 +105,8 @@ object DiffyServiceModule extends TwitterModule {
       excludeHttpHeadersComparison(),
       skipEmailsWhenNoErrors(),
       httpsPort(),
-      thriftFramedTransport()
+      thriftFramedTransport(),
     )
-
-    DefaultTimer.doLater(Duration.fromSeconds(10)) {
-      val m = Difference.mkMap(result)
-      val ed = m("emailDelay")
-      val m1 = m.updated("emailDelay",ed.toString).updated("artifact", "od.apigateway.2019.8.17.001")
-
-      val request = Try(Request(Method.Post, "/stats"))
-      request map { _.setContentTypeJson() }
-      request map { x => x.setContentString(JsonLifter.encode(m1)) }
-      request map { r =>
-        Http.client
-          .withTls("diffyproject.appspot.com")
-          .newService("diffyproject.appspot.com:443")
-          .apply(r)
-      }
-    }
-
-    result
-  }
 
   @Provides
   @Singleton

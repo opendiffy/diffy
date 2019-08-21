@@ -4,12 +4,25 @@
 [![Coverage status](https://img.shields.io/codecov/c/github/opendiffy/diffy/master.svg)](https://codecov.io/github/opendiffy/diffy)
 [![Project status](https://img.shields.io/badge/status-active-brightgreen.svg)](#status)
 [![Gitter](https://img.shields.io/badge/gitter-join%20chat-green.svg)](https://gitter.im/opendiffy/diffy)
-[![Maven Central](https://img.shields.io/maven-central/v/ai/diffy_2.11.svg)](https://maven-badges.herokuapp.com/maven-central/ai/diffy_2.11)
-
+[![License: AGPL v3](https://img.shields.io/badge/License-AGPL%20v3-blue.svg)](https://www.gnu.org/licenses/agpl-3.0)
 ## Status
 
-This project is used in production at Twitter and is being actively developed and maintained. Feel
-free to contact us on gitter or [@diffyproject](https://twitter.com/diffyproject).
+Diffy is used in production at:
+* [Mixpanel](https://engineering.mixpanel.com/2019/07/24/safely-rewriting-mixpanels-highest-throughput-service-in-golang/)
+* Airbnb [(Scalabity)](https://www.infoq.com/presentations/airbnb-services-scalability/) [(Migration)](https://www.infoq.com/presentations/airbnb-soa-migration/)
+* [Twitter](https://blog.twitter.com/engineering/en_us/a/2015/diffy-testing-services-without-writing-tests.html)
+* Baidu
+* Bytedance
+
+and blogged about by cloud infrastructure providers like:
+* [Alibaba Cloud](https://www.alibabacloud.com/blog/traffic-management-with-istio-3-traffic-comparison-analysis-based-on-istio_594545)
+* [Datawire](https://blog.getambassador.io/next-level-testing-with-an-api-gateway-and-continuous-delivery-9cbb9c4564b5)
+
+If your organization is using Diffy, consider adding a link here and sending us a pull request!
+
+Diffy is being actively developed and maintained by the engineering team at [Sn126](https://www.sn126.com).
+
+Feel free to contact us via [linkedin](https://www.linkedin.com/company/diffy), [gitter](https://gitter.im/opendiffy/diffy) or [twitter](https://twitter.com/diffyproject).
 
 ## What is Diffy?
 
@@ -37,6 +50,7 @@ things:
 2. Non-deterministic noise observed between the primary and secondary instances. Since both of these
    instances are running known-good code, you should expect responses to be in agreement. If not,
    your service may have non-deterministic behavior, which is to be expected.
+![Diffy Topology](/images/diffy_topology.png)
 
 Diffy measures how often primary and secondary disagree with each other vs. how often primary and
 candidate disagree with each other. If these measurements are roughly the same, then Diffy
@@ -72,7 +86,9 @@ start using Diffy to compare three instances of your service:
     -proxy.port=:8880 \
     -admin.port=:8881 \
     -http.port=:8888 \
-    -rootUrl='localhost:8888'
+    -rootUrl="localhost:8888" \
+    -summary.email="info@diffy.ai" \
+    -summary.delay="5"
     ```
 
 6. Send a few test requests to your Diffy instance on its proxy port:
@@ -83,6 +99,7 @@ start using Diffy to compare three instances of your service:
 
 7. Watch the differences show up in your browser at [http://localhost:8888](http://localhost:8888).
 
+8. Note that after ```summary.delay``` minutes, your Diffy instance will email a summary report to your ```summary.email``` address.
 ## Using Diffy with Docker
 
 You can pull the [official docker image](https://hub.docker.com/r/diffy/) with `docker pull diffy/diffy`
@@ -100,7 +117,9 @@ docker run -d --name diffy-01 \
     -proxy.port=:8880 \
     -admin.port=:8881 \
     -http.port=:8888 \
-    -rootUrl=localhost:8888
+    -rootUrl=localhost:8888 \
+    -summary.email="info@diffy.ai" \
+    -summary.delay="5"
 ```
 
 You should now be able to point to:
@@ -127,11 +146,17 @@ And in case of the HTTPS port be different than 443:
 
 ## License
 
-Licensed under the **[Apache License, Version 2.0](http://www.apache.org/licenses/LICENSE-2.0)** (the "License");
-you may not use this software except in compliance with the License.
+    Copyright (C) 2019 Sn126, Inc.
 
-Unless required by applicable law or agreed to in writing, software
-distributed under the License is distributed on an "AS IS" BASIS,
-WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
-See the License for the specific language governing permissions and
-limitations under the License.
+    This program is free software: you can redistribute it and/or modify
+    it under the terms of the GNU Affero General Public License as
+    published by the Free Software Foundation, either version 3 of the
+    License, or (at your option) any later version.
+
+    This program is distributed in the hope that it will be useful,
+    but WITHOUT ANY WARRANTY; without even the implied warranty of
+    MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+    GNU Affero General Public License for more details.
+
+    You should have received a copy of the GNU Affero General Public License
+    along with this program. If not, see https://www.gnu.org/licenses/.
