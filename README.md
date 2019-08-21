@@ -102,7 +102,7 @@ start using Diffy to compare three instances of your service:
 8. Note that after ```summary.delay``` minutes, your Diffy instance will email a summary report to your ```summary.email``` address.
 ## Using Diffy with Docker
 
-You can pull the [official docker image](https://hub.docker.com/r/diffy/) with `docker pull diffy/diffy`
+You can pull the [official docker image](https://hub.docker.com/r/diffy/diffy/) with `docker pull diffy/diffy`
 
 And run it with
 ```

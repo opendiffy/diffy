@@ -57,7 +57,7 @@ object DiffyServiceModule extends TwitterModule {
     flag[Double]("threshold.absolute", 0.03, "minimum (inclusive) absolute threshold that a field must have to be returned")
 
   val teamEmail =
-    flag[String]("summary.targetEmail", "team email to which cron report should be sent")
+    flag[String]("summary.email", "team email to which cron report should be sent")
 
   val emailDelay =
     flag[Int]("summary.delay", 5, "minutes to wait before sending report out. e.g. 5")

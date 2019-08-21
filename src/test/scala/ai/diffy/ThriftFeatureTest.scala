@@ -54,7 +54,7 @@ class ThriftFeatureTest extends Test {
       "service.protocol" -> "thrift",
       "thrift.jar" -> thriftJar.toAbsolutePath.toString,
       "thrift.serviceClass" -> "Adder",
-      "summary.targetEmail" -> "test"
+      "summary.email" -> "test"
     ),
     stage = Stage.PRODUCTION
   )

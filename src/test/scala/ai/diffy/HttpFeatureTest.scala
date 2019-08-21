@@ -35,7 +35,7 @@ class HttpFeatureTest extends Test {
       "master.primary" -> s"localhost:$p",
       "master.secondary" -> s"localhost:$s",
       "service.protocol" -> "http",
-      "summary.targetEmail" ->"test"
+      "summary.email" ->"test"
     ),
     stage = Stage.PRODUCTION
   )
