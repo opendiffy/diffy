@@ -23,7 +23,7 @@ object DiffyProject {
         .newService("localhost:7000")
   }
 
-  private[this] val cfg: config = development
+  private[this] val cfg: config = production
 
   def settings(settings: Settings): Unit ={
     s = settings
