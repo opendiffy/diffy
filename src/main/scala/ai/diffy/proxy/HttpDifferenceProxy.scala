@@ -2,7 +2,6 @@ package ai.diffy.proxy
 
 import java.net.SocketAddress
 
-import ai.diffy.IsotopeSdkModule.IsotopeClient
 import ai.diffy.analysis.{DifferenceAnalyzer, InMemoryDifferenceCollector, JoinedDifferences}
 import ai.diffy.lifter.{HttpLifter, Message}
 import ai.diffy.proxy.DifferenceProxy.NoResponseException
@@ -75,8 +74,7 @@ case class SimpleHttpDifferenceProxy (
     settings: Settings,
     collector: InMemoryDifferenceCollector,
     joinedDifferences: JoinedDifferences,
-    analyzer: DifferenceAnalyzer,
-    isotopeClient: IsotopeClient)
+    analyzer: DifferenceAnalyzer)
   extends HttpDifferenceProxy
 {
   import SimpleHttpDifferenceProxy._
@@ -95,8 +93,7 @@ case class SimpleHttpsDifferenceProxy (
    settings: Settings,
    collector: InMemoryDifferenceCollector,
    joinedDifferences: JoinedDifferences,
-   analyzer: DifferenceAnalyzer,
-   isotopeClient: IsotopeClient)
+   analyzer: DifferenceAnalyzer)
   extends HttpDifferenceProxy
 {
   import SimpleHttpDifferenceProxy._

@@ -1,19 +1,23 @@
 package ai.diffy
 
 import java.io.File
+import java.net.URL
 import java.util.concurrent.ConcurrentLinkedQueue
 
-import ai.diffy.IsotopeSdkModule.IsotopeClient.ExportPayloadRequest
 import ai.diffy.lifter.{JsonLifter, Message}
-import ai.diffy.util.TrafficSource
+import ai.diffy.util.ServiceInstance
 import com.fasterxml.jackson.databind.JsonNode
 import com.google.inject.Provides
 import com.twitter.finagle.Http
-import com.twitter.finagle.http.{Method, Request, RequestProxy}
+import com.twitter.finagle.http._
 import com.twitter.finagle.util.DefaultTimer
 import com.twitter.inject.TwitterModule
-import com.twitter.util.{Duration, Try}
+import com.twitter.io.Buf.ByteArray
+import com.twitter.util._
+import io.netty.handler.codec.http.HttpHeaders
 import javax.inject.Singleton
+
+import scala.io.Source
 
 object IsotopeSdkModule extends TwitterModule {
   val isotopeConfig =
@@ -21,83 +25,148 @@ object IsotopeSdkModule extends TwitterModule {
 
   case class Child(
     id: String,
-    type_ : String,
+    `type` : String,
     path: String,
     method: String,
     input: JsonNode,
-    input_meta: JsonNode,
+    input_meta: String,
     output: JsonNode,
-    output_meta: JsonNode,
+    output_meta: String,
     wrapper: String,
     start: Long,
     end: Long,
     prod_id: String)
   case class Observation(
-                          globalTxId: String,
-                          parentId: String,
-                          root: Child,
-                          children: List[Child] = List.empty[Child])
+    globalTxId: String,
+    parentId: String,
+    root: Child,
+    children: List[Child] = List.empty[Child])
 
   case class IsotopeContext(
     service_version: String,
     from_prod : Boolean,
     emitted_at: Long = System.currentTimeMillis())
 
-  case class ExportPayload(isotope_context: IsotopeContext, recordings: List[Observation])
+  case class ExportPayload(isotope_context: IsotopeContext, recordings: Seq[Observation])
 
-  object IsotopeClient {
-    case class ExportPayloadRequest(payload: ExportPayload, service_xid: String) extends RequestProxy {
-      override lazy val request = Request(Method.Post,  servicePath(service_xid))
-      request.setContentString(JsonLifter.encode(payload))
-      request.setContentTypeJson()
+  val defaultVersion = s"${Try(sys.env("USER")).getOrElse("unknown")}@${
+    java.util.Calendar.getInstance().getTime().toString()
+      .replace(" ", "_")
+      .replace(":", "_")
+  }"
+  case class Credentials(service_name: String, service_xid: String, service_auth: String)
+  case class Config(credentials: Credentials, mode: String, localport: Int, service_version: String)
 
-      def servicePath(service_xid: String) =
-        s"isotope.sn126.com/api/v1/collectors/ingestion/services/${service_xid}/observations"
-    }
-  }
   trait IsotopeClient {
-//    def tx(req: Message, res: Message): Transaction = _
-//    def push(transaction: Transaction, from_prod: Boolean): Unit = {}
-    def save(req: Message, candidateResponse: Message, primaryResponse: Message, secondaryResponse: Message): Unit = {
-//      push(tx(req, candidateResponse), false)
-//      push(tx(req, primaryResponse), true)
-//      push(tx(req, secondaryResponse), false)
-    }
+    def tx(globalTxId: String, path: String, req: Message, res: (Message, Long, Long)): Observation =
+      Observation(
+        globalTxId,
+        "",
+        Child(
+          "0000",
+          "RPC_SERVER",
+          path,
+          "",
+          JsonLifter(req.result),
+          "none",
+          JsonLifter(res._1),
+          "none",
+          "none",
+          res._2,
+          res._3,
+          globalTxId
+        )
+      )
+
+    def save(
+      globalTxId: String,
+      path: String,
+      req: Message,
+      candidateResponse: (Message, Long, Long),
+      primaryResponse: (Message, Long, Long),
+      secondaryResponse: (Message, Long, Long)): Unit = {}
   }
 
-  class ConcreteIsotopeClient(configFile: File, limit: Int = 100, timeout:Long = 10000) extends IsotopeClient {
-    val buffers: Map[TrafficSource, ConcurrentLinkedQueue[Observation]] =
-      TrafficSource.all map { _ -> (new ConcurrentLinkedQueue[Observation]()) } toMap
+  class ConcreteIsotopeClient(configFile: File, limit: Int = 100, timeout: Long = 10000) extends IsotopeClient {
+    val json = Source.fromFile(configFile)
+    val config = JsonLifter.Mapper.readValue[Config](json.reader).copy(service_version = defaultVersion)
+    def version(trafficSource: ServiceInstance): String = s"${config.service_version}@${trafficSource.name}"
+    def context(trafficSource: ServiceInstance) = IsotopeContext(version(trafficSource),trafficSource.isProduction)
+
+    val buffers: Map[ServiceInstance, ConcurrentLinkedQueue[Observation]] =
+      ServiceInstance.all map { _ -> (new ConcurrentLinkedQueue[Observation]()) } toMap
 
     def size():Int = buffers.foldLeft(0){ case (acc, (_, b)) => acc + b.size() }
-    def drain(isotope_context: IsotopeContext, buffer: ConcurrentLinkedQueue[Observation]): Unit  = {
+
+    override def save(
+      globalTxId: String,
+      path: String,
+      req: Message,
+      candidateResponse: (Message, Long, Long),
+      primaryResponse: (Message, Long, Long),
+      secondaryResponse: (Message, Long, Long)): Unit = {
+      buffers(ServiceInstance.Primary).add(tx(globalTxId,path, req, primaryResponse))
+      buffers(ServiceInstance.Secondary).add(tx(globalTxId,path, req, secondaryResponse))
+      buffers(ServiceInstance.Candidate).add(tx(globalTxId,path, req, candidateResponse))
+
     }
 
 
     DefaultTimer.schedule(Duration.fromSeconds(1)){
       if (size() > 0) {
-        buffers foreach { case (source, buffer) =>
-
-          val popped: Seq[Observation] = List.concat(buffer.toArray(new Array[Observation](0)))
+        val payloads = ServiceInstance.all map { source =>
+          val buffer = buffers(source)
+          val popped = List.concat(buffer.toArray(new Array[Observation](0)))
           popped.foreach(buffer.remove)
-          val exportPayload = ExportPayload(IsotopeContext("",false), List.concat(popped))
-          System.out.println(exportPayload)
+          ExportPayload(context(source), popped)
+        }
+        payloads.foldLeft[Future[Boolean]](Future.True) { case (acc, exportPayload) =>
+          for {
+            prev <- acc
+            current <- publish(exportPayload)
+          } yield { prev && current }
         }
       }
     }
     val isotopeService =
-      Http.client
-        .withTls("")
-        .newService("")
+      Http.client.withTransport.connectTimeout(Duration.Top)
+        .withRequestTimeout(Duration.Top)
+        .withTransport.tlsWithoutValidation
+        .newService("isotope-api.sn126.com:443")
 
-    def publish(exportPayload: ExportPayload): Unit = {
-      isotopeService(ExportPayloadRequest(exportPayload, "")).map(_.contentString).foreach(println)
+    val uri = s"https://isotope-api.sn126.com/api/v1/collectors/ingestion/services/${config.credentials.service_xid}/observations"
+    def publish(exportPayload: ExportPayload): Future[Boolean] = {
+      val bytes = JsonLifter.encode(exportPayload).getBytes
+      val post =
+        RequestBuilder.safeBuildPost(
+          RequestBuilder.create()
+            .setHeader(Fields.UserAgent, "diffy")
+            .setHeader(Fields.Connection, HttpHeaders.Values.KEEP_ALIVE)
+            .setHeader("isotope-service-auth", config.credentials.service_auth)
+            .setHeader(Fields.ContentType, MediaType.Json)
+            .setHeader(Fields.ContentLength, bytes.length.toString)
+            .url(new URL(uri)),
+          ByteArray.Owned(bytes))
+
+      isotopeService(post).liftToTry map {
+        case Return(r) => {
+          logger.debug(r.getContentString())
+          true
+        }
+        case Throw(e) => {
+          logger.debug(e.getMessage)
+          false
+        }
+      }
     }
   }
   @Provides
   @Singleton
   def isotopeClient: IsotopeClient = {
-    Try(new File(isotopeConfig())) map { file =>
+    Try(new File(isotopeConfig())) respond {
+      case Return(_) => logger.debug("Isotope config file found!")
+      case Throw(e) => logger.debug(e.getMessage)
+    } map { file =>
       new ConcreteIsotopeClient(file)
     } getOrElse(new IsotopeClient{})
   }

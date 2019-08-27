@@ -44,7 +44,8 @@ class HttpLifter(excludeHttpHeadersComparison: Boolean) {
         canonicalResource,
         FieldMap(
           Map(
-            "request"-> req.toString,
+            "uri" -> req.uri,
+            "method" -> req.method,
             "headers" -> headers,
             "params" -> params,
             "body" -> body

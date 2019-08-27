@@ -3,7 +3,7 @@
 if [ "$1" = "start" ];
 then
     echo "Build Diffy" && \
-    ./sbt assembly
+#    ./sbt assembly
 
     echo "Build primary, secondary, and candidate servers" && \
     javac -d example src/test/scala/ai/diffy/examples/http/ExampleServers.java && \
@@ -20,6 +20,7 @@ then
     -serviceName='My Service' \
     -summary.delay='1' \
     -summary.email='info@diffy.ai' \
+    -isotope.config='/path/to/local.isotope' \
     -proxy.port=:8880 \
     -admin.port=:8881 \
     -http.port=:8888 & \
@@ -28,20 +29,20 @@ then
     echo "Wait for server to deploy"
     sleep 2
 
-    echo "Send some traffic to your Diffy instance"
-    for i in {1..10}
-    do
-        sleep 0.1
-        curl -s -i -H "Canonical-Resource : json" http://localhost:8880/json?Mixpanel > /dev/null
-        sleep 0.1
-        curl -s -i -H "Canonical-Resource : json" http://localhost:8880/json?Twitter > /dev/null
-        sleep 0.1
-        curl -s -i -H "Canonical-Resource : json" http://localhost:8880/json?Airbnb > /dev/null
-        sleep 0.1
-        curl -s -i -H "Canonical-Resource : json" http://localhost:8880/json?Paytm > /dev/null
-        sleep 0.1
-        curl -s -i -H "Canonical-Resource : json" http://localhost:8880/json?Baidu > /dev/null
-    done
+#    echo "Send some traffic to your Diffy instance"
+#    for i in {1..10}
+#    do
+#        sleep 0.1
+#        curl -s -i -H "Canonical-Resource : json" http://localhost:8880/json?Mixpanel > /dev/null
+#        sleep 0.1
+#        curl -s -i -H "Canonical-Resource : json" http://localhost:8880/json?Twitter > /dev/null
+#        sleep 0.1
+#        curl -s -i -H "Canonical-Resource : json" http://localhost:8880/json?Airbnb > /dev/null
+#        sleep 0.1
+#        curl -s -i -H "Canonical-Resource : json" http://localhost:8880/json?Paytm > /dev/null
+#        sleep 0.1
+#        curl -s -i -H "Canonical-Resource : json" http://localhost:8880/json?Baidu > /dev/null
+#    done
 
     echo "Your Diffy UI can be reached at http://localhost:8888"
 

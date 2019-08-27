@@ -3,12 +3,8 @@ package ai.diffy
 import java.net.InetSocketAddress
 
 import ai.diffy.analysis.{InMemoryDifferenceCollector, InMemoryDifferenceCounter, NoiseDifferenceCounter, RawDifferenceCounter}
-import ai.diffy.compare.Difference
 import ai.diffy.proxy.Settings
-import ai.diffy.util.DiffyProject
 import com.google.inject.Provides
-import com.twitter.app.Flag
-import com.twitter.finagle.util.DefaultTimer
 import com.twitter.inject.TwitterModule
 import com.twitter.util.Duration
 import javax.inject.Singleton

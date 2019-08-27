@@ -70,7 +70,7 @@ class ThriftFeatureTest extends Test {
     Await.result(client.add(1, 1).liftToTry)
     var tries = 0
     while(differenceProxy.outstandingRequests.get() > 0 && tries < 10) {
-      Await.result(Future.sleep(Duration.fromSeconds(1))(DefaultTimer.twitter))
+      Await.result(Future.sleep(Duration.fromSeconds(1))(DefaultTimer))
       tries = tries + 1
     }
     assert(!differenceProxy.collector.fields.isEmpty)

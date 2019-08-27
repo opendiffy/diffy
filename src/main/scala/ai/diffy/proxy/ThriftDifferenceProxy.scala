@@ -3,7 +3,6 @@ package ai.diffy.proxy
 import java.io.File
 import java.util.zip.ZipFile
 
-import ai.diffy.IsotopeSdkModule.IsotopeClient
 import ai.diffy.analysis.{DifferenceAnalyzer, InMemoryDifferenceCollector, JoinedDifferences}
 import ai.diffy.lifter.{MapLifterPool, Message, ThriftLifter}
 import ai.diffy.scrooge.ZippedFileImporter
@@ -18,8 +17,7 @@ case class ThriftDifferenceProxy (
     settings: Settings,
     collector: InMemoryDifferenceCollector,
     joinedDifferences: JoinedDifferences,
-    analyzer: DifferenceAnalyzer,
-    isotopeClient: IsotopeClient)
+    analyzer: DifferenceAnalyzer)
   extends DifferenceProxy
 {
   override type Req = ThriftClientRequest

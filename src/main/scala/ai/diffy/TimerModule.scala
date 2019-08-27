@@ -10,5 +10,5 @@ import com.twitter.util.Timer
 object TimerModule extends TwitterModule {
   @Singleton
   @Provides
-  def providesTimer: Timer = DefaultTimer.twitter
+  def providesTimer: Timer = DefaultTimer
 }

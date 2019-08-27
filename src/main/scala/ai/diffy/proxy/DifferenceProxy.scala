@@ -2,16 +2,15 @@ package ai.diffy.proxy
 
 import java.util.concurrent.atomic.AtomicInteger
 
-import ai.diffy.IsotopeSdkModule.IsotopeClient
-import javax.inject.Singleton
-import com.google.inject.Provides
 import ai.diffy.analysis._
 import ai.diffy.lifter.Message
+import com.google.inject.Provides
 import com.twitter.finagle._
 import com.twitter.finagle.tracing.Trace
 import com.twitter.inject.TwitterModule
 import com.twitter.logging.Logger
 import com.twitter.util._
+import javax.inject.Singleton
 
 object DifferenceProxyModule extends TwitterModule {
   @Provides
@@ -21,13 +20,12 @@ object DifferenceProxyModule extends TwitterModule {
     settings: Settings,
     collector: InMemoryDifferenceCollector,
     joinedDifferences: JoinedDifferences,
-    analyzer: DifferenceAnalyzer,
-    isotopeClient: IsotopeClient
+    analyzer: DifferenceAnalyzer
   ): DifferenceProxy =
     settings.protocol match {
-      case "thrift" => ThriftDifferenceProxy(settings, collector, joinedDifferences, analyzer, isotopeClient)
-      case "http" => SimpleHttpDifferenceProxy(settings, collector, joinedDifferences, analyzer, isotopeClient)
-      case "https" => SimpleHttpsDifferenceProxy(settings, collector, joinedDifferences, analyzer, isotopeClient)
+      case "thrift" => ThriftDifferenceProxy(settings, collector, joinedDifferences, analyzer)
+      case "http" => SimpleHttpDifferenceProxy(settings, collector, joinedDifferences, analyzer)
+      case "https" => SimpleHttpsDifferenceProxy(settings, collector, joinedDifferences, analyzer)
     }
 }
 
@@ -64,28 +62,26 @@ trait DifferenceProxy {
 
   val analyzer: DifferenceAnalyzer
 
-  val isotopeClient: IsotopeClient
-
   private[this] lazy val multicastHandler =
-    new SequentialMulticastService(Seq(primary, candidate, secondary) map { _.client })
+    new TimedMulticastService(Seq(primary, candidate, secondary) map { _.client })
 
   val outstandingRequests = new AtomicInteger(0)
   def proxy = new Service[Req, Rep] {
     override def apply(req: Req): Future[Rep] = {
       Trace.disable()
       outstandingRequests.incrementAndGet()
-      val rawResponses: Future[Seq[Try[Rep]]] =
+      val rawResponses: Future[Seq[(Try[Rep], Long, Long)]] =
         multicastHandler(req) respond {
           case Return(_) => log.debug("success networking")
           case Throw(t) => log.debug(t, "error networking")
         }
 
-      val responses: Future[Seq[Message]] =
+      val responses: Future[Seq[(Message, Long, Long)]] =
         rawResponses flatMap { rs =>
-          Future.collect(rs map {case r => (liftResponse(r))})
+          Future.collect(rs map {case (r, start, end) => liftResponse(r) map { (_, start, end)} })
         } respond {
           case Return(rs) =>
-            log.debug(s"success lifting ${rs.head.endpoint}")
+            log.debug(s"success lifting ${rs.head._1.endpoint}")
 
           case Throw(t) => log.debug(t, "error lifting")
         }
@@ -99,10 +95,10 @@ trait DifferenceProxy {
             case Throw(t) => log.debug(t, "error lifting request")
           } map { req =>
             analyzer(req, candidateResponse, primaryResponse, secondaryResponse)
-//            isotopeClient.save()
           }
       } respond { _ => outstandingRequests.decrementAndGet }
 
+//      rawResponses map { _(0)._1} flatMap { Future.const }
       NoResponseExceptionFuture
     }
   }

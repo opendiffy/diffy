@@ -1,11 +1,12 @@
 package ai.diffy.analysis
 
+import ai.diffy.IsotopeSdkModule.IsotopeClient
 import ai.diffy.compare.{Difference, PrimitiveDifference}
 import ai.diffy.lifter.{JsonLifter, Message}
 import ai.diffy.thriftscala.{DifferenceResult, Responses}
 import com.twitter.finagle.tracing.Trace
 import com.twitter.logging._
-import com.twitter.util.{Future, StorageUnit, Time}
+import com.twitter.util.{Future, StorageUnit, Time, Try}
 import javax.inject.Inject
 
 import scala.util.Random
@@ -30,23 +31,24 @@ case class Field(endpoint: String, prefix: String)
 class DifferenceAnalyzer @Inject()(
     rawCounter: RawDifferenceCounter,
     noiseCounter: NoiseDifferenceCounter,
-    store: InMemoryDifferenceCollector)
+    store: InMemoryDifferenceCollector,
+    isotopeClient: IsotopeClient)
 {
   import DifferenceAnalyzer._
 
   def apply(
     request: Message,
-    candidate: Message,
-    primary: Message,
-    secondary: Message
+    candidate: (Message, Long, Long),
+    primary: (Message, Long, Long),
+    secondary: (Message, Long, Long)
   ): Unit = {
-    getEndpointName(request.endpoint, candidate.endpoint,
-        primary.endpoint, secondary.endpoint) foreach { endpointName =>
+    getEndpointName(request.endpoint, candidate._1.endpoint,
+        primary._1.endpoint, secondary._1.endpoint) foreach { endpointName =>
       // If there is no traceId then generate our own
       val id = Trace.idOption map { _.traceId.toLong } getOrElse(Random.nextLong)
-
-      val rawDiff = Difference(primary, candidate).flattened
-      val noiseDiff = Difference(primary, secondary).flattened
+      Try(isotopeClient.save(id.toString, endpointName, request,candidate, primary, secondary))
+      val rawDiff = Difference(primary._1, candidate._1).flattened
+      val noiseDiff = Difference(primary._1, secondary._1).flattened
 
       rawCounter.counter.count(endpointName, rawDiff)
       noiseCounter.counter.count(endpointName, noiseDiff)
@@ -60,9 +62,9 @@ class DifferenceAnalyzer @Inject()(
           differencesToJson(rawDiff),
           JsonLifter.encode(request.result),
           Responses(
-            candidate = JsonLifter.encode(candidate.result),
-            primary = JsonLifter.encode(primary.result),
-            secondary = JsonLifter.encode(secondary.result)
+            candidate = JsonLifter.encode(candidate._1.result),
+            primary = JsonLifter.encode(primary._1.result),
+            secondary = JsonLifter.encode(secondary._1.result)
           )
         )
 

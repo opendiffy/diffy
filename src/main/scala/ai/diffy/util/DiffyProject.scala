@@ -5,7 +5,7 @@ import ai.diffy.lifter.JsonLifter
 import ai.diffy.proxy.Settings
 import com.twitter.finagle.Http
 import com.twitter.finagle.http.{Method, Request, Response}
-import com.twitter.util.{Future, Promise}
+import com.twitter.util.Future
 
 object DiffyProject {
   private[this] sealed trait config {
@@ -29,7 +29,7 @@ object DiffyProject {
     s = settings
     val m = Difference.mkMap(s)
     val ed = m("emailDelay")
-    uid = m.updated("emailDelay",ed.toString).updated("artifact", "od.apigateway.2019.8.17.001")
+    uid = m.updated("emailDelay",ed.toString).updated("artifact", "od.2019.8.27.001")
     log("start")
   }
 

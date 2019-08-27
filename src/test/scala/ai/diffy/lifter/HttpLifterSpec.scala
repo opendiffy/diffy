@@ -50,7 +50,6 @@ class HttpLifterSpec extends ParentSpec {
     }
 
     def response(status: Status, body: String): Response = {
-
       val resp = Response()
       resp.status = status
       resp.headerMap
@@ -74,7 +73,7 @@ class HttpLifterSpec extends ParentSpec {
         val resultFieldMap = msg.result.asInstanceOf[FieldMap[String]]
 
         msg.endpoint.get should equal ("endpoint")
-        resultFieldMap.get("request").get should equal (req.toString)
+        resultFieldMap.get("uri").get should equal (req.uri)
       }
 
       it("lift simple Post request") {
@@ -87,7 +86,7 @@ class HttpLifterSpec extends ParentSpec {
         val resultFieldMap = msg.result.asInstanceOf[FieldMap[String]]
 
         msg.endpoint.get should equal ("endpoint")
-        resultFieldMap.get("request").get should equal (req.toString)
+        resultFieldMap.get("uri").get should equal (req.uri)
         resultFieldMap.get("body").get should equal (requestBody)
       }
     }
