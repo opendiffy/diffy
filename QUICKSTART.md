@@ -1,5 +1,5 @@
-## Getting started
-# Running the example
+# Getting started
+## Running the example
 The example.sh script included here builds and launches example servers as well as a diffy instance. Verify
 that the following ports are available (9000, 9100, 9200, 8880, 8881, & 8888) and run `./example/run.sh start`.
 
@@ -8,7 +8,7 @@ Once your local Diffy instance is deployed, you send it a few requests by runnin
 You can now go to your browser at
 [http://localhost:8888](http://localhost:8888) to see what the differences across our example instances look like.
 
-# Digging deeper
+## Digging deeper
 That was cool but now you want to compare old and new versions of your own service. Here’s how you can
 start using Diffy to compare three instances of your service:
 
@@ -42,6 +42,7 @@ start using Diffy to compare three instances of your service:
 7. Watch the differences show up in your browser at [http://localhost:8888](http://localhost:8888).
 
 8. Note that after ```summary.delay``` minutes, your Diffy instance will email a summary report to your ```summary.email``` address.
+
 ## Using Diffy with Docker
 
 You can pull the [official docker image](https://hub.docker.com/r/diffy/diffy/) with `docker pull diffy/diffy`
