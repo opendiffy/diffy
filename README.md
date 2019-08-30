@@ -4,9 +4,9 @@
 [![Coverage status](https://img.shields.io/codecov/c/github/opendiffy/diffy/master.svg)](https://codecov.io/github/opendiffy/diffy)
 [![Project status](https://img.shields.io/badge/status-active-brightgreen.svg)](#status)
 [![Gitter](https://img.shields.io/badge/gitter-join%20chat-green.svg)](https://gitter.im/opendiffy/diffy)
+[![Docker](https://img.shields.io/docker/pulls/diffy/diffy)](https://hub.docker.com/r/diffy/diffy)
+[![Downloads](https://img.shields.io/github/downloads/opendiffy/diffy/total.svg)](https://github.com/opendiffy/diffy/releases/download/latest)
 [![License: AGPL v3](https://img.shields.io/badge/License-AGPL%20v3-blue.svg)](https://www.gnu.org/licenses/agpl-3.0)
-
-[![Run on Google Cloud](https://storage.googleapis.com/cloudrun/button.svg)](https://console.cloud.google.com/cloudshell/editor?shellonly=true&cloudshell_image=gcr.io/cloudrun/button&cloudshell_git_repo=https://github.com/opendiffy/diffy.git)
 
 ## Status
 
@@ -85,7 +85,7 @@ start using Diffy to compare three instances of your service:
     -master.primary=localhost:9990 \
     -master.secondary=localhost:9991 \
     -service.protocol=http \
-    -serviceName=My-Service \
+    -serviceName=Fancy-Service \
     -proxy.port=:8880 \
     -admin.port=:8881 \
     -http.port=:8888 \
@@ -116,12 +116,12 @@ docker run -d --name diffy-01 \
     -master.primary=localhost:9990 \
     -master.secondary=localhost:9991 \
     -service.protocol=http \
-    -serviceName="Test-Service" \
+    -serviceName="Tier-Service" \
     -proxy.port=:8880 \
     -admin.port=:8881 \
     -http.port=:8888 \
     -rootUrl=localhost:8888 \
-    -summary.email="info@diffy.ai" \
+    -summary.email="docker@diffy.ai" \
     -summary.delay="5"
 ```
 

@@ -23,6 +23,12 @@ object IsotopeSdkModule extends TwitterModule {
   val isotopeConfig =
     flag("isotope.config", "local.isotope", "the isotope configuration file")
 
+  val currentUser = Try(sys.env("USER")).getOrElse("unknown")
+  val mbean = java.lang.management.ManagementFactory.getRuntimeMXBean()
+  val startTime = mbean.getStartTime()
+  val processName = mbean.getName()
+  val Seq(currentPid, currentHostname) = processName.split("@").toSeq
+
   case class Child(
     id: String,
     `type` : String,
@@ -45,7 +51,12 @@ object IsotopeSdkModule extends TwitterModule {
   case class IsotopeContext(
     service_version: String,
     from_prod : Boolean,
-    emitted_at: Long = System.currentTimeMillis())
+    emitted_at: Long = System.currentTimeMillis(),
+    hostname: String = currentHostname,
+    pid: String = currentPid,
+    server_start: Long = startTime,
+    user: String = currentUser,
+    sdk_version: String = "diffy-0.0.1-SNAPSHOT-28AUG2019")
 
   case class ExportPayload(isotope_context: IsotopeContext, recordings: Seq[Observation])
 
@@ -58,6 +69,7 @@ object IsotopeSdkModule extends TwitterModule {
   case class Config(credentials: Credentials, mode: String, localport: Int, service_version: String)
 
   trait IsotopeClient {
+    val isConcrete = false
     def tx(globalTxId: String, path: String, req: Message, res: (Message, Long, Long)): Observation =
       Observation(
         globalTxId,
@@ -98,6 +110,7 @@ object IsotopeSdkModule extends TwitterModule {
 
     def size():Int = buffers.foldLeft(0){ case (acc, (_, b)) => acc + b.size() }
 
+    override val isConcrete = true
     override def save(
       globalTxId: String,
       path: String,

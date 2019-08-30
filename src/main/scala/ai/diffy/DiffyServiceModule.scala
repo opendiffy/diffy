@@ -32,13 +32,13 @@ object DiffyServiceModule extends TwitterModule {
     flag[String]("proxy.clientId", "diffy.proxy", "The clientId to be used by the proxy service to talk to candidate, primary, and master")
 
   val pathToThriftJar =
-    flag[String]("thrift.jar", "path/to/thrift.jar", "The path to a fat Thrift jar")
+    flag[String]("thrift.jar", "path/to/thrift.jar", "The path to a fat Thrift jar - the jar should include all dependencies")
 
   val serviceClass =
-    flag[String]("thrift.serviceClass", "UserService", "The service name within the thrift jar e.g. UserService")
+    flag[String]("thrift.serviceClass", "unknown", "The service name within the thrift jar e.g. UserService")
 
   val serviceName =
-    flag[String]("serviceName", "Gizmoduck", "The service title e.g. Gizmoduck")
+    flag[String]("serviceName", "The service title e.g. UserService or LocationService")
 
   val apiRoot =
     flag[String]("apiRoot", "", "A path token that will be removed by a proxy gateway before forwarding UI requests to Diffy")

@@ -27,5 +27,5 @@ case class Settings(
   skipEmailsWhenNoErrors: Boolean,
   httpsPort: String,
   useFramedThriftTransport: Boolean,
-  hostname: String = Try(java.net.InetAddress.getLocalHost.toString).getOrElse("unknown"),
+  hostname: String = Try(java.lang.management.ManagementFactory.getRuntimeMXBean.getName.split("@")(1)).getOrElse("unknown"),
   user: String = Try(sys.env("USER")).getOrElse("unknown"))

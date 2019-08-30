@@ -3,7 +3,7 @@
 if [ "$1" = "start" ];
 then
     echo "Build Diffy" && \
-#    ./sbt assembly
+    ./sbt assembly
 
     echo "Build primary, secondary, and candidate servers" && \
     javac -d example src/test/scala/ai/diffy/examples/http/ExampleServers.java && \
@@ -17,32 +17,32 @@ then
     -master.primary='localhost:9000' \
     -master.secondary='localhost:9100' \
     -service.protocol='http' \
-    -serviceName='My Service' \
+    -serviceName='ExampleService' \
     -summary.delay='1' \
-    -summary.email='info@diffy.ai' \
-    -isotope.config='/path/to/local.isotope' \
+    -summary.email='example@diffy.ai' \
+    -isotope.config='/Users/puneetkhanduri/code/sn126/isodemo/local.isotope' \
     -proxy.port=:8880 \
     -admin.port=:8881 \
     -http.port=:8888 & \
 
-    sleep 3
+    sleep 5
     echo "Wait for server to deploy"
-    sleep 2
+    sleep 5
 
-#    echo "Send some traffic to your Diffy instance"
-#    for i in {1..10}
-#    do
-#        sleep 0.1
-#        curl -s -i -H "Canonical-Resource : json" http://localhost:8880/json?Mixpanel > /dev/null
-#        sleep 0.1
-#        curl -s -i -H "Canonical-Resource : json" http://localhost:8880/json?Twitter > /dev/null
-#        sleep 0.1
-#        curl -s -i -H "Canonical-Resource : json" http://localhost:8880/json?Airbnb > /dev/null
-#        sleep 0.1
-#        curl -s -i -H "Canonical-Resource : json" http://localhost:8880/json?Paytm > /dev/null
-#        sleep 0.1
-#        curl -s -i -H "Canonical-Resource : json" http://localhost:8880/json?Baidu > /dev/null
-#    done
+    echo "Send some traffic to your Diffy instance"
+    for i in {1..10}
+    do
+        sleep 0.1
+        curl -s -i -H "Canonical-Resource : json" http://localhost:8880/json?Mixpanel > /dev/null
+        sleep 0.1
+        curl -s -i -H "Canonical-Resource : json" http://localhost:8880/json?Twitter > /dev/null
+        sleep 0.1
+        curl -s -i -H "Canonical-Resource : json" http://localhost:8880/json?Airbnb > /dev/null
+        sleep 0.1
+        curl -s -i -H "Canonical-Resource : json" http://localhost:8880/json?Paytm > /dev/null
+        sleep 0.1
+        curl -s -i -H "Canonical-Resource : json" http://localhost:8880/json?Baidu > /dev/null
+    done
 
     echo "Your Diffy UI can be reached at http://localhost:8888"
 

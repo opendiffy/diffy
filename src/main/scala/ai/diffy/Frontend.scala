@@ -2,13 +2,14 @@ package ai.diffy
 
 import java.util.concurrent.atomic.AtomicInteger
 
+import ai.diffy.IsotopeSdkModule.IsotopeClient
 import ai.diffy.proxy.Settings
 import com.twitter.finagle.Http
 import com.twitter.finagle.http.Request
 import com.twitter.finatra.http.Controller
 import javax.inject.Inject
 
-class Frontend @Inject()(settings: Settings) extends Controller {
+class Frontend @Inject()(settings: Settings, isotopeClient: IsotopeClient) extends Controller {
 
   case class Dashboard(
     serviceName: String,
@@ -17,7 +18,8 @@ class Frontend @Inject()(settings: Settings) extends Controller {
     excludeNoise: Boolean,
     relativeThreshold: Double,
     absoluteThreshold: Double,
-    isotopeReason: String)
+    isotopeReason: String,
+    hasIsotope: Boolean = false)
 
   val reasons = Seq(
     "Do you want to compare side effects like logs and downstream interactions?",
@@ -36,7 +38,9 @@ class Frontend @Inject()(settings: Settings) extends Controller {
         req.params.getBooleanOrElse("exclude_noise", false),
         settings.relativeThreshold,
         settings.absoluteThreshold,
-        reasons(reasonIndex.getAndIncrement() % reasons.length))
+        reasons(reasonIndex.getAndIncrement() % reasons.length),
+        isotopeClient.isConcrete
+      )
     )
   }
 

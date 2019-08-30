@@ -150,7 +150,10 @@
     <div class="container-fluid row">
       <div class="col-xs-2 endpoints-column" ng-controller="EndpointController">
         <nav class="row navbar navbar-default" role="navigation">
-          <span class="title">diffy</span>
+          <span class="title">
+            {{#hasIsotope}}<a href="https://isotope.sn126.com">◐ isotope</a>{{/hasIsotope}}
+            {{^hasIsotope}}diffy{{/hasIsotope}}
+          </span>
           <a class="settings" ng-click="showSettings()"><i class="fa fa-cog"></i></a>
         </nav>
 
@@ -193,14 +196,13 @@
           </a>
         </div>
       </div>
-      <div class="col-xs-10 text-center alert alert-success">
-        {{isotopeReason}} <a class="alert-link" href="https://www.sn126.com">Isotope</a> is coming soon!
-      </div>
+        {{^hasIsotope}}
+          <div class="col-xs-10 text-center alert alert-success">
+            {{isotopeReason}} Try <a class="alert-link" href="https://isotope.sn126.com">Isotope</a>!
+          </div>
+        {{/hasIsotope}}
       <div class="col-xs-4 fields-column" ng-controller="FieldsController">
         <div class="header clearfix" ng-hide="!endpointName">
-            <div class="left-panel divider">
-                <container>Do you need to save this analysis? Isotope can help with that.</container>
-            </div>
           <h3 class="title">[[endpointName]]</h3>
           <ul class="stats" ng-hide="loading">
             <li>
@@ -263,7 +265,7 @@
     </div>
 
     <link rel="stylesheet" type="text/css" href="{{apiRoot}}/css/bootstrap.superhero.css" />
-    <link rel="stylesheet" type="text/css" href="{{apiRoot}}/css/diff.css" />
+    <link rel="stylesheet" type="text/css" href="{{apiRoot}}/css/diffy.css" />
     <link rel="stylesheet" href="//maxcdn.bootstrapcdn.com/font-awesome/4.1.0/css/font-awesome.min.css">
     <link href='//fonts.googleapis.com/css?family=Lobster' rel='stylesheet' type='text/css'>
     <link href='//fonts.googleapis.com/css?family=Roboto+Condensed|Inconsolata:400,700' rel='stylesheet' type='text/css'>

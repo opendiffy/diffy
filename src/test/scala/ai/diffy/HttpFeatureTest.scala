@@ -34,6 +34,7 @@ class HttpFeatureTest extends Test {
       "candidate" -> s"localhost:$c",
       "master.primary" -> s"localhost:$p",
       "master.secondary" -> s"localhost:$s",
+      "serviceName" -> "myHttpService",
       "service.protocol" -> "http",
       "summary.email" ->"test"
     ),
@@ -67,5 +68,19 @@ class HttpFeatureTest extends Test {
       Await.result(Http.fetchUrl(s"http://${server.externalHttpHostAndPort}/api/1/endpoints/json/stats"))
     assertResult(Status.Ok)(response.status)
     assertResult("""{"error":"key not found: json"}""")(response.getContentString())
+  }
+  Seq(
+    "/api/1/overview",
+    "/api/1/report",
+    "/api/1/endpoints",
+    "/api/1/endpoints/json/stats",
+    "/api/1/endpoints/json/fields/result.200.values.value.name.PrimitiveDifference/results",
+    "/api/1/endpoints/json/fields/result.200.values.value.name.PrimitiveDifference/results/0"
+  ) foreach { endpoint =>
+    test(s"ping ${endpoint}") {
+      val response =
+        Await.result(Http.fetchUrl(s"http://${server.externalHttpHostAndPort}${endpoint}"))
+      assertResult(Status.Ok)(response.status)
+    }
   }
 }

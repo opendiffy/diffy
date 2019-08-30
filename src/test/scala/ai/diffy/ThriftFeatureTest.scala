@@ -51,6 +51,7 @@ class ThriftFeatureTest extends Test {
       "candidate" -> s"localhost:$c",
       "master.primary" -> s"localhost:$p",
       "master.secondary" -> s"localhost:$s",
+      "serviceName" -> "myThriftService",
       "service.protocol" -> "thrift",
       "thrift.jar" -> thriftJar.toAbsolutePath.toString,
       "thrift.serviceClass" -> "Adder",
