@@ -85,7 +85,7 @@ If you are new to Diffy, please refer to our [Quickstart](/QUICKSTART.md) guide.
 5. Send some traffic to your deployed Diffy instance.
 6. Go the [analysis](http://isotope.sn126.com/analysis) tab to see your latest and historical results.
 
-###Support
+### Support
 Please reach out to isotope@sn126.com for support. We look forward to hearing from you.
 
 
