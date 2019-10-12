@@ -76,6 +76,9 @@ object DiffyServiceModule extends TwitterModule {
   val thriftFramedTransport =
     flag[Boolean]("thriftFramedTransport", true, "Run in BufferedTransport mode when false")
 
+  val resourceMappings =
+    flag[String]("resource.mapping", "", "Coma separated list of resource paths and names")
+
   @Provides
   @Singleton
   def settings =
@@ -102,6 +105,13 @@ object DiffyServiceModule extends TwitterModule {
       skipEmailsWhenNoErrors(),
       httpsPort(),
       thriftFramedTransport(),
+      resourceMapping = Option(resourceMappings()).map(_
+        .split(",")
+        .map(_.split(":"))
+        .filter(_.length == 2)
+        .map(x => x(0) -> x(1))
+        .toMap
+      ).getOrElse(Map.empty)
     )
 
   @Provides

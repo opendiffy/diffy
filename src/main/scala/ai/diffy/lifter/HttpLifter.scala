@@ -18,7 +18,7 @@ object HttpLifter {
   }
 }
 
-class HttpLifter(excludeHttpHeadersComparison: Boolean) {
+class HttpLifter(excludeHttpHeadersComparison: Boolean, resourceMapping: Map[String, String] = Map.empty) {
   import HttpLifter._
 
   private[this] val log = Logger(classOf[HttpLifter])
@@ -36,7 +36,7 @@ class HttpLifter(excludeHttpHeadersComparison: Boolean) {
 
   def liftRequest(req: Request): Future[Message] = {
     val headers = req.headerMap
-    val canonicalResource = headers.get("Canonical-Resource")
+    val canonicalResource = headers.get("Canonical-Resource").orElse(resourceMapping.get(req.path))
     val params = req.getParams()
     val body = StringLifter.lift(req.getContentString())
     Future.value(

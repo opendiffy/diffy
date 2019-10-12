@@ -27,7 +27,7 @@ object HttpDifferenceProxy {
 
 trait HttpDifferenceProxy extends DifferenceProxy {
   val servicePort: SocketAddress
-  val lifter = new HttpLifter(settings.excludeHttpHeadersComparison)
+  val lifter = new HttpLifter(settings.excludeHttpHeadersComparison, settings.resourceMapping)
 
   override type Req = Request
   override type Rep = Response
