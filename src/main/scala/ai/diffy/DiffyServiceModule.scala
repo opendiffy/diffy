@@ -77,7 +77,7 @@ object DiffyServiceModule extends TwitterModule {
     flag[Boolean]("thriftFramedTransport", true, "Run in BufferedTransport mode when false")
 
   val resourceMappings =
-    flag[String]("resource.mapping", "", "Coma separated list of resource paths and names")
+    flag[String]("resource.mapping", "", "Coma separated list of resource paths and names. Each resource is separated by a colon. Example '/foo:foo-resource,/bar:bar-resource")
 
   @Provides
   @Singleton
