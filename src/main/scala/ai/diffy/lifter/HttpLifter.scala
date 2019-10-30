@@ -1,11 +1,21 @@
 package ai.diffy.lifter
 
-import com.google.common.net.{HttpHeaders, MediaType}
+import ai.diffy.lifter.HttpLifter.ResourceMapping
+import ai.diffy.util.PathPattern.PathMatcher
 import com.twitter.finagle.http.{Request, Response}
 import com.twitter.logging.Logger
 import com.twitter.util.{Future, Try}
 
+
 object HttpLifter {
+
+  /**
+   * _1 - The pattern for the resource
+   * _2 - The name of the resource
+   * _3 - A function that returns true if a string matches the pattern
+   */
+  type ResourceMapping = (String, String, PathMatcher)
+
   val ControllerEndpointHeaderName = "X-Action-Name"
 
   def contentTypeNotSupportedException(contentType: String) = new Exception(s"Content type: $contentType is not supported")
@@ -18,7 +28,7 @@ object HttpLifter {
   }
 }
 
-class HttpLifter(excludeHttpHeadersComparison: Boolean, resourceMapping: Map[String, String] = Map.empty) {
+class HttpLifter(excludeHttpHeadersComparison: Boolean, resourceMappings: List[ResourceMapping] = List.empty) {
   import HttpLifter._
 
   private[this] val log = Logger(classOf[HttpLifter])
@@ -36,7 +46,14 @@ class HttpLifter(excludeHttpHeadersComparison: Boolean, resourceMapping: Map[Str
 
   def liftRequest(req: Request): Future[Message] = {
     val headers = req.headerMap
-    val canonicalResource = headers.get("Canonical-Resource").orElse(resourceMapping.get(req.path))
+
+    val canonicalResource = headers
+      .get("Canonical-Resource")
+      .orElse(resourceMappings
+        .find { case (pattern, _, matcher) => matcher(req.path, pattern) }
+        .map(_._2)
+      )
+
     val params = req.getParams()
     val body = StringLifter.lift(req.getContentString())
     Future.value(

@@ -4,6 +4,7 @@ import java.net.InetSocketAddress
 
 import ai.diffy.analysis.{InMemoryDifferenceCollector, InMemoryDifferenceCounter, NoiseDifferenceCounter, RawDifferenceCounter}
 import ai.diffy.proxy.Settings
+import ai.diffy.util.PathPattern
 import com.google.inject.Provides
 import com.twitter.inject.TwitterModule
 import com.twitter.util.Duration
@@ -107,11 +108,15 @@ object DiffyServiceModule extends TwitterModule {
       thriftFramedTransport(),
       resourceMapping = Option(resourceMappings()).map(_
         .split(",")
-        .map(_.split(":"))
-        .filter(_.length == 2)
-        .map(x => x(0) -> x(1))
-        .toMap
-      ).getOrElse(Map.empty)
+        .map(_.split(";"))
+        .filter { x =>
+          val wellFormed = x.length == 2
+          if (!wellFormed) logger.warn(s"Malformed resource mapping: $x. Should be <pattern>;<resource-name>")
+          wellFormed
+        }
+        .map(x => (x(0), x(1), PathPattern.http))
+        .toList
+      ).getOrElse(List.empty)
     )
 
   @Provides
