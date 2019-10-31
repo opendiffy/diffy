@@ -1,7 +1,6 @@
 package ai.diffy.lifter
 
-import ai.diffy.lifter.HttpLifter.ResourceMapping
-import ai.diffy.util.PathPattern.PathMatcher
+import ai.diffy.util.ResourceMatcher
 import com.twitter.finagle.http.{Request, Response}
 import com.twitter.logging.Logger
 import com.twitter.util.{Future, Try}
@@ -9,12 +8,6 @@ import com.twitter.util.{Future, Try}
 
 object HttpLifter {
 
-  /**
-   * _1 - The pattern for the resource
-   * _2 - The name of the resource
-   * _3 - A function that returns true if a string matches the pattern
-   */
-  type ResourceMapping = (String, String, PathMatcher)
 
   val ControllerEndpointHeaderName = "X-Action-Name"
 
@@ -28,7 +21,7 @@ object HttpLifter {
   }
 }
 
-class HttpLifter(excludeHttpHeadersComparison: Boolean, resourceMappings: List[ResourceMapping] = List.empty) {
+class HttpLifter(excludeHttpHeadersComparison: Boolean, resourceMatcher: Option[ResourceMatcher] = None) {
   import HttpLifter._
 
   private[this] val log = Logger(classOf[HttpLifter])
@@ -49,10 +42,7 @@ class HttpLifter(excludeHttpHeadersComparison: Boolean, resourceMappings: List[R
 
     val canonicalResource = headers
       .get("Canonical-Resource")
-      .orElse(resourceMappings
-        .find { case (pattern, _, matcher) => matcher(req.path, pattern) }
-        .map(_._2)
-      )
+      .orElse(resourceMatcher.flatMap(_.resourceName(req.path)))
 
     val params = req.getParams()
     val body = StringLifter.lift(req.getContentString())

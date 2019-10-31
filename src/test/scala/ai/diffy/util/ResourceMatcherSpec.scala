@@ -5,25 +5,23 @@ import org.junit.runner.RunWith
 import org.scalatest.junit.JUnitRunner
 
 @RunWith(classOf[JUnitRunner])
-class PathPatternSpec extends ParentSpec {
+class ResourceMatcherSpec extends ParentSpec {
 
   describe("The HTTP PathMatcher") {
 
-    val matcher = PathPattern.http
-
     it("should support parameter placeholders") {
-      val matches = matcher("/path1/param1/path2/param2", "/path1/:param1/path2/:param2")
-      matches mustBe true
+      new ResourceMatcher(List("/path1/:param1/path2/:param2" -> "p1"))
+        .resourceName("/path1/param1/path2/param2") mustBe Some("p1")
     }
 
     it("should support wildcards, matching everything after the wildcard") {
-      val matches = matcher("/path1/param1/path/param2", "/path1/*")
-      matches mustBe true
+      new ResourceMatcher(List("/path1/*" -> "p2"))
+        .resourceName("/path1/*") mustBe Some("p2")
     }
 
     it("should support wildcards, matching wildcards in the middle of the path") {
-      val matches = matcher("/path1/param1/path/param2", "/path1/*/path/param2")
-      matches mustBe true
+      new ResourceMatcher(List("/path1/*/path/param2" -> "p3"))
+        .resourceName("/path1/param1/path/param2") mustBe Some("p3")
     }
   }
 }
