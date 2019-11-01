@@ -93,6 +93,18 @@ class HttpLifterSpec extends ParentSpec {
 
     describe("LiftResponse") {
 
+      it("lowercase all headers when lifting") {
+        val lifter = new HttpLifter(false)
+        val resp = response(Status.Ok, validJsonBody)
+        resp.headerMap.add("Hello", "World")
+
+        val msg = Await.result(lifter.liftResponse(Try(resp)))
+        val resultFieldMap = msg.result
+
+        resultFieldMap("200")
+          .asInstanceOf[Map[String, _]]("headers")
+          .asInstanceOf[FieldMap[_]]("hello") should be (Seq("World"))
+      }
       it("exclude header in response map if excludeHttpHeadersComparison flag is off") {
         val lifter = new HttpLifter(true)
         val resp = response(Status.Ok, validJsonBody)
@@ -100,7 +112,7 @@ class HttpLifterSpec extends ParentSpec {
         val msg = Await.result(lifter.liftResponse(Try(resp)))
         val resultFieldMap = msg.result
 
-        resultFieldMap.get("headers") should be (None)
+        resultFieldMap("200").asInstanceOf[Map[String, _]].get("headers") should be (None)
       }
 
 

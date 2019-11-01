@@ -29,8 +29,10 @@ class HttpLifter(excludeHttpHeadersComparison: Boolean, resourceMatcher: Option[
     if(!excludeHttpHeadersComparison) {
       val rawHeaders = response.headerMap.toSeq
 
-      val headers = rawHeaders groupBy { case (name, _) => name } map { case (name, values) =>
-        name -> (values map { case (_, value) => value } sorted)
+      val headers = rawHeaders map { case (name, value) =>
+        (name.toLowerCase, value)
+      } groupBy { _._1} map { case (name, pairs) =>
+        name -> (pairs map { _._2 } sorted)
       }
 
       Map( "headers" -> FieldMap(headers))
