@@ -43,6 +43,15 @@ start using Diffy to compare three instances of your service:
 
 8. Note that after ```summary.delay``` minutes, your Diffy instance will email a summary report to your ```summary.email``` address.
 
+*NOTE*: By default the names of the resources in the UI are fetched from the `Canonical-Resource` header in each
+request. However this can be configured at boot with a static line, example: 
+```
+-resource.mapping='/foo/:param;f,/b/*;b,/ab/*/g;g,/z/*/x/*/p;p' \
+```
+In the snippet above the configuration form is: `<pattern>;<resource-name>[,<pattern>;<resource-name>]*`
+
+The first matching configuration will be found
+
 ## Using Diffy with Docker
 
 You can pull the [official docker image](https://hub.docker.com/r/diffy/diffy/) with `docker pull diffy/diffy`

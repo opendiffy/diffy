@@ -1,11 +1,14 @@
 package ai.diffy.lifter
 
-import com.google.common.net.{HttpHeaders, MediaType}
+import ai.diffy.util.ResourceMatcher
 import com.twitter.finagle.http.{Request, Response}
 import com.twitter.logging.Logger
 import com.twitter.util.{Future, Try}
 
+
 object HttpLifter {
+
+
   val ControllerEndpointHeaderName = "X-Action-Name"
 
   def contentTypeNotSupportedException(contentType: String) = new Exception(s"Content type: $contentType is not supported")
@@ -18,7 +21,7 @@ object HttpLifter {
   }
 }
 
-class HttpLifter(excludeHttpHeadersComparison: Boolean) {
+class HttpLifter(excludeHttpHeadersComparison: Boolean, resourceMatcher: Option[ResourceMatcher] = None) {
   import HttpLifter._
 
   private[this] val log = Logger(classOf[HttpLifter])
@@ -36,7 +39,11 @@ class HttpLifter(excludeHttpHeadersComparison: Boolean) {
 
   def liftRequest(req: Request): Future[Message] = {
     val headers = req.headerMap
-    val canonicalResource = headers.get("Canonical-Resource")
+
+    val canonicalResource = headers
+      .get("Canonical-Resource")
+      .orElse(resourceMatcher.flatMap(_.resourceName(req.path)))
+
     val params = req.getParams()
     val body = StringLifter.lift(req.getContentString())
     Future.value(

@@ -4,6 +4,7 @@ import java.net.InetSocketAddress
 
 import ai.diffy.analysis.{InMemoryDifferenceCollector, InMemoryDifferenceCounter, NoiseDifferenceCounter, RawDifferenceCounter}
 import ai.diffy.proxy.Settings
+import ai.diffy.util.ResourceMatcher
 import com.google.inject.Provides
 import com.twitter.inject.TwitterModule
 import com.twitter.util.Duration
@@ -76,6 +77,9 @@ object DiffyServiceModule extends TwitterModule {
   val thriftFramedTransport =
     flag[Boolean]("thriftFramedTransport", true, "Run in BufferedTransport mode when false")
 
+  val resourceMappings =
+    flag[String]("resource.mapping", "", "Coma separated list of resource paths and names. Each resource is separated by a colon. Example '/foo:foo-resource,/bar:bar-resource")
+
   @Provides
   @Singleton
   def settings =
@@ -102,6 +106,17 @@ object DiffyServiceModule extends TwitterModule {
       skipEmailsWhenNoErrors(),
       httpsPort(),
       thriftFramedTransport(),
+      resourceMatcher = Option(resourceMappings()).map(_
+        .split(",")
+        .map(_.split(";"))
+        .filter { x =>
+          val wellFormed = x.length == 2
+          if (!wellFormed) logger.warn(s"Malformed resource mapping: $x. Should be <pattern>;<resource-name>")
+          wellFormed
+        }
+        .map(x => (x(0), x(1)))
+        .toList)
+        .map(new ResourceMatcher(_))
     )
 
   @Provides
