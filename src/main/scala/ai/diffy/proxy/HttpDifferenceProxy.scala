@@ -23,9 +23,16 @@ object HttpDifferenceProxy {
         }
       }
     }
+
+  def requestHostHeaderFilter(host: String) =
+    Filter.mk[Request, Response, Request, Response] { (req, svc) =>
+      req.host(host)
+      svc(req)
+    }
 }
 
 trait HttpDifferenceProxy extends DifferenceProxy {
+  import HttpDifferenceProxy._
   val servicePort: SocketAddress
   val lifter = new HttpLifter(settings.excludeHttpHeadersComparison, settings.resourceMatcher)
 
@@ -34,7 +41,7 @@ trait HttpDifferenceProxy extends DifferenceProxy {
   override type Srv = HttpService
 
   override def serviceFactory(serverset: String, label: String) =
-    HttpService(Http.newClient(serverset, label).toService)
+    HttpService(requestHostHeaderFilter(serverset) andThen Http.newClient(serverset, label).toService)
 
   override lazy val server =
     Http.serve(
