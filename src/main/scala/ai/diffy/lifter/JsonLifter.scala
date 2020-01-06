@@ -1,7 +1,9 @@
 package ai.diffy.lifter
 
-import com.fasterxml.jackson.core.JsonToken
-import com.fasterxml.jackson.databind.{JsonNode, ObjectMapper}
+import com.fasterxml.jackson.core.{JsonGenerator, JsonToken}
+import com.fasterxml.jackson.databind.annotation.JsonSerialize
+import com.fasterxml.jackson.databind.ser.std.StdSerializer
+import com.fasterxml.jackson.databind.{JsonNode, ObjectMapper, SerializerProvider}
 import com.fasterxml.jackson.module.scala.DefaultScalaModule
 import com.fasterxml.jackson.module.scala.experimental.ScalaObjectMapper
 import com.twitter.util.Try
@@ -13,6 +15,7 @@ import scala.tools.reflect.ToolBox
 import scala.util.control.NoStackTrace
 
 object JsonLifter {
+  @JsonSerialize(using = classOf[JsonNullSerializer])
   object JsonNull
   object JsonParseError extends Exception with NoStackTrace
 
@@ -48,4 +51,14 @@ object JsonLifter {
 
   def decode(json: String): JsonNode = Mapper.readTree(json)
   def encode(item: Any): String = Mapper.writer.writeValueAsString(item)
+}
+
+class JsonNullSerializer(clazz: Class[Any]) extends StdSerializer[Any](clazz) {
+  def this() {
+    this(null)
+  }
+
+  override def serialize(t: Any, jsonGenerator: JsonGenerator, serializerProvider: SerializerProvider): Unit = {
+    jsonGenerator.writeNull()
+  }
 }
