@@ -56,6 +56,10 @@ trait DifferenceProxy {
   val primary   = serviceFactory(settings.primary, "primary")
   val secondary = serviceFactory(settings.secondary, "secondary")
 
+  val candidateApiRoot = settings.candidateApiRoot
+  val primaryApiRoot = settings.primaryApiRoot
+  val secondaryApiRoot = settings.secondaryApiRoot
+
   val collector: InMemoryDifferenceCollector
 
   val joinedDifferences: JoinedDifferences
@@ -63,7 +67,7 @@ trait DifferenceProxy {
   val analyzer: DifferenceAnalyzer
 
   private[this] lazy val multicastHandler =
-    new TimedMulticastService(Seq(primary, candidate, secondary) map { _.client })
+    new TimedMulticastService(Seq(primary, candidate, secondary) map { _.client }, Seq(primaryApiRoot, candidateApiRoot,secondaryApiRoot))
 
   val outstandingRequests = new AtomicInteger(0)
   def proxy = new Service[Req, Rep] {

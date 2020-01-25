@@ -26,6 +26,15 @@ object DiffyServiceModule extends TwitterModule {
   val secondaryPath =
     flag[String]("master.secondary", "secondary master serverset where known good code is deployed")
 
+  val candidateApiRoot =
+    flag[String]("candidateApiRoot", "", "Api Root for the candidate api to call. E.g:- api/v1")
+
+  val primaryApiRoot =
+    flag[String]("primaryApiRoot", "", "Api Root for the primary api to call. E.g:- api/v2")
+
+  val secondaryApiRoot =
+    flag[String]("secondaryApiRoot", "", "Api Root for the secondary api to call. E.g:- api/v3")
+
   val protocol =
     flag[String]("service.protocol", "Service protocol: thrift, http or https")
 
@@ -89,6 +98,9 @@ object DiffyServiceModule extends TwitterModule {
       candidatePath(),
       primaryPath(),
       secondaryPath(),
+      candidateApiRoot(),
+      primaryApiRoot(),
+      secondaryApiRoot(),
       protocol(),
       clientId(),
       pathToThriftJar(),

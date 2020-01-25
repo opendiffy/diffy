@@ -80,6 +80,9 @@ If you are new to Diffy, please refer to our [Quickstart](/QUICKSTART.md) guide.
         -proxy.port=:8880 \
         -admin.port=:8881 \
         -http.port=:8888 \
+        -candidateApiRoot='api/v4/?param1=value1&param2=value2' \
+        -primaryApiRoot='api/v3/' \
+        -secondaryApiRoot='api/v3/' \
         -isotope.config='/path/to/local.isotope'
     ```
 5. Send some traffic to your deployed Diffy instance.
