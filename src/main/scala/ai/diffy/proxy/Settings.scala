@@ -32,4 +32,4 @@ case class Settings(
                      hostname: String = Try(java.lang.management.ManagementFactory.getRuntimeMXBean.getName.split("@")(1)).getOrElse("unknown"),
                      user: String = Try(sys.env("USER")).getOrElse("unknown"),
                      resourceMatcher: Option[ResourceMatcher] = None,
-                     responseMode: ServiceInstance)
+                     responseMode: ServiceInstance = ServiceInstance.Primary)
