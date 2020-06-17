@@ -7,17 +7,18 @@ sealed trait ServiceInstance {
 
 object ServiceInstance {
   object Primary extends ServiceInstance {
-    override val name: String = "Primary"
+    override val name: String = "primary"
     override val isProduction: Boolean = true
   }
-  object Secondary extends ServiceInstance {
-    override val name: String = "Secondary"
+  object Candidate extends ServiceInstance {
+    override val name: String = "candidate"
     override val isProduction: Boolean = false
   }
-  object Candidate extends ServiceInstance {
-    override val name: String = "Candidate"
+  object Secondary extends ServiceInstance {
+    override val name: String = "secondary"
     override val isProduction: Boolean = false
   }
 
-  val all = Seq(Primary, Secondary, Candidate)
+  val all = Seq(Primary, Candidate, Secondary)
+  def from(name: String): Option[ServiceInstance] = all.find(_.name == name)
 }

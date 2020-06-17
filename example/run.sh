@@ -16,6 +16,7 @@ then
     -candidate='localhost:9200' \
     -master.primary='localhost:9000' \
     -master.secondary='localhost:9100' \
+    -responseMode='candidate' \
     -service.protocol='http' \
     -serviceName='ExampleService' \
     -summary.delay='1' \

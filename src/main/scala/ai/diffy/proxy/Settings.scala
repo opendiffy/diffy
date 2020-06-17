@@ -3,6 +3,7 @@ package ai.diffy.proxy
 import java.net.InetSocketAddress
 
 import ai.diffy.util.ResourceMatcher
+import ai.diffy.util.ServiceInstance
 import com.twitter.util.{Duration, Try}
 
 case class Settings(
@@ -30,4 +31,5 @@ case class Settings(
                      useFramedThriftTransport: Boolean,
                      hostname: String = Try(java.lang.management.ManagementFactory.getRuntimeMXBean.getName.split("@")(1)).getOrElse("unknown"),
                      user: String = Try(sys.env("USER")).getOrElse("unknown"),
-                     resourceMatcher: Option[ResourceMatcher] = None)
+                     resourceMatcher: Option[ResourceMatcher] = None,
+                     responseMode: ServiceInstance)

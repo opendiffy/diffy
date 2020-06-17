@@ -10,20 +10,6 @@ import com.twitter.finagle.{Filter, Http, Service}
 import com.twitter.util.{Future, Try}
 
 object HttpDifferenceProxy {
-  val okResponse = Future.value(Response(Status.Ok))
-
-  val noResponseExceptionFilter =
-    new Filter[Request, Response, Request, Response] {
-      override def apply(
-        request: Request,
-        service: Service[Request, Response]
-      ): Future[Response] = {
-        service(request).rescue[Response] { case NoResponseException =>
-          okResponse
-        }
-      }
-    }
-
   def requestHostHeaderFilter(host: String) =
     Filter.mk[Request, Response, Request, Response] { (req, svc) =>
       req.host(host)
@@ -46,7 +32,7 @@ trait HttpDifferenceProxy extends DifferenceProxy {
   override lazy val server =
     Http.serve(
       servicePort,
-      HttpDifferenceProxy.noResponseExceptionFilter andThen proxy
+      proxy
     )
 
   override def liftRequest(req: Request): Future[Message] =
