@@ -4,10 +4,9 @@ import java.net.SocketAddress
 
 import ai.diffy.analysis.{DifferenceAnalyzer, InMemoryDifferenceCollector, JoinedDifferences}
 import ai.diffy.lifter.{HttpLifter, Message}
-import ai.diffy.proxy.DifferenceProxy.NoResponseException
-import com.twitter.finagle.http.{Method, Request, Response, Status}
-import com.twitter.finagle.{Filter, Http, Service}
-import com.twitter.util.{Future, Try}
+import com.twitter.finagle.http.{Method, Request, Response}
+import com.twitter.finagle.{Filter, Http}
+import com.twitter.util.{Future, StorageUnit, Try}
 
 object HttpDifferenceProxy {
   def requestHostHeaderFilter(host: String) =
@@ -27,7 +26,11 @@ trait HttpDifferenceProxy extends DifferenceProxy {
   override type Srv = HttpService
 
   override def serviceFactory(serverset: String, label: String) =
-    HttpService(requestHostHeaderFilter(serverset) andThen Http.newClient(serverset, label).toService)
+    HttpService(requestHostHeaderFilter(serverset) andThen
+      Http.client
+        .withMaxResponseSize(settings.maxResponseSize)
+        .withMaxHeaderSize(settings.maxHeaderSize)
+        .newService(serverset, label))
 
   override lazy val server =
     Http.serve(

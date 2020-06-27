@@ -25,7 +25,9 @@ start using Diffy to compare three instances of your service:
     -master.secondary=localhost:9991 \
     -responseMode='primary' \
     -service.protocol=http \
-    -serviceName=Fancy-Service \
+    -serviceName=My-Service \
+    -maxHeaderSize='32.kilobytes' \
+    -maxResponseSize='5.megabytes' \
     -proxy.port=:8880 \
     -admin.port=:8881 \
     -http.port=:8888 \
