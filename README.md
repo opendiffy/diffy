@@ -89,6 +89,9 @@ If you are new to Diffy, please refer to our [Quickstart](/QUICKSTART.md) guide.
 ### Support
 Please reach out to isotope@sn126.com for support. We look forward to hearing from you.
 
+### Code of Conduct
+1. Bug reports are welcome even if submitted anonymously via fresh github accounts.
+2. Anonymous feature requests and usage questions will be ignored.
 
 ## License
 
