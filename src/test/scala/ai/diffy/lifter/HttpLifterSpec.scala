@@ -12,7 +12,7 @@ import org.scalatest.junit.JUnitRunner
 @RunWith(classOf[JUnitRunner])
 class HttpLifterSpec extends ParentSpec {
   object Fixture {
-    val reqUri = "http://localhost:0/0/accounts"
+    val reqUri =         "http://localhost:0/0/accounts?private=somePrivateString"
 
     val jsonContentType = MediaType.JSON_UTF_8.toString
     val textContentType = MediaType.PLAIN_TEXT_UTF_8.toString
@@ -132,6 +132,44 @@ class HttpLifterSpec extends ParentSpec {
         }
 
         thrown should be (testException)
+      }
+
+
+      val sensitiveJsonBody =
+        "{" +
+          "\"public\": {\"open\" : \"visible\"}," +
+          "\"private\": {\"secret\" : \"forbidden\"}" +
+        "}"
+
+      it("censor sensitive parameters") {
+        val lifter = new HttpLifter(false, None, Some(Set[String]("private")))
+        val requestBody = sensitiveJsonBody
+        val req = request(Method.Post, reqUri, Some(requestBody))
+        req.headerMap.add("Canonical-Resource", "endpoint")
+
+        val msg = Await.result(lifter.liftRequest(req))
+        val resultFieldMap: FieldMap[Any]= msg.result
+
+        msg.endpoint.get should equal ("endpoint")
+        resultFieldMap.get("uri").get should equal ("http://localhost:0/0/accounts?private=xxxxxxxxxxxxxxxxx")
+        val body = resultFieldMap.get("body")
+        body mustBe a [Option[FieldMap[_]]]
+        body should be ('defined)
+        val value = body.get.asInstanceOf[FieldMap[Any]].get("value")
+        value mustBe a [Option[FieldMap[_]]]
+        value should be ('defined)
+        val valueFieldMap : FieldMap[_] = value.get.asInstanceOf[FieldMap[Any]]
+        valueFieldMap.get("private").get should be ("redacted")
+        valueFieldMap.get("public").get should not be ("redacted")
+      }
+
+      it("lift simple text request") {
+        val lifter = new HttpLifter(false)
+        val lifted = lifter.liftText("a = b\nc = d\n");
+        lifted mustBe a [FieldMap[_]]
+        val liftedFieldMap : FieldMap[_] = lifted.asInstanceOf[FieldMap[Any]]
+        liftedFieldMap.get("a").get should be ("b")
+        liftedFieldMap.get("c").get should be ("d")
       }
     }
   }
