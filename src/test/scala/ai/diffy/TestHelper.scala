@@ -35,7 +35,8 @@ object TestHelper extends MockitoSugar {
     useFramedThriftTransport = false,
     responseMode = ServiceInstance.Primary,
     maxHeaderSize = StorageUnit.fromKilobytes(32),
-    maxResponseSize = StorageUnit.fromMegabytes(5)
+    maxResponseSize = StorageUnit.fromMegabytes(5),
+    sensitiveParameters = Set[String]()
   )
 
   def makeEmptyJoinedDifferences = {
