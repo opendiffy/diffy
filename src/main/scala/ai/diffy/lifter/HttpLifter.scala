@@ -7,7 +7,8 @@ import ai.diffy.util.ResourceMatcher
 import com.twitter.finagle.http.{ParamMap, Request, Response}
 import com.twitter.logging.Logger
 import com.twitter.util.{Future, Try}
-import java.util.{AbstractMap, Map => JMap}
+import java.util.{AbstractMap, Map => JMap, List => JList}
+import scala.collection.JavaConverters._
 
 import scala.util.control.NoStackTrace
 
@@ -28,21 +29,41 @@ object HttpLifter {
 }
 
 class HttpLifter(excludeHttpHeadersComparison: Boolean, resourceMatcher: Option[ResourceMatcher] = None, sensitiveParameters: Option[Set[String]] = None) {
+
   import HttpLifter._
 
   private[this] val log = Logger(classOf[HttpLifter])
+
   private[this] def headersMap(response: Response): Map[String, Any] = {
-    if(!excludeHttpHeadersComparison) {
+    if (!excludeHttpHeadersComparison) {
       val rawHeaders = response.headerMap.toSeq
 
       val headers = rawHeaders map { case (name, value) =>
         (name.toLowerCase, value)
-      } groupBy { _._1} map { case (name, pairs) =>
-        name -> (pairs map { _._2 } sorted)
+      } groupBy {
+        _._1
+      } map { case (name, pairs) =>
+        name -> (pairs map {
+          _._2
+        } sorted)
       }
 
-      Map( "headers" -> FieldMap(headers))
+      Map("headers" -> FieldMap(headers))
     } else Map.empty
+  }
+
+  def liftSensitiveParams(sensitive: Set[String], req: Request) : (JList[JMap.Entry[String, String]], String) =
+  {
+    val splitBit = req.uri.split("\\?", 2)
+    val redactedURI = splitBit(0) + (if (splitBit.length == 1) "" else "?" +
+      redactContainer(splitBit(1).split('&').map(bit => {
+        val stuff = bit.split("=", 2)
+        if (stuff.size > 1) (stuff(0), stuff(1)) else (stuff(0), "")
+      }), sensitive).map { case (key: String, value: String) => key + '=' + value }.mkString("&"))
+    val redactedParameters = redactContainer(req.params, sensitive).toList.map {
+      case (k, v) => new AbstractMap.SimpleImmutableEntry(k, v).asInstanceOf[JMap.Entry[String, String]]
+    }
+    (redactedParameters.asJava, redactedURI)
   }
 
   def liftRequest(req: Request): Future[Message] = {
@@ -52,20 +73,9 @@ class HttpLifter(excludeHttpHeadersComparison: Boolean, resourceMatcher: Option[
       .get("Canonical-Resource")
       .orElse(resourceMatcher.flatMap(_.resourceName(req.path)))
 
-    val (params: List[(String, String)], uri) = (sensitiveParameters match {
+    val (params: JList[JMap.Entry[String, String]], uri) = (sensitiveParameters match {
       case None => (req.getParams(), req.uri)
-      case Some(sensitive) => {
-        val splitBit = req.uri.split("\\?", 2)
-        val redactedURI = splitBit(0) + (if (splitBit.length == 1) "" else "?" +
-          redactContainer(splitBit(1).split('&').map(bit => {
-            val stuff = bit.split("=", 2)
-            if (stuff.size > 1) (stuff(0), stuff(1)) else (stuff(0), "")
-          }), sensitive).map{ case(key:String, value:String) => key + '=' + value }.mkString("&"))
-        val redactedParameters = redactContainer(req.params, sensitive).toList.map {
-          case (k, v) => new AbstractMap.SimpleImmutableEntry(k, v).asInstanceOf[JMap.Entry[String, String]]
-        }
-        (redactedParameters, redactedURI)
-      }
+      case Some(sensitive) => liftSensitiveParams(sensitive, req)
     })
 
     val body = liftBody(req.getContentString())
