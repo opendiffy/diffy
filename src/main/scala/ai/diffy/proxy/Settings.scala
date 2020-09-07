@@ -29,10 +29,12 @@ case class Settings(
     skipEmailsWhenNoErrors: Boolean,
     httpsPort: String,
     useFramedThriftTransport: Boolean,
+    parallel: Boolean,
     hostname: String = Try(java.lang.management.ManagementFactory.getRuntimeMXBean.getName.split("@")(1)).getOrElse("unknown"),
     user: String = Try(sys.env("USER")).getOrElse("unknown"),
     resourceMatcher: Option[ResourceMatcher] = None,
     responseMode: ServiceInstance = ServiceInstance.Primary,
     maxResponseSize: StorageUnit,
     maxHeaderSize: StorageUnit,
-    sensitiveParameters: Set[String])
+    sensitiveParameters: Set[String],
+    limitPrefixes: Seq[String])

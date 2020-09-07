@@ -5,7 +5,7 @@ import java.net.SocketAddress
 import ai.diffy.analysis.{DifferenceAnalyzer, InMemoryDifferenceCollector, JoinedDifferences}
 import ai.diffy.lifter.{HttpLifter, Message}
 import com.twitter.finagle.http.{Method, Request, Response}
-import com.twitter.finagle.{Filter, Http}
+import com.twitter.finagle.{Filter, Http, Service, SimpleFilter}
 import com.twitter.util.{Future, StorageUnit, Try}
 
 object HttpDifferenceProxy {
@@ -44,6 +44,13 @@ trait HttpDifferenceProxy extends DifferenceProxy {
 
   override def liftResponse(resp: Try[Response]): Future[Message] =
     lifter.liftResponse(resp)
+
+  def prefixFilter = Filter.mk[Req, Response, Req, Response] { (req, svc) =>
+      if (!settings.limitPrefixes.exists(value => req.uri.startsWith(value)))
+        bypassRequest(req)
+      else
+        svc(req)
+    }
 }
 
 object SimpleHttpDifferenceProxy {
@@ -59,6 +66,7 @@ object SimpleHttpDifferenceProxy {
 
       if (hasSideEffects) DifferenceProxy.NoResponseExceptionFuture else svc(req)
     }
+
 }
 
 /**
@@ -79,7 +87,7 @@ case class SimpleHttpDifferenceProxy (
   override val servicePort = settings.servicePort
   override val proxy =
     Filter.identity andThenIf
-      (!settings.allowHttpSideEffects, httpSideEffectsFilter) andThen
+      ((!settings.allowHttpSideEffects, httpSideEffectsFilter)) andThen
       super.proxy
 }
 
@@ -99,7 +107,8 @@ case class SimpleHttpsDifferenceProxy (
 
   override val proxy =
     Filter.identity andThenIf
-      (!settings.allowHttpSideEffects, httpSideEffectsFilter) andThen
+      ((!settings.allowHttpSideEffects, httpSideEffectsFilter)) andThenIf
+      ((settings.limitPrefixes.nonEmpty, prefixFilter)) andThen
       super.proxy
 
   override def serviceFactory(serverset: String, label: String) =

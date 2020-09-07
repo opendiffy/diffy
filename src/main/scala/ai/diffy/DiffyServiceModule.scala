@@ -2,7 +2,6 @@ package ai.diffy
 
 import java.net.InetSocketAddress
 
-import ai.diffy.DiffyServiceModule.{maxHeaderSize, maxResponseSize}
 import ai.diffy.analysis.{InMemoryDifferenceCollector, InMemoryDifferenceCounter, NoiseDifferenceCounter, RawDifferenceCounter}
 import ai.diffy.proxy.Settings
 import ai.diffy.util.ResourceMatcher
@@ -79,6 +78,9 @@ object DiffyServiceModule extends TwitterModule {
   val thriftFramedTransport =
     flag[Boolean]("thriftFramedTransport", true, "Run in BufferedTransport mode when false")
 
+  val parallel =
+    flag[Boolean]("parallel", true, "Run all client requests in parallel")
+
   val resourceMappings =
     flag[String]("resource.mapping", "", "Coma separated list of resource paths and names. Each resource is separated by a colon. Example '/foo:foo-resource,/bar:bar-resource")
 
@@ -93,6 +95,9 @@ object DiffyServiceModule extends TwitterModule {
 
   val sensitiveParameters =
     flag( "sensitiveParameters", "", "Do not allow these values to be saved or viewed")
+
+  val limitPrefixes =
+    flag( "limitPrefixes", "", "Only analyse these URI prefixes")
 
   @Provides
   @Singleton
@@ -120,6 +125,7 @@ object DiffyServiceModule extends TwitterModule {
       skipEmailsWhenNoErrors(),
       httpsPort(),
       thriftFramedTransport(),
+      parallel(),
       resourceMatcher = Option(resourceMappings()).map(_
         .split(",")
         .map(_.split(";"))
@@ -134,7 +140,8 @@ object DiffyServiceModule extends TwitterModule {
       responseMode = ServiceInstance.from(responseMode()).getOrElse(ServiceInstance.Primary),
       maxHeaderSize = StorageUnit.parse(maxHeaderSize()),
       maxResponseSize = StorageUnit.parse(maxResponseSize()),
-      sensitiveParameters = sensitiveParameters().split(',').filter(_.size > 0).toSet
+      sensitiveParameters = sensitiveParameters().split(',').filter(_.nonEmpty).toSet,
+      limitPrefixes = limitPrefixes().split(',').filter(_.nonEmpty)
     )
 
   @Provides

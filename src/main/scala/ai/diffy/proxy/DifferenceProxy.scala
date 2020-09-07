@@ -18,7 +18,6 @@ object DifferenceProxyModule extends TwitterModule {
   @Provides
   @Singleton
   def providesDifferenceProxy(
-    timer: Timer,
     settings: Settings,
     collector: InMemoryDifferenceCollector,
     joinedDifferences: JoinedDifferences,
@@ -64,8 +63,11 @@ trait DifferenceProxy {
 
   val analyzer: DifferenceAnalyzer
 
-  private[this] lazy val multicastHandler =
-    new TimedMulticastService(Seq(primary, candidate, secondary) map { _.client })
+  private[this] lazy val multicastHandler = {
+    val clients = Seq(primary, candidate, secondary) map { _.client }
+    if (settings.parallel) new ParallelMulticastService(clients) else new SequentialMulticastService(clients)
+
+  }
 
   val outstandingRequests = new AtomicInteger(0)
   def proxy = new Service[Req, Rep] {
@@ -103,6 +105,11 @@ trait DifferenceProxy {
       val responseIndex = ServiceInstance.all.indexOf(settings.responseMode)
       rawResponses map { _(responseIndex)._1} flatMap { Future.const }
     }
+  }
+
+  def bypassRequest(req: Req): Future[Rep] = {
+    val service = Seq(primary, candidate, secondary)(ServiceInstance.all.indexOf(settings.responseMode))
+    service.client(req)
   }
 
   def clear() = {
