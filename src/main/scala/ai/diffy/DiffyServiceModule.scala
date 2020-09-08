@@ -90,7 +90,10 @@ object DiffyServiceModule extends TwitterModule {
 
   val maxResponseSize =
     flag[String]("maxResponseSize", "5.megabytes", "StorageUnit value like 5.megabytes")
-  
+
+  val sensitiveParameters =
+    flag( "sensitiveParameters", "", "Do not allow these values to be saved or viewed")
+
   @Provides
   @Singleton
   def settings =
@@ -130,7 +133,8 @@ object DiffyServiceModule extends TwitterModule {
         .map(new ResourceMatcher(_)),
       responseMode = ServiceInstance.from(responseMode()).getOrElse(ServiceInstance.Primary),
       maxHeaderSize = StorageUnit.parse(maxHeaderSize()),
-      maxResponseSize = StorageUnit.parse(maxResponseSize())
+      maxResponseSize = StorageUnit.parse(maxResponseSize()),
+      sensitiveParameters = sensitiveParameters().split(',').filter(_.size > 0).toSet
     )
 
   @Provides

@@ -34,4 +34,5 @@ case class Settings(
     resourceMatcher: Option[ResourceMatcher] = None,
     responseMode: ServiceInstance = ServiceInstance.Primary,
     maxResponseSize: StorageUnit,
-    maxHeaderSize: StorageUnit)
+    maxHeaderSize: StorageUnit,
+    sensitiveParameters: Set[String])
