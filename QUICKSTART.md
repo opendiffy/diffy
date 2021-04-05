@@ -23,8 +23,11 @@ start using Diffy to compare three instances of your service:
     -candidate=localhost:9992 \
     -master.primary=localhost:9990 \
     -master.secondary=localhost:9991 \
+    -responseMode='primary' \
     -service.protocol=http \
-    -serviceName=Fancy-Service \
+    -serviceName=My-Service \
+    -maxHeaderSize='32.kilobytes' \
+    -maxResponseSize='5.megabytes' \
     -proxy.port=:8880 \
     -admin.port=:8881 \
     -http.port=:8888 \
@@ -43,14 +46,16 @@ start using Diffy to compare three instances of your service:
 
 8. Note that after ```summary.delay``` minutes, your Diffy instance will email a summary report to your ```summary.email``` address.
 
-*NOTE*: By default the names of the resources in the UI are fetched from the `Canonical-Resource` header in each
+9. By default the names of the resources in the UI are fetched from the `Canonical-Resource` header in each
 request. However this can be configured at boot with a static line, example: 
 ```
 -resource.mapping='/foo/:param;f,/b/*;b,/ab/*/g;g,/z/*/x/*/p;p' \
 ```
 In the snippet above the configuration form is: `<pattern>;<resource-name>[,<pattern>;<resource-name>]*`
 
-The first matching configuration will be found
+The first matching configuration will be used.
+
+10. The ```responseMode``` flag can have one of 3 values - ```'primary'```, ```'secondary'```, or ```'candidate'```. The value assigned to this flag will determine which of the 3 response for any request sent to diffy will be returned to the client. If the flag is not explicitly assigned it defaults to ```'primary'```.
 
 ## Using Diffy with Docker
 
@@ -64,13 +69,14 @@ docker run -d --name diffy-01 \
     -candidate=localhost:9992 \
     -master.primary=localhost:9990 \
     -master.secondary=localhost:9991 \
+    -responseMode='primary' \
     -service.protocol=http \
     -serviceName="Tier-Service" \
     -proxy.port=:8880 \
     -admin.port=:8881 \
     -http.port=:8888 \
     -rootUrl=localhost:8888 \
-    -summary.email="docker@diffy.ai" \
+    -summary.email='your email to receive a summary report from your diffy instance' \
     -summary.delay="5"
 ```
 

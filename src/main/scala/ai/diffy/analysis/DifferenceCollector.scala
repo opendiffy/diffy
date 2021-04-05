@@ -68,10 +68,10 @@ class DifferenceAnalyzer @Inject()(
           )
         )
 
-        log.info(s"diff[$id]=$diffResult")
+        log.info(s"endpoint[$endpointName]diff[$id]=$diffResult")
         store.create(diffResult)
       } else {
-        log.debug(s"diff[$id]=NoDifference")
+        log.debug(s"endpoint[$endpointName]diff[$id]=NoDifference")
       }
     }
   }

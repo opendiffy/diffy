@@ -3,7 +3,7 @@
 if [ "$1" = "start" ];
 then
     echo "Build Diffy" && \
-    ./sbt assembly
+#    ./sbt assembly
 
     echo "Build primary, secondary, and candidate servers" && \
     javac -d example src/test/scala/ai/diffy/examples/http/ExampleServers.java && \
@@ -16,10 +16,13 @@ then
     -candidate='localhost:9200' \
     -master.primary='localhost:9000' \
     -master.secondary='localhost:9100' \
+    -responseMode='candidate' \
     -service.protocol='http' \
     -serviceName='ExampleService' \
     -summary.delay='1' \
     -summary.email='example@diffy.ai' \
+    -maxHeaderSize='32.kilobytes' \
+    -maxResponseSize='5.megabytes' \
     -isotope.config='/Users/puneetkhanduri/code/sn126/isodemo/local.isotope' \
     -proxy.port=:8880 \
     -admin.port=:8881 \

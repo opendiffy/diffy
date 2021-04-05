@@ -5,7 +5,8 @@ import java.net.InetSocketAddress
 import ai.diffy.analysis._
 import ai.diffy.compare.Difference
 import ai.diffy.proxy._
-import com.twitter.util.Duration
+import ai.diffy.util.ServiceInstance
+import com.twitter.util.{Duration, StorageUnit}
 import org.scalatest.mock.MockitoSugar
 
 object TestHelper extends MockitoSugar {
@@ -34,7 +35,10 @@ object TestHelper extends MockitoSugar {
     excludeHttpHeadersComparison = true,
     skipEmailsWhenNoErrors = false,
     httpsPort = "443",
-    useFramedThriftTransport = false
+    useFramedThriftTransport = false,
+    responseMode = ServiceInstance.Primary,
+    maxHeaderSize = StorageUnit.fromKilobytes(32),
+    maxResponseSize = StorageUnit.fromMegabytes(5)
   )
 
   def makeEmptyJoinedDifferences = {

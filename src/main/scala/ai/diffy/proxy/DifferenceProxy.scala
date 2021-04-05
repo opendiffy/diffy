@@ -4,6 +4,8 @@ import java.util.concurrent.atomic.AtomicInteger
 
 import ai.diffy.analysis._
 import ai.diffy.lifter.Message
+import ai.diffy.util.ServiceInstance
+
 import com.google.inject.Provides
 import com.twitter.finagle._
 import com.twitter.finagle.tracing.Trace
@@ -102,8 +104,8 @@ trait DifferenceProxy {
           }
       } respond { _ => outstandingRequests.decrementAndGet }
 
-//      rawResponses map { _(0)._1} flatMap { Future.const }
-      NoResponseExceptionFuture
+      val responseIndex = ServiceInstance.all.indexOf(settings.responseMode)
+      rawResponses map { _(responseIndex)._1} flatMap { Future.const }
     }
   }
 

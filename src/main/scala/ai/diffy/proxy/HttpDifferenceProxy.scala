@@ -4,26 +4,11 @@ import java.net.SocketAddress
 
 import ai.diffy.analysis.{DifferenceAnalyzer, InMemoryDifferenceCollector, JoinedDifferences}
 import ai.diffy.lifter.{HttpLifter, Message}
-import ai.diffy.proxy.DifferenceProxy.NoResponseException
-import com.twitter.finagle.http.{Method, Request, Response, Status}
-import com.twitter.finagle.{Filter, Http, Service}
-import com.twitter.util.{Future, Try}
+import com.twitter.finagle.http.{Method, Request, Response}
+import com.twitter.finagle.{Filter, Http}
+import com.twitter.util.{Future, StorageUnit, Try}
 
 object HttpDifferenceProxy {
-  val okResponse = Future.value(Response(Status.Ok))
-
-  val noResponseExceptionFilter =
-    new Filter[Request, Response, Request, Response] {
-      override def apply(
-        request: Request,
-        service: Service[Request, Response]
-      ): Future[Response] = {
-        service(request).rescue[Response] { case NoResponseException =>
-          okResponse
-        }
-      }
-    }
-
   def requestHostHeaderFilter(host: String) =
     Filter.mk[Request, Response, Request, Response] { (req, svc) =>
       req.host(host)
@@ -41,12 +26,16 @@ trait HttpDifferenceProxy extends DifferenceProxy {
   override type Srv = HttpService
 
   override def serviceFactory(serverset: String, label: String) =
-    HttpService(requestHostHeaderFilter(serverset) andThen Http.newClient(serverset, label).toService)
+    HttpService(requestHostHeaderFilter(serverset) andThen
+      Http.client
+        .withMaxResponseSize(settings.maxResponseSize)
+        .withMaxHeaderSize(settings.maxHeaderSize)
+        .newService(serverset, label))
 
   override lazy val server =
     Http.serve(
       servicePort,
-      HttpDifferenceProxy.noResponseExceptionFilter andThen proxy
+      proxy
     )
 
   override def liftRequest(req: Request): Future[Message] =

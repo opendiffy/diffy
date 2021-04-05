@@ -2,12 +2,14 @@ package ai.diffy
 
 import java.net.InetSocketAddress
 
+import ai.diffy.DiffyServiceModule.{maxHeaderSize, maxResponseSize}
 import ai.diffy.analysis.{InMemoryDifferenceCollector, InMemoryDifferenceCounter, NoiseDifferenceCounter, RawDifferenceCounter}
 import ai.diffy.proxy.Settings
 import ai.diffy.util.ResourceMatcher
+import ai.diffy.util.ServiceInstance
 import com.google.inject.Provides
 import com.twitter.inject.TwitterModule
-import com.twitter.util.Duration
+import com.twitter.util.{Duration, StorageUnit}
 import javax.inject.Singleton
 
 object DiffyServiceModule extends TwitterModule {
@@ -89,6 +91,15 @@ object DiffyServiceModule extends TwitterModule {
   val resourceMappings =
     flag[String]("resource.mapping", "", "Coma separated list of resource paths and names. Each resource is separated by a colon. Example '/foo:foo-resource,/bar:bar-resource")
 
+  val responseMode = 
+    flag[String]("responseMode", "primary", "primary, secondary, or candidate")
+
+  val maxHeaderSize =
+    flag[String]("maxHeaderSize", "32.kilobytes", "StorageUnit value like 32.kilobytes")
+
+  val maxResponseSize =
+    flag[String]("maxResponseSize", "5.megabytes", "StorageUnit value like 5.megabytes")
+  
   @Provides
   @Singleton
   def settings =
@@ -128,7 +139,10 @@ object DiffyServiceModule extends TwitterModule {
         }
         .map(x => (x(0), x(1)))
         .toList)
-        .map(new ResourceMatcher(_))
+        .map(new ResourceMatcher(_)),
+      responseMode = ServiceInstance.from(responseMode()).getOrElse(ServiceInstance.Primary),
+      maxHeaderSize = StorageUnit.parse(maxHeaderSize()),
+      maxResponseSize = StorageUnit.parse(maxResponseSize())
     )
 
   @Provides

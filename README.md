@@ -73,10 +73,11 @@ If you are new to Diffy, please refer to our [Quickstart](/QUICKSTART.md) guide.
         -candidate='localhost:9200' \
         -master.primary='localhost:9000' \
         -master.secondary='localhost:9100' \
+        -responseMode='primary' \
         -service.protocol='http' \
         -serviceName='ExampleService' \
         -summary.delay='1' \
-        -summary.email='isotope@diffy.ai' \
+        -summary.email='your email to receive a summary report from your diffy instance' \
         -proxy.port=:8880 \
         -admin.port=:8881 \
         -http.port=:8888 \
@@ -91,6 +92,9 @@ If you are new to Diffy, please refer to our [Quickstart](/QUICKSTART.md) guide.
 ### Support
 Please reach out to isotope@sn126.com for support. We look forward to hearing from you.
 
+### Code of Conduct
+1. Bug reports are welcome even if submitted anonymously via fresh github accounts.
+2. Anonymous feature requests and usage questions will be ignored.
 
 ## License
 
