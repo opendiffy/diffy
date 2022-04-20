@@ -11,7 +11,7 @@
 ## Status
 
 Diffy is used in production at:
-* [Mixpanel](https://engineering.mixpanel.com/2019/07/24/safely-rewriting-mixpanels-highest-throughput-service-in-golang/)
+* [Mixpanel](https://engineering.mixpanel.com/safely-rewriting-mixpanels-highest-throughput-service-in-golang-mixpanel-engineering-62cd69b5ebdb)
 * Airbnb [(Scalabity)](https://www.infoq.com/presentations/airbnb-services-scalability/) [(Migration)](https://www.infoq.com/presentations/airbnb-soa-migration/)
 * [Twitter](https://blog.twitter.com/engineering/en_us/a/2015/diffy-testing-services-without-writing-tests.html)
 * Baidu
