@@ -13,8 +13,4 @@ lib_managed/
 .DS_Store
 .ensime
 .ivyjars
-out/
-sbt-launch.jar
-sbt_launch/
 example/ai/diffy/examples/http/
-differences.log

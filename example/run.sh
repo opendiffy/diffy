@@ -3,10 +3,10 @@
 if [ "$1" = "start" ];
 then
     echo "Build Diffy" && \
-#    mvn package
+    mvn package
 
-    echo "Build primary, secondary, and candidate servers" && \
-    javac -d example src/test/scala/ai/diffy/examples/http/ExampleServers.java && \
+#    echo "Build primary, secondary, and candidate servers" && \
+#    javac -d example src/test/scala/ai/diffy/examples/http/ExampleServers.java && \
 
     echo "Deploy primary, secondary, and candidate servers" && \
     java -cp example ai.diffy.examples.http.ExampleServers 9000 9100 9200 & \

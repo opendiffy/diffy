@@ -1,33 +1,6 @@
-dist: trusty
-language: scala
-
-scala:
-  - 2.12.8
-
-jdk:
-  - oraclejdk8
-
-env:
-  - JAVA_OPTS="-DSKIP_FLAKY=true -Dsbt.log.noformat=true"
-
-cache:
-  directories:
-   - $HOME/.ivy2
-   - $HOME/.sbt/boot/scala-$TRAVIS_SCALA_VERSION
-
-before_cache:
-  # Tricks to avoid unnecessary cache updates
-  - find $HOME/.ivy2 -name "ivydata-*.properties" -delete
-  - find $HOME/.sbt -name "*.lock" -delete
-
-before_script: unset SBT_OPTS
-
-script:
-  - travis_retry ./sbt ++$TRAVIS_SCALA_VERSION clean coverage test coverageReport
-  - ./sbt ++$TRAVIS_SCALA_VERSION coverageAggregate
-
-after_script:
-  - find $HOME/.sbt -name "*.lock" | xargs rm
-  - find $HOME/.ivy2 -name "ivydata-*.properties" | xargs rm
-
-after_success: bash <(curl -s https://codecov.io/bash)
+language: java
+os:
+  - linux
+  - osx
+  - windows
+script: mvn package -DskipTests
