@@ -2,41 +2,49 @@ package ai.diffy.lifter
 
 import com.fasterxml.jackson.core.{JsonGenerator, JsonToken}
 import com.fasterxml.jackson.databind.annotation.JsonSerialize
+import com.fasterxml.jackson.databind.module.SimpleModule
 import com.fasterxml.jackson.databind.ser.std.StdSerializer
-import com.fasterxml.jackson.databind.{JsonNode, ObjectMapper, SerializerProvider}
+import com.fasterxml.jackson.databind.{JsonNode, JsonSerializer, ObjectMapper, SerializerProvider}
 import com.fasterxml.jackson.module.scala.DefaultScalaModule
-import com.fasterxml.jackson.module.scala.experimental.ScalaObjectMapper
-import com.twitter.util.Try
+import org.slf4j.LoggerFactory
 
-import scala.collection.JavaConversions._
+import scala.collection.JavaConverters._
 import scala.language.postfixOps
-import scala.reflect.runtime.universe.runtimeMirror
-import scala.tools.reflect.ToolBox
 import scala.util.control.NoStackTrace
 
 object JsonLifter {
+  val log  = LoggerFactory.getLogger(JsonLifter.getClass)
+
   @JsonSerialize(using = classOf[JsonNullSerializer])
   object JsonNull
   object JsonParseError extends Exception with NoStackTrace
 
-  val toolbox = runtimeMirror(getClass.getClassLoader).mkToolBox()
-
-  val Mapper = new ObjectMapper with ScalaObjectMapper
+  val Mapper = new ObjectMapper
   Mapper.registerModule(DefaultScalaModule)
+
+  class fieldMapSerializer extends JsonSerializer[FieldMap]() {
+    override def serialize(t: FieldMap, jsonGenerator: JsonGenerator, serializerProvider: SerializerProvider): Unit = {
+      jsonGenerator.writeObject(t.value)
+    }
+  }
+  val module = new SimpleModule()
+  module.addSerializer(classOf[FieldMap], new fieldMapSerializer)
+  Mapper.registerModule(module)
+
   def apply(obj: Any): JsonNode = Mapper.valueToTree(obj)
 
   def lift(node: JsonNode): Any = node.asToken match {
     case JsonToken.START_ARRAY        =>
-      node.elements.toSeq.map {
+      node.elements.asScala.toSeq.map {
         element => lift(element)
       }
     case JsonToken.START_OBJECT       => {
-      val fields = node.fieldNames.toSet
-      if (fields.exists{ field => Try(toolbox.parse(s"object ${field}123")).isThrow}) {
-        node.fields map {field => (field.getKey -> lift(field.getValue))} toMap
+      val fields = node.fieldNames.asScala.toSet
+      if (areMapInsteadofObjectKeys(fields)) {
+        node.fields.asScala map {field => (field.getKey -> lift(field.getValue))} toMap
       } else {
-        FieldMap(
-          node.fields map {field => (field.getKey -> lift(field.getValue))} toMap
+        new FieldMap(
+          node.fields.asScala map {field => (field.getKey -> lift(field.getValue))} toMap
         )
       }
     }
@@ -51,6 +59,14 @@ object JsonLifter {
 
   def decode(json: String): JsonNode = Mapper.readTree(json)
   def encode(item: Any): String = Mapper.writer.writeValueAsString(item)
+
+  def areMapInsteadofObjectKeys(fields: Set[String]): Boolean =
+    fields.size > 20 || fields.exists{ field =>
+      field.length > 100 ||
+      field.matches("[0-9].*") || // starts with a digit
+      !field.matches("[_a-zA-Z0-9]*") // contains non-alphanumeric characters
+    }
+
 }
 
 class JsonNullSerializer(clazz: Class[Any]) extends StdSerializer[Any](clazz) {

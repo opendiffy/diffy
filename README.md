@@ -6,7 +6,7 @@
 [![Gitter](https://img.shields.io/badge/gitter-join%20chat-green.svg)](https://gitter.im/opendiffy/diffy)
 [![Docker](https://img.shields.io/docker/pulls/diffy/diffy)](https://hub.docker.com/r/diffy/diffy)
 [![Downloads](https://img.shields.io/github/downloads/opendiffy/diffy/total.svg)](https://github.com/opendiffy/diffy/releases/latest)
-[![License: AGPL v3](https://img.shields.io/badge/License-AGPL%20v3-blue.svg)](https://www.gnu.org/licenses/agpl-3.0)
+[![License: CC](https://img.shields.io/badge/License-CC%20BY%20NC%20ND-blue.svg)](https://creativecommons.org/licenses/by-nc-nd/4.0/legalcode)
 
 ## Status
 
@@ -63,49 +63,27 @@ determines that there is nothing wrong and that the error can be ignored.
 
 If you are new to Diffy, please refer to our [Quickstart](/QUICKSTART.md) guide.
 
-## Upgrade to Isotope
-1. Login to [isotope](https://isotope.sn126.com).
-2. Click on [services](http://isotope.sn126.com/services) tab to create the service you want to test.
-3. Download the resulting `local.isotope` file.
-4. Deploy Diffy with the `isotope.config` flag pointing to the location of `local.isotope`:
-    ```bash
-        java -jar ./target/scala-2.12/diffy-server.jar \
-        -candidate='localhost:9200' \
-        -master.primary='localhost:9000' \
-        -master.secondary='localhost:9100' \
-        -responseMode='primary' \
-        -service.protocol='http' \
-        -serviceName='ExampleService' \
-        -summary.delay='1' \
-        -summary.email='your email to receive a summary report from your diffy instance' \
-        -proxy.port=:8880 \
-        -admin.port=:8881 \
-        -http.port=:8888 \
-        -isotope.config='/path/to/local.isotope'
-    ```
-5. Send some traffic to your deployed Diffy instance.
-6. Go the [analysis](http://isotope.sn126.com/analysis) tab to see your latest and historical results.
-
 ### Support
 Please reach out to isotope@sn126.com for support. We look forward to hearing from you.
 
 ### Code of Conduct
 1. Bug reports are welcome even if submitted anonymously via fresh github accounts.
-2. Anonymous feature requests and usage questions will be ignored.
+2. Anonymous feature and support requests will be ignored.
 
 ## License
 
     Copyright (C) 2019 Sn126, Inc.
 
-    This program is free software: you can redistribute it and/or modify
-    it under the terms of the GNU Affero General Public License as
-    published by the Free Software Foundation, either version 3 of the
-    License, or (at your option) any later version.
+    This license allows reusers to copy and distribute the material in 
+    any medium or format in unadapted form only, for noncommercial purposes 
+    only, and only so long as attribution is given to the creator. 
 
     This program is distributed in the hope that it will be useful,
     but WITHOUT ANY WARRANTY; without even the implied warranty of
     MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
-    GNU Affero General Public License for more details.
+    Creative Commons Attribution-NonCommercial-NoDerivatives 4.0 International Public License
+    for more details.
 
-    You should have received a copy of the GNU Affero General Public License
-    along with this program. If not, see https://www.gnu.org/licenses/.
+    You should have received a copy of the Creative Commons Attribution-NonCommercial-NoDerivatives 4.0
+    International Public License along with this program. If not, see 
+    https://creativecommons.org/licenses/by-nc-nd/4.0/.

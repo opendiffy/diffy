@@ -1,9 +1,11 @@
 package ai.diffy.compare
 
 import com.fasterxml.jackson.databind.JsonNode
-import ai.diffy.lifter.{StringLifter, FieldMap, JsonLifter}
-import com.twitter.util.Memoize
+import ai.diffy.lifter.{FieldMap, JsonLifter, StringLifter}
+import org.slf4j.LoggerFactory
+
 import java.nio.ByteBuffer
+import java.util.concurrent.ConcurrentHashMap
 import scala.language.postfixOps
 
 trait Difference {
@@ -117,8 +119,8 @@ case class ObjectDifference(mapDiff: MapDifference[String]) extends Difference {
       mapDiff.keys match {
         case NoDifference(_) => Map.empty[String, Difference]
         case SetDifference(leftNotRight, rightNotLeft) =>
-          (leftNotRight.toSeq map { _ + ".MissingField" -> MissingField } toMap) ++
-          (rightNotLeft.toSeq map { _ + ".ExtraField" -> ExtraField } toMap)
+          (leftNotRight.toSeq map { x => s"${x}.MissingField" -> MissingField } toMap) ++
+          (rightNotLeft.toSeq map { x => s"${x}.ExtraField" -> ExtraField } toMap)
       }
 
     existingKeys ++ missingFields
@@ -129,13 +131,15 @@ case class ObjectDifference(mapDiff: MapDifference[String]) extends Difference {
 }
 
 object Difference {
+  private val log = LoggerFactory.getLogger(Difference.getClass)
+
   def apply[A](left: Any, right: Any): Difference =
     (lift(left), lift(right)) match {
       case (l, r) if l == r => NoDifference(l)
       case (l, r) if isPrimitive(l) && l.getClass == r.getClass => PrimitiveDifference(l, r)
       case (ls: Seq[_], rs: Seq[_]) => diffSeq(ls, rs)
       case (ls: Set[A], rs: Set[A]) => diffSet(ls, rs)
-      case (lm: FieldMap[Any], rm: FieldMap[Any]) => diffObjectMap(lm, rm)
+      case (lm: FieldMap, rm: FieldMap) => diffObjectMap(lm, rm)
       case (lm: Map[A, Any], rm: Map[A, Any]) => diffMap(lm, rm)
       case (l, r) if l.getClass != r.getClass => TypeDifference(l, r)
       case (l, r) => diffObject(l, r)
@@ -166,8 +170,8 @@ object Difference {
       } toMap
     )
 
-  def diffObjectMap(lm: FieldMap[Any], rm: FieldMap[Any]): ObjectDifference =
-    ObjectDifference(diffMap(lm.toMap, rm.toMap))
+  def diffObjectMap(lm: FieldMap, rm: FieldMap): ObjectDifference =
+    ObjectDifference(diffMap(lm.value, rm.value))
 
   def diffObject[A](left: A, right: A): ObjectDifference =
     ObjectDifference(diffMap(mkMap(left), mkMap(right)))
@@ -191,7 +195,7 @@ object Difference {
   val mapMaker: Class[_] => (Any => Map[String, Any]) = Memoize { c =>
     val fields = c.getDeclaredFields filterNot { _.getName.contains('$') }
     fields foreach { _.setAccessible(true) }
-    { obj: Any =>
+    { (obj: Any) =>
         fields map { field =>
           field.getName -> field.get(obj)
         } toMap
@@ -205,5 +209,14 @@ object Difference {
     case string: String => StringLifter.lift(string)
     case null => JsonLifter.JsonNull
     case _ => a
+  }
+  object Memoize {
+    def apply[A, B](function: A => B): A => B = {
+      val map = new ConcurrentHashMap[A, B]()
+      (a:A) => {
+        map.putIfAbsent(a, function(a))
+        map.get(a)
+      }
+    }
   }
 }

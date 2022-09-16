@@ -77,7 +77,6 @@
 
     <script id="server-template" type="text/ng-template">
       <div><strong>Target: </strong>[[server.target]]</div>
-      <div><strong>Members: </strong>[[server.members]]</div>
       <div><strong>Last Reset: </strong>[[server.last_reset | ago]] ([[server.last_reset | formatDate]])</div>
       <div><strong>Last Changed: </strong>[[server.last_changed | ago]] ([[server.last_changed | formatDate]])</div>
     </script>
@@ -100,16 +99,10 @@
           <div class="right-panel">
             <h4>Protocol</h4>
             [[info.protocol]]
-            <h4>Service Class</h4>
-            [[info.service_class]]
-            <h4>Thrift Artifactory Package</h4>
-            [[info.artifactory_package]]
-            <h4>Client ID</h4>
-            [[info.client_id]]
             <h4>Last Reset</h4>
             [[info.last_reset | ago]] ([[info.last_reset | formatDate]])
             <h4>Thresholds</h4>
-            <strong>[[info.threshold_relative]]%</strong> relative, <strong>[[info.threshold_absolute]]%</strong> absolute
+            <strong>[[info.relativeThreshold]]%</strong> relative, <strong>[[info.absoluteThreshold]]%</strong> absolute
           </div>
         </div>
         <hr />
@@ -150,10 +143,7 @@
     <div class="container-fluid row">
       <div class="col-xs-2 endpoints-column" ng-controller="EndpointController">
         <nav class="row navbar navbar-default" role="navigation">
-          <span class="title">
-            {{#hasIsotope}}<a href="https://isotope.sn126.com">◐ isotope</a>{{/hasIsotope}}
-            {{^hasIsotope}}diffy{{/hasIsotope}}
-          </span>
+          <span class="title">diffy</span>
           <a class="settings" ng-click="showSettings()"><i class="fa fa-cog"></i></a>
         </nav>
 
@@ -196,11 +186,6 @@
           </a>
         </div>
       </div>
-        {{^hasIsotope}}
-          <div class="col-xs-10 text-center alert alert-success">
-            {{isotopeReason}} Try <a class="alert-link" href="https://isotope.sn126.com">Isotope</a>!
-          </div>
-        {{/hasIsotope}}
       <div class="col-xs-4 fields-column" ng-controller="FieldsController">
         <div class="header clearfix" ng-hide="!endpointName">
           <h3 class="title">[[endpointName]]</h3>

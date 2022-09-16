@@ -1,8 +1,8 @@
 package ai.diffy.analysis
 
-import javax.inject.Inject
+import org.springframework.beans.factory.annotation.Autowired
+import org.springframework.stereotype.Component
 
-import com.twitter.util.Future
 import scala.math.abs
 
 object DifferencesFilterFactory {
@@ -14,23 +14,17 @@ object DifferencesFilterFactory {
   }
 }
 
-case class JoinedDifferences @Inject() (raw: RawDifferenceCounter, noise: NoiseDifferenceCounter) {
-  def endpoints: Future[Map[String, JoinedEndpoint]] = {
-    raw.counter.endpoints map { _.keys } flatMap { eps =>
-      Future.collect(
-        eps map { ep =>
-          endpoint(ep) map { ep -> _ }
-        } toSeq
-      ) map { _.toMap }
-    }
+case class JoinedDifferences(raw: RawDifferenceCounter, noise: NoiseDifferenceCounter) {
+  def endpoints: Map[String, JoinedEndpoint] = {
+    raw.counter.endpoints map { case (k, _) => k -> endpoint(k) }
   }
 
-  def endpoint(endpoint: String): Future[JoinedEndpoint] = {
-    Future.join(
+  def endpoint(endpoint: String): JoinedEndpoint = {
+    (
       raw.counter.endpoint(endpoint),
       raw.counter.fields(endpoint),
       noise.counter.fields(endpoint)
-    ) map { case (endpoint, rawFields, noiseFields) =>
+    ) match { case (endpoint, rawFields, noiseFields) =>
       JoinedEndpoint(endpoint, rawFields, noiseFields)
     }
   }
@@ -51,6 +45,6 @@ case class JoinedEndpoint(
 case class JoinedField(endpoint: EndpointMetadata, raw: FieldMetadata, noise: FieldMetadata) {
   // the percent difference out of the total # of requests
   def absoluteDifference = abs(raw.differences - noise.differences) / endpoint.total.toDouble * 100
-  // the square error between this field's differences and the noisey counterpart's differences
+  // the square error between this field's differences and the noisy counterpart's differences
   def relativeDifference = abs(raw.differences - noise.differences) / (raw.differences + noise.differences).toDouble * 100
 }

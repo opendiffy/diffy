@@ -1,8 +1,6 @@
 package ai.diffy
 
-import ai.diffy.thriftscala.DifferenceResult
-import ai.diffy.analysis._
-import ai.diffy.thriftscala._
+import ai.diffy.analysis.{DifferenceResult, EndpointMetadata, FieldMetadata, JoinedField}
 import ai.diffy.lifter.JsonLifter
 
 import scala.language.postfixOps
@@ -33,7 +31,7 @@ object Renderer {
       }
     }
 
-  def endpoints(endpoints: Map[String, EndpointMetadata]) =
+  def endpoints(endpoints: Map[String, EndpointMetadata]): Map[String, Map[String, Int]] =
     endpoints map { case (ep, meta) =>
       ep -> endpoint(meta)
     }

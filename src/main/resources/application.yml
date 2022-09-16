@@ -1,0 +1,17 @@
+server:
+  port: ${http.port:8888}
+
+#proxy:
+#  port: ${proxy.port:8000}
+#
+#candidate: ${candidate:"localhost:9000"}
+#
+#master:
+#  primary: ${master.primary:"localhost:9000"}
+#  secondary: ${master.secondary:"localhost:9000"}
+#
+#service:
+#  protocol : ${service.protocol:"http"}
+#
+#serviceName : ${serviceName:"Sample Service"}
+

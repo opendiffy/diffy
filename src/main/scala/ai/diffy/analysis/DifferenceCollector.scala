@@ -1,87 +1,70 @@
 package ai.diffy.analysis
 
-import ai.diffy.IsotopeSdkModule.IsotopeClient
 import ai.diffy.compare.{Difference, PrimitiveDifference}
 import ai.diffy.lifter.{JsonLifter, Message}
-import ai.diffy.thriftscala.{DifferenceResult, Responses}
-import com.twitter.finagle.tracing.Trace
-import com.twitter.logging._
-import com.twitter.util.{Future, StorageUnit, Time, Try}
-import javax.inject.Inject
+import org.springframework.beans.factory.annotation.Autowired
+import org.springframework.stereotype.Component
 
+import java.util.Date
 import scala.util.Random
 
 object DifferenceAnalyzer {
   val UndefinedEndpoint = Some("undefined_endpoint")
-  val log = Logger(classOf[DifferenceAnalyzer])
-  log.setUseParentHandlers(false)
-  log.addHandler(
-    FileHandler(
-      filename = "differences.log",
-      rollPolicy = Policy.MaxSize(StorageUnit.fromMegabytes(128)),
-      rotateCount = 2
-    )()
-  )
-
   def normalizeEndpointName(name: String) = name.replace("/", "-")
 }
 
 case class Field(endpoint: String, prefix: String)
 
-class DifferenceAnalyzer @Inject()(
+class DifferenceAnalyzer(
     rawCounter: RawDifferenceCounter,
     noiseCounter: NoiseDifferenceCounter,
-    store: InMemoryDifferenceCollector,
-    isotopeClient: IsotopeClient)
+    store: InMemoryDifferenceCollector)
 {
   import DifferenceAnalyzer._
 
   def apply(
     request: Message,
-    candidate: (Message, Long, Long),
-    primary: (Message, Long, Long),
-    secondary: (Message, Long, Long)
+    candidate: Message,
+    primary: Message,
+    secondary: Message
   ): Unit = {
-    getEndpointName(request.endpoint, candidate._1.endpoint,
-        primary._1.endpoint, secondary._1.endpoint) foreach { endpointName =>
-      // If there is no traceId then generate our own
-      val id = Trace.idOption map { _.traceId.toLong } getOrElse(Random.nextLong)
-      Try(isotopeClient.save(id.toString, endpointName, request,candidate, primary, secondary))
-      val rawDiff = Difference(primary._1, candidate._1).flattened
-      val noiseDiff = Difference(primary._1, secondary._1).flattened
+    getEndpointName(request.endpoint, candidate.endpoint,
+        primary.endpoint, secondary.endpoint) foreach { endpointName =>
+      val rawDiff = Difference(primary, candidate).flattened
+      val noiseDiff = Difference(primary, secondary).flattened
 
+      val id = Random.nextLong();
       rawCounter.counter.count(endpointName, rawDiff)
       noiseCounter.counter.count(endpointName, noiseDiff)
 
       if (rawDiff.size > 0) {
         val diffResult = DifferenceResult(
           id,
-          Trace.idOption map { _.traceId.toLong },
+          id.toString,
           endpointName,
-          Time.now.inMillis,
+          new Date().getTime,
           differencesToJson(rawDiff),
           JsonLifter.encode(request.result),
           Responses(
-            candidate = JsonLifter.encode(candidate._1.result),
-            primary = JsonLifter.encode(primary._1.result),
-            secondary = JsonLifter.encode(secondary._1.result)
+            candidate = JsonLifter.encode(candidate.result),
+            primary = JsonLifter.encode(primary.result),
+            secondary = JsonLifter.encode(secondary.result)
           )
         )
 
-        log.info(s"endpoint[$endpointName]diff[$id]=$diffResult")
+//        log.info(s"endpoint[$endpointName]diff[$id]=$diffResult")
         store.create(diffResult)
       } else {
-        log.debug(s"endpoint[$endpointName]diff[$id]=NoDifference")
+//        log.debug(s"endpoint[$endpointName]diff[$id]=NoDifference")
       }
     }
   }
 
-  def clear(): Future[Unit] =
-    Future.join(
-      rawCounter.counter.clear(),
-      noiseCounter.counter.clear(),
-      store.clear()
-    ) map { _ => () }
+  def clear(): Unit = {
+    rawCounter.counter.clear()
+    noiseCounter.counter.clear()
+    store.clear()
+  }
 
   def differencesToJson(diffs: Map[String, Difference]): Map[String, String] =
     diffs map {

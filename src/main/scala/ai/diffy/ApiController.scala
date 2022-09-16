@@ -1,31 +1,19 @@
 package ai.diffy
 
-import javax.inject.Inject
 import ai.diffy.analysis.{DifferencesFilterFactory, JoinedEndpoint}
-import ai.diffy.proxy._
-import ai.diffy.util.DiffyProject
-import ai.diffy.workflow.{FunctionalReport, ReportGenerator}
-import com.twitter.finagle.http.{Request, Response}
-import com.twitter.finagle.{Service, SimpleFilter}
-import com.twitter.finatra.http.Controller
-import com.twitter.util._
+import ai.diffy.proxy.ReactorHttpDifferenceProxy
+import org.springframework.beans.factory.annotation.Autowired
+import org.springframework.web.bind.annotation.{GetMapping, PathVariable, RequestParam, RestController}
 
-object ApiController {
-  val MissingEndpointException = Future.value(Renderer.error("Specify an endpoint"))
-  val MissingEndpointPathException = Future.value(Renderer.error("Specify an endpoint and path"))
-  val RequestPurgedException = Future.value(Renderer.error("Request purged"))
-  val IndexOutOfBoundsException = Future.value(Renderer.error("Request index out of bounds"))
-}
-
-class ApiController @Inject()(
-    proxy: DifferenceProxy,
-    settings: Settings,
-    workflow: FunctionalReport,
-    reportGenerator: ReportGenerator)
-  extends Controller
+@RestController
+class ApiController(
+   @Autowired proxy: ReactorHttpDifferenceProxy,
+   @Autowired settings: Settings)
 {
-  import ApiController._
-  DiffyProject.settings(settings)
+  val MissingEndpointException = Renderer.error("Specify an endpoint")
+  val MissingEndpointPathException = Renderer.error("Specify an endpoint and path")
+  val RequestPurgedException = Renderer.error("Request purged")
+  val IndexOutOfBoundsException = Renderer.error("Request index out of bounds")
   val thresholdFilter =
     DifferencesFilterFactory(settings.relativeThreshold, settings.absoluteThreshold)
 
@@ -50,169 +38,120 @@ class ApiController @Inject()(
         )
     )
 
-  get("/api/1/overview") { req: Request =>
-    DiffyProject.log(req.uri)
-    val excludeNoise = req.params.getBooleanOrElse("exclude_noise", true)
-    val includeWeights = req.params.getBooleanOrElse("include_weights", false)
-
-    proxy.joinedDifferences.endpoints map { eps =>
+  @GetMapping(path = Array("/api/1/overview"))
+  def getOverview(
+     @RequestParam(name = "exclude_noise", defaultValue = "true") excludeNoise: Boolean,
+     @RequestParam(name = "include_weights", defaultValue = "false") includeWeights: Boolean
+ ) : Map[String, Any] = {
+    proxy.joinedDifferences.endpoints match { case eps =>
       eps.map { case (endpoint, diffs) =>
         endpoint -> endpointMap(diffs, includeWeights, excludeNoise)
       }
     }
   }
 
-  get("/api/1/report") { req: Request =>
-    DiffyProject.log(req.uri)
-    reportGenerator.extractReportFromDifferences
+  @GetMapping(path = Array("/api/1/endpoints"))
+  def getEndpoints(): Map[String, Any] = {
+    Renderer.endpoints(proxy.joinedDifferences.raw.counter.endpoints)
   }
 
-  get("/api/1/endpoints") { req: Request =>
-    DiffyProject.log(req.uri)
-    proxy.joinedDifferences.raw.counter.endpoints map Renderer.endpoints
-  }
-
-  get("/api/1/endpoints/:endpoint/stats") { req: Request =>
-    DiffyProject.log(req.uri)
-    val excludeNoise = req.params.getBooleanOrElse("exclude_noise", true)
-    val includeWeights = req.params.getBooleanOrElse("include_weights", false)
-
-    req.params.get("endpoint") match {
-      case Some(endpoint) =>
-        proxy.joinedDifferences.endpoint(endpoint) map { case joinedEndpoint =>
+  @GetMapping(path = Array("/api/1/endpoints/{endpoint}/stats"))
+  def getStats(
+    @PathVariable(name = "endpoint") endpoint: String,
+    @RequestParam(name = "exclude_noise", defaultValue = "true") excludeNoise: Boolean,
+    @RequestParam(name = "include_weights", defaultValue = "false") includeWeights: Boolean
+  ) = {
+    if (endpoint.isEmpty) {
+      MissingEndpointException
+    } else {
+      try {
+        proxy.joinedDifferences.endpoint(endpoint) match { case joinedEndpoint =>
           endpointMap(joinedEndpoint, includeWeights, excludeNoise)
-        } handle {
-          case t: Throwable => Renderer.error(t.getMessage())
         }
-
-      case None => MissingEndpointException
+      } catch {
+        case t: Throwable => Renderer.error(t.getMessage())
+      }
     }
   }
 
-  get("/api/1/endpoints/:endpoint/fields/:path/results") { req: Request =>
-    DiffyProject.log(req.uri)
-    (
-      req.params.get("endpoint"),
-      req.params.get("path")
-      ) match {
-      case (Some(endpoint), Some(path)) =>
-        proxy.collector.prefix(analysis.Field(endpoint, path)) map { drs =>
-          Map(
-            "endpoint" -> endpoint,
-            "path" -> path,
-            "requests" ->
-              Renderer.differenceResults(
-                drs,
-                req.params.getBooleanOrElse("include_request", false)
-              )
+  @GetMapping(path = Array("/api/1/endpoints/{endpoint}/fields/{path}/results"))
+  def getResults(
+    @PathVariable("endpoint") endpoint: String,
+    @PathVariable("path") path: String,
+    @RequestParam(name = "include_request", defaultValue = "false") include_request: Boolean) = {
+    if(endpoint.isEmpty || path.isEmpty) {
+      MissingEndpointPathException
+    } else {
+      val drs = proxy.collector.prefix(analysis.Field(endpoint, path))
+      Map(
+        "endpoint" -> endpoint,
+        "path" -> path,
+        "requests" ->
+          Renderer.differenceResults(
+            drs,
+            include_request
           )
-        }
-
-      case _ => MissingEndpointPathException
+      )
     }
   }
 
-  get("/api/1/endpoints/:endpoint/fields/:path/results/:index") { req: Request =>
-    DiffyProject.log(req.uri)
-    (
-      req.params.get("endpoint"),
-      req.params.get("path"),
-      req.params.getInt("index")
-      ) match {
-      case (Some(endpoint), Some(path), Some(index)) =>
-        proxy.collector.prefix(analysis.Field(endpoint, path)) map {
-          _.toSeq.lift(index)
-        } map {
+  @GetMapping(path = Array("/api/1/endpoints/{endpoint}/fields/{path}/results/{index}"))
+  def getIndex(
+    @PathVariable("endpoint") endpoint: String,
+    @PathVariable("path") path: String,
+    @PathVariable("index") index: Int,
+    @RequestParam(name = "include_request", defaultValue = "true") includeRequest: Boolean
+  ) = {
+    if (endpoint.isEmpty || path.isEmpty) {
+      IndexOutOfBoundsException
+    } else {
+        proxy.collector.prefix(analysis.Field(endpoint, path)).toSeq.lift(index) match {
           case Some(dr) =>
             Renderer.differenceResult(
               dr,
-              req.params.getBooleanOrElse("include_request", true)
+              includeRequest
             )
 
           case None => IndexOutOfBoundsException
         }
-
-      case _ => MissingEndpointPathException
     }
   }
 
-  get("/api/1/requests/:id") { req: Request =>
-    DiffyProject.log(req.uri)
-    req.params.get("id") map { id =>
-      proxy.collector(id.toLong) map { dr =>
+  @GetMapping(path = Array("/api/1/requests/{id}"))
+  def getRequest(
+    @PathVariable("id") id: String,
+    @RequestParam(name = "include_request", defaultValue = "true") includeRequest: Boolean
+  ) = {
+    if(id.isEmpty) {
+      RequestPurgedException
+    } else {
+      proxy.collector(id.toLong) match { case dr =>
         Renderer.differenceResult(
           dr,
-          req.params.getBooleanOrElse("include_request", true)
+          includeRequest
         )
       }
-    } match {
-      case Some(request) => request
-      case None => RequestPurgedException
     }
   }
 
-  get("/api/1/clear") { req: Request =>
-    DiffyProject.log(req.uri)
-    proxy.clear() map { _ =>
-      workflow.schedule()
-      Renderer.success("Diffs cleared")
-    }
+  @GetMapping(path = Array("/api/1/clear"))
+  def clear() = {
+    proxy.clear()
+    Renderer.success("Diffs cleared")
   }
 
-  post("/api/1/email") { req: Request =>
-    DiffyProject.log(req.uri)
-    reportGenerator.sendEmail
-    Renderer.success("Sent report e-mail.")
-  }
-
-  get("/api/1/info") { req: Request =>
-    DiffyProject.log(req.uri)
-    (proxy match {
-      case thrift: ThriftDifferenceProxy => Map(
-        "candidate" -> thriftServiceToMap(settings.candidate, thrift.candidate),
-        "primary" -> thriftServiceToMap(settings.primary, thrift.primary),
-        "secondary" -> thriftServiceToMap(settings.secondary, thrift.secondary),
-        "thrift_jar" -> settings.pathToThriftJar,
-        "service_class" -> settings.serviceClass,
-        "service_name" -> settings.serviceName,
-        "client_id" -> settings.clientId,
-        "threshold_relative" -> settings.relativeThreshold,
-        "threshold_absolute" -> settings.absoluteThreshold,
-        "protocol" -> "thrift"
-      )
-
-      case http: HttpDifferenceProxy => Map(
-        "candidate" -> httpServiceToMap(settings.candidate, http.candidate),
-        "primary" -> httpServiceToMap(settings.primary, http.primary),
-        "secondary" -> httpServiceToMap(settings.secondary, http.secondary),
-        "protocol" -> "http"
-      )
-    }) ++ Map("last_reset" -> proxy.lastReset.inMillis)
-  }
-
-  private[this] def thriftServiceToMap(target: String, srv: ThriftService) =
-      Map(
-        "target" -> target,
-        "members" -> srv.members,
-        "valid" -> srv.serversetValid,
-        "last_changed" -> srv.changedAt.map(_.inMillis).getOrElse(-1),
-        "last_reset" -> srv.resetAt.map(_.inMillis).getOrElse(-1)
-      )
-
-  private[this] def httpServiceToMap(target: String, srv: HttpService) =
-    Map(
-      "target" -> target
-    )
-}
+  @GetMapping(path = Array("/api/1/info"))
+  def getInfo(): Map[String, _] = Map(
+        "candidate" -> httpServiceToMap(s"${settings.candidateHost}:${settings.candidatePort}"),
+        "primary" -> httpServiceToMap(s"${settings.primaryHost}:${settings.primaryPort}"),
+        "secondary" -> httpServiceToMap(s"${settings.secondaryHost}:${settings.secondaryPort}"),
+        "relativeThreshold" -> settings.relativeThreshold,
+        "absoluteThreshold" -> settings.absoluteThreshold,
+        "protocol" -> "http",
+        "last_reset" -> proxy.lastReset.getTime)
 
 
-class AllowLocalAccess extends SimpleFilter[Request, Response] {
-  def apply(request: Request, service: Service[Request, Response]): Future[Response] = {
-    service(request) map { response =>
-      response.headerMap.set("Access-Control-Allow-Origin", "http://localhost:8888")
-      response
-    }
-  }
+  private[this] def httpServiceToMap(target: String) = Map("target" -> target)
 }
 
 

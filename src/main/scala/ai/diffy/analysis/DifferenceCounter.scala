@@ -1,7 +1,6 @@
 package ai.diffy.analysis
 
 import ai.diffy.compare.Difference
-import com.twitter.util.Future
 
 trait EndpointMetadata {
   // number of differences seen at this endpoint
@@ -26,11 +25,11 @@ trait FieldMetadata {
 }
 
 trait DifferenceCounter {
-  def count(endpoint: String, diffs: Map[String, Difference]): Future[Unit]
-  def endpoints: Future[Map[String, EndpointMetadata]]
-  def endpoint(endpoint: String) = endpoints flatMap { ep => Future { ep(endpoint) } }
-  def fields(endpoint: String): Future[Map[String, FieldMetadata]]
-  def clear(): Future[Unit]
+  def count(endpoint: String, diffs: Map[String, Difference]): Unit
+  def endpoints: Map[String, EndpointMetadata]
+  def endpoint(endpoint: String):EndpointMetadata = endpoints(endpoint)
+  def fields(endpoint: String): Map[String, FieldMetadata]
+  def clear(): Unit
 }
 
 case class RawDifferenceCounter(counter: DifferenceCounter)

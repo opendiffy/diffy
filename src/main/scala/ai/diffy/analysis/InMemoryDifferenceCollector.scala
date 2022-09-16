@@ -1,12 +1,9 @@
 package ai.diffy.analysis
 
 import ai.diffy.compare.Difference
-import ai.diffy.thriftscala._
-import com.twitter.util.Future
+import org.springframework.stereotype.Component
+
 import java.util.concurrent.atomic.AtomicInteger
-
-import ai.diffy.thriftscala.DifferenceResult
-
 import scala.collection.mutable
 
 class InMemoryDifferenceCounter extends DifferenceCounter {
@@ -19,17 +16,15 @@ class InMemoryDifferenceCounter extends DifferenceCounter {
     endpointsMap(ep)
   }
 
-  override def endpoints: Future[Map[String, EndpointMetadata]] = Future {
+  override def endpoints: Map[String, EndpointMetadata] =
     endpointsMap.toMap filter { _._2.total > 0 }
-  }
 
-  override def clear(): Future[Unit] = Future { endpointsMap.clear() }
+  override def clear(): Unit = endpointsMap.clear()
 
-  override def fields(ep: String): Future[Map[String, FieldMetadata]] =
-    Future { endpointCollector(ep).fields }
+  override def fields(ep: String): Map[String, FieldMetadata] = endpointCollector(ep).fields
 
-  override def count(endpoint: String, diffs: Map[String, Difference]): Future[Unit] =
-    Future { endpointCollector(endpoint).add(diffs) }
+  override def count(endpoint: String, diffs: Map[String, Difference]): Unit =
+    endpointCollector(endpoint).add(diffs)
 }
 
 class InMemoryFieldMetadata extends FieldMetadata {
@@ -78,8 +73,7 @@ class InMemoryEndpointMetadata extends EndpointMetadata {
 }
 
 object InMemoryDifferenceCollector {
-  val DifferenceResultNotFoundException =
-    Future.exception(new Exception("Difference result not found"))
+  val DifferenceResultNotFoundException = new Exception("Difference result not found")
 }
 
 class InMemoryDifferenceCollector {
@@ -102,27 +96,25 @@ class InMemoryDifferenceCollector {
         queue.enqueue(dr)
       }
     }
-    Future.value(dr)
   }
 
-  def prefix(field: Field): Future[Iterable[DifferenceResult]] = Future {
+  def prefix(field: Field): Iterable[DifferenceResult] =
     (fields.toSeq flatMap {
       case (Field(endpoint, path), value)
         if endpoint == field.endpoint && path.startsWith(field.prefix) => value
       case _ => Nil
     }).toSeq.distinct
-  }
 
-  def apply(id: Long): Future[DifferenceResult] =
+  def apply(id: Long): DifferenceResult =
     // Collect first instance of this difference showing up in all the fields
     fields.toStream map { case (field, queue) =>
       queue.find { _.id == id }
     } collectFirst {
       case Some(dr) => dr
     } match {
-      case Some(dr) => Future.value(dr)
-      case None => DifferenceResultNotFoundException
+      case Some(dr) => dr
+      case None => throw DifferenceResultNotFoundException
     }
 
-  def clear() = Future { fields.clear() }
+  def clear() = fields.clear()
 }

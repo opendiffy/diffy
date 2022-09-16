@@ -15,36 +15,40 @@ start using Diffy to compare three instances of your service:
 1. Deploy your old code to `localhost:9990`. This is your primary.
 2. Deploy your old code to `localhost:9991`. This is your secondary.
 3. Deploy your new code to `localhost:9992`. This is your candidate.
-4. Download the latest Diffy binary from maven central or build your own from the code using `./sbt assembly`.
-5. Run the Diffy jar with following command line arguments:
+4. Download the latest Diffy binary from maven central or build your own from the code using `mvn package`.
+5. Create a YAML config file (let's call it diffy.yml) with the following properties:
+
+   ```
+   server:
+      port: 8888
+   
+   proxy:
+      port: 8880
+   
+   candidate: "localhost:9992"
+   
+   master:
+      primary: "localhost:9990"
+      secondary: "localhost:9991"
+   
+   service:
+      protocol : "http"
+
+   serviceName : "Diffy Sample Service"
+   ```
+6. Run the Diffy jar with following command line arguments:
 
     ```
-    java -jar diffy-server.jar \
-    -candidate=localhost:9992 \
-    -master.primary=localhost:9990 \
-    -master.secondary=localhost:9991 \
-    -responseMode='primary' \
-    -service.protocol=http \
-    -serviceName=My-Service \
-    -maxHeaderSize='32.kilobytes' \
-    -maxResponseSize='5.megabytes' \
-    -proxy.port=:8880 \
-    -admin.port=:8881 \
-    -http.port=:8888 \
-    -rootUrl="localhost:8888" \
-    -summary.email="info@diffy.ai" \
-    -summary.delay="5"
+    java -jar -Dspring.config.location=diffy.yml diffy.jar
     ```
 
-6. Send a few test requests to your Diffy instance on its proxy port:
+7. Send a few test requests to your Diffy instance on its proxy port:
 
     ```
     curl localhost:8880/your/application/route?with=queryparams
     ```
 
-7. Watch the differences show up in your browser at [http://localhost:8888](http://localhost:8888).
-
-8. Note that after ```summary.delay``` minutes, your Diffy instance will email a summary report to your ```summary.email``` address.
+8. Watch the differences show up in your browser at [http://localhost:8888](http://localhost:8888).
 
 9. By default the names of the resources in the UI are fetched from the `Canonical-Resource` header in each
 request. However this can be configured at boot with a static line, example: 
@@ -66,18 +70,15 @@ And run it with
 docker run -d --name diffy-01 \
   -p 8880:8880 -p 8881:8881 -p 8888:8888 \
   diffy/diffy \
-    -candidate=localhost:9992 \
-    -master.primary=localhost:9990 \
-    -master.secondary=localhost:9991 \
-    -responseMode='primary' \
-    -service.protocol=http \
-    -serviceName="Tier-Service" \
-    -proxy.port=:8880 \
-    -admin.port=:8881 \
-    -http.port=:8888 \
-    -rootUrl=localhost:8888 \
-    -summary.email='your email to receive a summary report from your diffy instance' \
-    -summary.delay="5"
+    --candidate=localhost:9992 \
+    --master.primary=localhost:9990 \
+    --master.secondary=localhost:9991 \
+    --responseMode=primary \
+    --service.protocol=http \
+    --serviceName="Sample Service" \
+    --proxy.port=8880 \
+    --http.port=8888 \
+    --rootUrl=localhost:8888
 ```
 
 You should now be able to point to:
@@ -91,13 +92,4 @@ You can always build the image from source with `docker build -t diffy .`
 
 
 ## FAQ's
-   For safety reasons `POST`, `PUT`, ` DELETE ` are ignored by default . Add ` -allowHttpSideEffects=true ` to your command line arguments to enable these verbs.
-
-## HTTPS
-If you are trying to run Diffy over a HTTPS API, the config required is:
-
-    -service.protocol=https
-
-And in case of the HTTPS port be different than 443:
-
-    -https.port=123
+   For safety reasons `POST`, `PUT`, `PATCH`, ` DELETE ` are ignored by default . Add ` --allowHttpSideEffects=true ` to your command line arguments to enable these verbs.

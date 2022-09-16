@@ -1,26 +1,25 @@
 # build image
-FROM mozilla/sbt:8u212_1.2.8 as builder
-
-RUN apt-get update
-
-ADD . /usr/local/src
-WORKDIR /usr/local/src
-RUN ./sbt assembly
-RUN mv target/scala-2.12 /bin/diffy
+FROM maven:3.8.6-openjdk-18 as builder
+ENV HOME=/usr/local/src
+RUN mkdir -p $HOME
+WORKDIR $HOME
+ADD pom.xml $HOME
+RUN mvn verify --fail-never
+ADD . $HOME
+RUN mvn package
+RUN ls
+RUN mv target /target
 
 # production image
-FROM openjdk:8-jre-alpine
-COPY --from=builder /bin/diffy /bin/diffy
-ENTRYPOINT ["java", "-jar", "/bin/diffy/diffy-server.jar"]
-
-CMD [ "-candidate=localhost:9992", \
-      "-master.primary=localhost:9990", \
-      "-master.secondary=localhost:9991", \
-      "-service.protocol=http", \
-      "-serviceName='Test-Service'", \
-      "-proxy.port=:8880", \
-      "-admin.port=:8881", \
-      "-http.port=:8888", \
-      "-rootUrl=localhost:8888" \
+FROM openjdk:oracle
+COPY --from=builder /target/diffy.jar /diffy.jar
+ENTRYPOINT ["java", "-jar", "diffy.jar"]
+CMD [ "--candidate.port=9992", \
+      "--master.primary.port=9990", \
+      "--master.secondary.port=9991", \
+      "--service.protocol=http", \
+      "--service.name='Sample-Service'", \
+      "--proxy.port=8880", \
+      "--server.port=8888", \
+      "--rootUrl=localhost:8888" \
 ]
-

@@ -1,9 +1,9 @@
 package ai.diffy.lifter
 
-import scala.collection.MapProxy
+class FieldMap(self: Map[String, _]){
+  val value = self
 
-case class FieldMap[T](override val self: Map[String, T]) extends MapProxy[String, T] {
-  override lazy val toString: String = {
-    self.toSeq.sortBy { case (k, v) => k }.toString
+  override def toString: String = {
+    self.toSeq.sortBy { case (k, _) => k }.toString
   }
 }

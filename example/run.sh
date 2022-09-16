@@ -3,7 +3,7 @@
 if [ "$1" = "start" ];
 then
     echo "Build Diffy" && \
-#    ./sbt assembly
+#    mvn package
 
     echo "Build primary, secondary, and candidate servers" && \
     javac -d example src/test/scala/ai/diffy/examples/http/ExampleServers.java && \
@@ -12,21 +12,15 @@ then
     java -cp example ai.diffy.examples.http.ExampleServers 9000 9100 9200 & \
 
     echo "Deploy Diffy" && \
-    java -jar ./target/scala-2.12/diffy-server.jar \
-    -candidate='localhost:9200' \
-    -master.primary='localhost:9000' \
-    -master.secondary='localhost:9100' \
-    -responseMode='candidate' \
-    -service.protocol='http' \
-    -serviceName='ExampleService' \
-    -summary.delay='1' \
-    -summary.email='example@diffy.ai' \
-    -maxHeaderSize='32.kilobytes' \
-    -maxResponseSize='5.megabytes' \
-    -isotope.config='/Users/puneetkhanduri/code/sn126/isodemo/local.isotope' \
-    -proxy.port=:8880 \
-    -admin.port=:8881 \
-    -http.port=:8888 & \
+    java -jar ./target/opendiffy.jar \
+    --candidate='localhost:9200' \
+    --master.primary='localhost:9000' \
+    --master.secondary='localhost:9100' \
+    --responseMode='candidate' \
+    --service.protocol='http' \
+    --serviceName='ExampleService' \
+    --proxy.port=8880 \
+    --http.port=8888 & \
 
     sleep 5
     echo "Wait for server to deploy"

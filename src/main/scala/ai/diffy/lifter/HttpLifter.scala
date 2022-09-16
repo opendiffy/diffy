@@ -1,10 +1,12 @@
 package ai.diffy.lifter
 
+import ai.diffy.Settings
+import ai.diffy.proxy.{HttpMessage, HttpRequest, HttpResponse}
 import ai.diffy.util.ResourceMatcher
-import com.twitter.finagle.http.{Request, Response}
-import com.twitter.logging.Logger
-import com.twitter.util.{Future, Try}
+import org.springframework.beans.factory.annotation.Autowired
+import org.springframework.stereotype.Component
 
+import scala.collection.JavaConverters._
 
 object HttpLifter {
 
@@ -12,7 +14,6 @@ object HttpLifter {
   val ControllerEndpointHeaderName = "X-Action-Name"
 
   def contentTypeNotSupportedException(contentType: String) = new Exception(s"Content type: $contentType is not supported")
-  def contentTypeNotSupportedExceptionFuture(contentType: String) = Future.exception(contentTypeNotSupportedException(contentType))
 
   case class MalformedJsonContentException(cause: Throwable)
     extends Exception("Malformed Json content")
@@ -21,71 +22,45 @@ object HttpLifter {
   }
 }
 
-class HttpLifter(excludeHttpHeadersComparison: Boolean, resourceMatcher: Option[ResourceMatcher] = None) {
+class HttpLifter(settings: Settings) {
+  val excludeHttpHeadersComparison: Boolean = settings.excludeHttpHeadersComparison
+  val resourceMatcher: Option[ResourceMatcher] = settings.resourceMatcher
+
   import HttpLifter._
 
-  private[this] val log = Logger(classOf[HttpLifter])
-  private[this] def headersMap(response: Response): Map[String, Any] = {
+  private[this] def headersMap(response: HttpMessage): Map[String, Any] = {
     if(!excludeHttpHeadersComparison) {
-      val rawHeaders = response.headerMap.toSeq
-
-      val headers = rawHeaders map { case (name, value) =>
-        (name.toLowerCase, value)
-      } groupBy { _._1} map { case (name, pairs) =>
-        name -> (pairs map { _._2 } sorted)
-      }
-
-      Map( "headers" -> FieldMap(headers))
+      Map( "headers" -> new FieldMap(response.getHeaders.asScala.toMap))
     } else Map.empty
   }
 
-  def liftRequest(req: Request): Future[Message] = {
-    val headers = req.headerMap
+  def liftRequest(req: HttpRequest): Message = {
+    val headers = req.getMessage.getHeaders.asScala.toMap
 
-    val canonicalResource = headers
+    val canonicalResource: Option[String] = headers
       .get("Canonical-Resource")
-      .orElse(resourceMatcher.flatMap(_.resourceName(req.path)))
+      .orElse(resourceMatcher.flatMap(_.resourceName(req.getPath)))
 
-    val params = req.getParams()
-    val body = StringLifter.lift(req.getContentString())
-    Future.value(
+    val params = req.getParams
+    val body = StringLifter.lift(req.getMessage.getBody)
       Message(
         canonicalResource,
-        FieldMap(
+        new FieldMap(
           Map(
-            "uri" -> req.uri,
-            "method" -> req.method,
+            "uri" -> req.getUri,
+            "method" -> req.getMethod,
             "headers" -> headers,
             "params" -> params,
             "body" -> body
           )
         )
       )
-    )
   }
 
-  def liftResponse(resp: Try[Response]): Future[Message] = {
-    log.debug(s"$resp")
-    Future.const(resp) flatMap { r: Response =>
-
-      /** header supplied by macaw, indicating the controller reached **/
-      val controllerEndpoint = r.headerMap.get(ControllerEndpointHeaderName)
-
-      val stringContentTry = Try {
-        StringLifter.lift(r.getContentString())
-      }
-
-      Future.const(stringContentTry map { stringContent =>
-        val responseMap = Map(
-          r.statusCode.toString -> (Map(
-            "content" -> stringContent,
-            "chunked" -> r.isChunked
-          ) ++ headersMap(r))
-        )
-
-        Message(controllerEndpoint, FieldMap(responseMap))
-      })
-
-    }
+  def liftResponse(r: HttpResponse): Message = {
+    /** header supplied by macaw, indicating the controller reached **/
+    val controllerEndpoint = r.getMessage.getHeaders.asScala.toMap.get(ControllerEndpointHeaderName)
+    val responseMap = Map(r.getStatus -> StringLifter.lift(r.getMessage.getBody())) ++ headersMap(r.getMessage)
+    Message(controllerEndpoint, new FieldMap(responseMap))
   }
 }

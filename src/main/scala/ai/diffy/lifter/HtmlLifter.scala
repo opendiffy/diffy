@@ -4,12 +4,13 @@ import org.jsoup.Jsoup
 import org.jsoup.nodes.{Document, Element}
 import org.jsoup.select.Elements
 
-import scala.collection.JavaConversions._
+import scala.collection.JavaConverters._
+import scala.language.postfixOps
 
 object HtmlLifter {
-  def lift(node: Element): FieldMap[Any] = node match {
+  def lift(node: Element): FieldMap = node match {
     case doc: Document =>
-      FieldMap(
+      new FieldMap(
         Map(
           "head" -> lift(doc.head),
           "body" -> lift(doc.body)
@@ -18,18 +19,18 @@ object HtmlLifter {
     case doc: Element => {
       val children: Elements = doc.children
       val attributes =
-        FieldMap[String](
-          doc.attributes.asList map { attribute =>
+        new FieldMap(
+          doc.attributes.asList.asScala map { attribute =>
             attribute.getKey -> attribute.getValue
           } toMap
         )
 
-      FieldMap(
+      new FieldMap(
         Map(
           "tag"         -> doc.tagName,
           "text"        -> doc.ownText,
           "attributes"  -> attributes,
-          "children"    -> children.map(element => lift(element))
+          "children"    -> children.asScala.map(element => lift(element))
         )
       )
     }
