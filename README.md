@@ -18,6 +18,7 @@ Diffy is used in production at:
 * Bytedance
 
 and blogged about by cloud infrastructure providers like:
+* [Microsoft](https://microsoft.github.io/code-with-engineering-playbook/automated-testing/shadow-testing/)
 * [Alibaba Cloud](https://www.alibabacloud.com/blog/traffic-management-with-istio-3-traffic-comparison-analysis-based-on-istio_594545)
 * [Datawire](https://blog.getambassador.io/next-level-testing-with-an-api-gateway-and-continuous-delivery-9cbb9c4564b5)
 
