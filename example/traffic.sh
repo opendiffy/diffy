@@ -1,15 +1,15 @@
 #!/usr/bin/env bash
-echo "Send some traffic to your Diffy instance"
+echo "Sending some traffic to your Diffy instance"
 for i in {1..20}
 do
     sleep 0.1
-    curl -s -i -H "Canonical-Resource : json" http://localhost:8880/json?Mixpanel > /dev/null
+    curl -s -i -H "Canonical-Resource:json" http://localhost:8880/json?Mixpanel > /dev/null
     sleep 0.1
-    curl -s -i -H "Canonical-Resource : json" http://localhost:8880/json?Twitter > /dev/null
+    curl -s -i -H "Canonical-Resource:json" http://localhost:8880/json?Twitter > /dev/null
     sleep 0.1
-    curl -s -i -H "Canonical-Resource : json" http://localhost:8880/json?Airbnb > /dev/null
+    curl -s -i -H "Canonical-Resource:json" http://localhost:8880/json?Airbnb > /dev/null
     sleep 0.1
-    curl -s -i -H "Canonical-Resource : json" http://localhost:8880/json?Paytm > /dev/null
+    curl -s -i -H "Canonical-Resource:json" http://localhost:8880/json?Paytm > /dev/null
     sleep 0.1
-    curl -s -i -H "Canonical-Resource : json" http://localhost:8880/json?Baidu > /dev/null
+    curl -s -i -H "Canonical-Resource:json" http://localhost:8880/json?Baidu > /dev/null
 done
