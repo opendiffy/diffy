@@ -40,6 +40,7 @@ class HttpLifter(settings: Settings) {
     val canonicalResource: Option[String] = headers
       .get("Canonical-Resource")
       .orElse(resourceMatcher.flatMap(_.resourceName(req.getPath)))
+      .orElse(Some(s"${req.getMethod}:${req.getPath}"))
 
     val params = req.getParams
     val body = StringLifter.lift(req.getMessage.getBody)
@@ -58,9 +59,7 @@ class HttpLifter(settings: Settings) {
   }
 
   def liftResponse(r: HttpResponse): Message = {
-    /** header supplied by macaw, indicating the controller reached **/
-    val controllerEndpoint = r.getMessage.getHeaders.asScala.toMap.get(ControllerEndpointHeaderName)
     val responseMap = Map(r.getStatus -> StringLifter.lift(r.getMessage.getBody())) ++ headersMap(r.getMessage)
-    Message(controllerEndpoint, new FieldMap(responseMap))
+    Message(None, new FieldMap(responseMap))
   }
 }
