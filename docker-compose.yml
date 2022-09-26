@@ -40,15 +40,6 @@ services:
     depends_on:
       - tempo
 
-#  mongo:
-#    image: mongo
-#    ports:
-#      - "27017:27017"
-#    restart: always
-#    environment:
-#      MONGO_INITDB_ROOT_USERNAME:
-#      MONGO_INITDB_ROOT_PASSWORD:
-
   diffy:
     image: diffy/diffy:latest
     ports:
@@ -66,7 +57,6 @@ services:
       proxy.port: 8880
       http.port: 8888
       rootUrl: "localhost:8888"
-#      spring.data.mongodb.uri: "mongodb://mongo:27017/diffy"
       otel.javaagent.debug: "true"
       otel.traces.exporter: "jaeger"
       otel.exporter.jaeger.endpoint: "http://tempo:14250"
@@ -83,7 +73,6 @@ services:
     volumes:
       - ./data/logs:/app/logs
     depends_on:
-#      - mongo
       - tempo
 
   promtail:
