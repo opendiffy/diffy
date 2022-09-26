@@ -2,13 +2,15 @@ package ai.diffy.analysis
 
 import ai.diffy.compare.{Difference, PrimitiveDifference}
 import ai.diffy.lifter.{JsonLifter, Message}
-import org.springframework.beans.factory.annotation.Autowired
-import org.springframework.stereotype.Component
+import ai.diffy.repository.DifferenceResultRepository
+import io.opentelemetry.api.trace.Span
+import org.slf4j.LoggerFactory
 
 import java.util.Date
 import scala.util.Random
 
 object DifferenceAnalyzer {
+  val log = LoggerFactory.getLogger(classOf[DifferenceAnalyzer])
   val UndefinedEndpoint = Some("undefined_endpoint")
   def normalizeEndpointName(name: String) = name.replace("/", "-")
 }
@@ -18,7 +20,8 @@ case class Field(endpoint: String, prefix: String)
 class DifferenceAnalyzer(
     rawCounter: RawDifferenceCounter,
     noiseCounter: NoiseDifferenceCounter,
-    store: InMemoryDifferenceCollector)
+    store: InMemoryDifferenceCollector,
+    repository: DifferenceResultRepository)
 {
   import DifferenceAnalyzer._
 
@@ -27,9 +30,9 @@ class DifferenceAnalyzer(
     candidate: Message,
     primary: Message,
     secondary: Message
-  ): Unit = {
+  ): Option[DifferenceResult] = {
     getEndpointName(request.endpoint, candidate.endpoint,
-        primary.endpoint, secondary.endpoint) foreach { endpointName =>
+        primary.endpoint, secondary.endpoint) flatMap { endpointName =>
       val rawDiff = Difference(primary, candidate).flattened
       val noiseDiff = Difference(primary, secondary).flattened
 
@@ -40,7 +43,7 @@ class DifferenceAnalyzer(
       if (rawDiff.size > 0) {
         val diffResult = DifferenceResult(
           id,
-          id.toString,
+          Span.current().getSpanContext.getTraceId,
           endpointName,
           new Date().getTime,
           differencesToJson(rawDiff),
@@ -51,11 +54,14 @@ class DifferenceAnalyzer(
             secondary = JsonLifter.encode(secondary.result)
           )
         )
-
 //        log.info(s"endpoint[$endpointName]diff[$id]=$diffResult")
-        store.create(diffResult)
+//        store.create(diffResult)
+        val saved = repository.save(diffResult)
+        log.info(s"repository saved $endpointName -- ${saved.id} -- ${saved.traceId}")
+        Some(saved)
       } else {
-//        log.debug(s"endpoint[$endpointName]diff[$id]=NoDifference")
+        log.debug(s"endpoint[$endpointName]diff[$id]=NoDifference")
+        None
       }
     }
   }
@@ -64,6 +70,7 @@ class DifferenceAnalyzer(
     rawCounter.counter.clear()
     noiseCounter.counter.clear()
     store.clear()
+    repository.deleteAll()
   }
 
   def differencesToJson(diffs: Map[String, Difference]): Map[String, String] =
@@ -92,7 +99,7 @@ class DifferenceAnalyzer(
       // otherwise it's noise and we should discard the request
       case (_, None, _, _) if primaryEndpoint == secondaryEndpoint => primaryEndpoint
       case (_, None, _, _) => None
-      case (_, Some(candidate), _, _) => candidateEndpoint
+      case (_, Some(_), _, _) => candidateEndpoint
     }
 
     rawEndpointName map { normalizeEndpointName(_) }

@@ -2,13 +2,15 @@ package ai.diffy
 
 import ai.diffy.analysis.{DifferencesFilterFactory, JoinedEndpoint}
 import ai.diffy.proxy.ReactorHttpDifferenceProxy
+import ai.diffy.repository.DifferenceResultRepository
 import org.springframework.beans.factory.annotation.Autowired
 import org.springframework.web.bind.annotation.{GetMapping, PathVariable, RequestParam, RestController}
 
 @RestController
 class ApiController(
-   @Autowired proxy: ReactorHttpDifferenceProxy,
-   @Autowired settings: Settings)
+                     @Autowired repository: DifferenceResultRepository,
+                     @Autowired proxy: ReactorHttpDifferenceProxy,
+                     @Autowired settings: Settings)
 {
   val MissingEndpointException = Renderer.error("Specify an endpoint")
   val MissingEndpointPathException = Renderer.error("Specify an endpoint and path")
@@ -125,12 +127,12 @@ class ApiController(
     if(id.isEmpty) {
       RequestPurgedException
     } else {
-      proxy.collector(id.toLong) match { case dr =>
+      repository.findById(id.toLong) map { case dr =>
         Renderer.differenceResult(
           dr,
           includeRequest
         )
-      }
+      } orElse(RequestPurgedException)
     }
   }
 

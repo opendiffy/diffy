@@ -48,8 +48,9 @@ class HttpLifter(settings: Settings) {
         canonicalResource,
         new FieldMap(
           Map(
-            "uri" -> req.getUri,
             "method" -> req.getMethod,
+            "path" -> req.getPath,
+            "uri" -> req.getUri,
             "headers" -> headers,
             "params" -> params,
             "body" -> body

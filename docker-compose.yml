@@ -1,0 +1,125 @@
+version: "3.8"
+
+services:
+
+  loki:
+    image: grafana/loki:2.2.0
+    command: -config.file=/etc/loki/loki-local.yaml
+    user: "0"
+    ports:
+      - "3101:3100"                                   # loki needs to be exposed so it receives logs
+    environment:
+      - JAEGER_AGENT_HOST=tempo
+      - JAEGER_ENDPOINT=http://tempo:14268/api/traces # send traces to Tempo
+      - JAEGER_SAMPLER_TYPE=const
+      - JAEGER_SAMPLER_PARAM=1
+    volumes:
+      - ./etc/loki-local.yaml:/etc/loki/loki-local.yaml
+      - ./data/loki-data:/tmp/loki
+
+  tempo:
+    image: grafana/tempo:0.7.0
+    command: ["-config.file=/etc/tempo.yaml"]
+    volumes:
+      - ./etc/tempo-local.yaml:/etc/tempo.yaml
+      - ./data/tempo-data:/tmp/tempo
+    restart: unless-stopped
+    ports:
+      - "14268:14268"  # jaeger ingest, Jaeger - Thrift HTTP
+      - "14250:14250"  # Jaeger - GRPC
+      - "55680:55680"  # OpenTelemetry
+      - "3102:3100"   # tempo
+
+  tempo-query:
+    image: grafana/tempo-query:0.7.0
+    command: ["--grpc-storage-plugin.configuration-file=/etc/tempo-query.yaml"]
+    volumes:
+      - ./etc/tempo-query.yaml:/etc/tempo-query.yaml
+    ports:
+      - "16686:16686"  # jaeger-ui
+    depends_on:
+      - tempo
+
+  mongo:
+    image: mongo
+    ports:
+      - "27017:27017"
+    restart: always
+    environment:
+      MONGO_INITDB_ROOT_USERNAME:
+      MONGO_INITDB_ROOT_PASSWORD:
+
+  diffy:
+    image: diffy/diffy:latest
+    ports:
+      - "8888:8888"
+      - "8880:8880"
+    env_file: "./diffy.env"
+    environment:
+      candidate: "host.docker.internal:9000"
+      master.primary: "host.docker.internal:9000"
+      master.secondary: "host.docker.internal:9000"
+      responseMode: "primary"
+      service.protocol: "http"
+      allowHttpSideEffects: "true"
+      serviceName: "Sample Service"
+      proxy.port: 8880
+      http.port: 8888
+      rootUrl: "localhost:8888"
+      spring.data.mongodb.uri: "mongodb://mongo:27017/diffy"
+      otel.javaagent.debug: "true"
+      otel.traces.exporter: "jaeger"
+      otel.exporter.jaeger.endpoint: "http://tempo:14250"
+      otel.resource.attributes: "service.name=diffy"
+      spring.application.name: "diffy"
+      logging.level.web: "INFO"
+      logging.level.io.opentelemetry: "DEBUG"
+      logging.level.root: "INFO"
+      logging.file.name: "/app/logs/diffy.log"
+      logging.file.max-size: "10MB"
+      logging.file.max-history: 1
+      logging.file.clean-history-on-start: "true"
+    volumes:
+      - ./data/logs:/app/logs
+    depends_on:
+      - mongo
+      - tempo
+
+  promtail:
+    image: grafana/promtail:2.2.0
+    command: -config.file=/etc/promtail/promtail-local.yaml
+    volumes:
+      - ./etc/promtail-local.yaml:/etc/promtail/promtail-local.yaml
+      - ./data/logs:/app/logs
+    depends_on:
+      - diffy
+      - loki
+
+  prometheus:
+    image: prom/prometheus:latest
+    volumes:
+      - ./etc/prometheus.yaml:/etc/prometheus.yaml
+    entrypoint:
+      - /bin/prometheus
+      - --config.file=/etc/prometheus.yaml
+    ports:
+      - "9090:9090"
+    depends_on:
+      - diffy
+
+  grafana:
+    image: grafana/grafana:7.4.0-ubuntu
+    volumes:
+      - ./data/grafana-data/datasources:/etc/grafana/provisioning/datasources
+      - ./data/grafana-data/dashboards-provisioning:/etc/grafana/provisioning/dashboards
+      - ./data/grafana-data/dashboards:/var/lib/grafana/dashboards
+    environment:
+      - GF_AUTH_ANONYMOUS_ENABLED=true
+      - GF_AUTH_ANONYMOUS_ORG_ROLE=Admin
+      - GF_AUTH_DISABLE_LOGIN_FORM=true
+    ports:
+      - "3000:3000"
+    depends_on:
+      - prometheus
+      - tempo-query
+      - loki

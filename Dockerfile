@@ -5,21 +5,17 @@ RUN mkdir -p $HOME
 WORKDIR $HOME
 ADD pom.xml $HOME
 RUN mvn verify --fail-never
+ADD maven_docker_cache.xml $HOME
+RUN mvn verify -f maven_docker_cache.xml --fail-never
 ADD . $HOME
 RUN mvn package
 RUN ls
 RUN mv target /target
+RUN mv agent /agent
 
 # production image
-FROM openjdk:oracle
+FROM maven:3.8.6-openjdk-18
 COPY --from=builder /target/diffy.jar /diffy.jar
-ENTRYPOINT ["java", "-jar", "diffy.jar"]
-CMD [ "--candidate.port=9992", \
-      "--master.primary.port=9990", \
-      "--master.secondary.port=9991", \
-      "--service.protocol=http", \
-      "--service.name='Sample-Service'", \
-      "--proxy.port=8880", \
-      "--server.port=8888", \
-      "--rootUrl=localhost:8888" \
-]
+COPY --from=builder /agent/opentelemetry-javaagent.jar /opentelemetry-javaagent.jar
+ENTRYPOINT ["java", "-javaagent:opentelemetry-javaagent.jar", "-jar", "diffy.jar"]
+CMD []

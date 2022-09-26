@@ -1,0 +1,43 @@
+server:
+  http_listen_port: 3101
+
+clients:
+  - url: http://loki:3100/loki/api/v1/push
+
+positions:
+  filename: /tmp/positions.yaml
+
+target_config:
+   sync_period: 10s
+
+scrape_configs:
+  - job_name: diffy
+    static_configs:
+      - targets:
+          - localhost
+        labels:
+          job: diffy
+          __path__: /app/logs/diffy*.log
+    pipeline_stages:
+      - match:
+          selector: '{job="diffy"}'
+          stages:
+          - regex:
+              expression: '^(?P<timestamp>\d{4}-\d{2}-\d{2}\s\d{1,2}\:\d{2}\:\d{2}\.\d{3})\s+(?P<level>[A-Z]{4,5})\s[(?P<serviceName>.*),(?P<traceId>.*),(?P<spanId>.*)]\s(?P<pid>\d)\s---\s[\s*(?P<thread>.*)]\s(?P<logger>.*)\s+\:\s(?P<message>.*)$'
+          - labels:
+              timestamp:
+              level:
+              serviceName:
+              traceId:
+              spanId:
+              pid:
+              thread:
+              logger:
+              message:
+          - timestamp:
+              format: '2006-01-02 15:04:05.000'
+              source: timestamp
+      # https://grafana.com/docs/loki/latest/clients/promtail/stages/multiline/
+      - multiline:
+          firstline: '^\d{4}-\d{2}-\d{2}\s\d{1,2}\:\d{2}\:\d{2}\.\d{3}'
+          max_wait_time: 3s

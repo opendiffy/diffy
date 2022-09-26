@@ -14,3 +14,6 @@ lib_managed/
 .ensime
 .ivyjars
 example/ai/diffy/examples/http/
+data/logs/
+data/loki-data/
+data/tempo-data/

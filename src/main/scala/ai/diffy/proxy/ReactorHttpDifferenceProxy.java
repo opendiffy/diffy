@@ -3,13 +3,19 @@ package ai.diffy.proxy;
 import ai.diffy.Settings;
 import ai.diffy.analysis.*;
 import ai.diffy.lifter.HttpLifter;
+import ai.diffy.lifter.JsonLifter;
 import ai.diffy.lifter.Message;
+import ai.diffy.repository.DifferenceResultRepository;
 import io.netty.handler.codec.http.HttpMethod;
+import io.opentelemetry.api.common.AttributeKey;
+import io.opentelemetry.api.common.Attributes;
+import io.opentelemetry.api.trace.Span;
+import io.opentelemetry.extension.annotations.WithSpan;
 import org.reactivestreams.Publisher;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.stereotype.Component;
+import org.springframework.stereotype.Service;
 import reactor.core.publisher.Mono;
 import reactor.netty.DisposableServer;
 import reactor.netty.http.client.HttpClient;
@@ -18,7 +24,6 @@ import reactor.netty.http.server.HttpServerRequest;
 import reactor.netty.http.server.HttpServerResponse;
 
 import java.util.Date;
-import java.util.HashSet;
 import java.util.Set;
 import java.util.concurrent.CompletableFuture;
 import java.util.concurrent.ExecutionException;
@@ -26,7 +31,7 @@ import java.util.concurrent.ForkJoinPool;
 import java.util.stream.Collectors;
 import java.util.stream.Stream;
 
-@Component
+@Service
 public class ReactorHttpDifferenceProxy {
     private final Logger log = LoggerFactory.getLogger(ReactorHttpDifferenceProxy.class);
     private DisposableServer server;
@@ -43,13 +48,13 @@ public class ReactorHttpDifferenceProxy {
 
     volatile public Date lastReset = new Date();
 
-    public ReactorHttpDifferenceProxy(@Autowired Settings settings) {
+    public ReactorHttpDifferenceProxy(@Autowired Settings settings, @Autowired DifferenceResultRepository repository) {
         this.settings = settings;
         this.collector = new InMemoryDifferenceCollector();
-        RawDifferenceCounter raw = RawDifferenceCounter.apply(new InMemoryDifferenceCounter());
-        NoiseDifferenceCounter noise = NoiseDifferenceCounter.apply(new InMemoryDifferenceCounter());
+        RawDifferenceCounter raw = RawDifferenceCounter.apply(new InMemoryDifferenceCounter("raw"));
+        NoiseDifferenceCounter noise = NoiseDifferenceCounter.apply(new InMemoryDifferenceCounter("noise"));
         this.joinedDifferences = JoinedDifferences.apply(raw,noise);
-        this.analyzer = new DifferenceAnalyzer(raw, noise, collector);
+        this.analyzer = new DifferenceAnalyzer(raw, noise, collector, repository);
         this.lifter = new HttpLifter(settings);
 
         log.info("Starting Proxy server on port "+ settings.servicePort());
@@ -94,16 +99,16 @@ public class ReactorHttpDifferenceProxy {
             new CompletableFuture<>()
         };
 
-        receive(primary, req).thenAccept(messages[0]::complete);
-        messages[0].thenAccept(done -> { receive(candidate, req).thenAccept(messages[1]::complete);});
-        messages[1].thenAccept(done -> { receive(secondary, req).thenAccept(messages[2]::complete);});
-        messages[2].thenAccept(done -> {
+        receive(primary, req, "primary").thenAccept(messages[0]::complete);
+        messages[0].thenAccept(msgP -> { receive(candidate, req, "candidate").thenAccept(messages[1]::complete);});
+        messages[1].thenAccept(msgC -> { receive(secondary, req, "secondary").thenAccept(messages[2]::complete);});
+        messages[2].thenAccept(msgS -> {
             try {
                 Message r = lifter.liftRequest(request.get());
                 Message c = lifter.liftResponse(messages[1].get());
                 Message p = lifter.liftResponse(messages[0].get());
                 Message s = lifter.liftResponse(messages[2].get());
-                analyzer.apply(r, c, p, s);
+                analyze(r, c, p, s);
             } catch (InterruptedException e) {
                 e.printStackTrace();
             } catch (ExecutionException e) {
@@ -115,6 +120,19 @@ public class ReactorHttpDifferenceProxy {
                 .flatMap(r -> res.headers(r.getMessage().headers).sendString(Mono.just(r.getMessage().body)).then());
     }
 
+    @WithSpan
+    private void analyze(Message r, Message c, Message p, Message s) {
+        final Span span = Span.current();
+        analyzer.apply(r, c, p, s).foreach(diffResult ->
+            span.addEvent("DifferenceResult", Attributes.of(
+                AttributeKey.stringKey("endpoint"), diffResult.endpoint(),
+                AttributeKey.stringKey("request"), diffResult.request(),
+                AttributeKey.stringKey("candidate"), diffResult.responses().candidate(),
+                AttributeKey.stringKey("primary"), diffResult.responses().primary(),
+                AttributeKey.stringKey("secondary"), diffResult.responses().secondary()
+            ))
+        );
+    }
     private Mono<HttpResponse> receiveMono(HttpClient client, HttpServerRequest req) {
         return client.request(req.method())
                 .uri(req.uri())
@@ -127,12 +145,24 @@ public class ReactorHttpDifferenceProxy {
                 );
     }
     private ForkJoinPool pool = ForkJoinPool.commonPool();
-    private CompletableFuture<HttpResponse> receive(HttpClient client, HttpServerRequest req) {
+    private CompletableFuture<HttpResponse> receive(HttpClient client, HttpServerRequest req, String name) {
         CompletableFuture<HttpResponse> result = new CompletableFuture<>();
-        pool.execute(() -> {
-            result.complete(receiveMono(client, req).block());
-        });
+        pool.execute(() -> receive(client, req, name, result));
         return result;
+    }
+
+//    @WithSpan
+    private void receive(HttpClient client, HttpServerRequest req, String name, CompletableFuture<HttpResponse> result) {
+        result.complete(receiveMono(client, req).block());
+//        try {
+//            Span span = Span.current();
+//            log.info("Receive {} {}.{}", name, span.getSpanContext().getTraceId(), span.getSpanContext().getSpanId());
+//            span.addEvent(name, Attributes.of(AttributeKey.stringKey("response"), JsonLifter.encode(lifter.liftResponse(result.get()))));
+//        } catch (InterruptedException e) {
+//            throw new RuntimeException(e);
+//        } catch (ExecutionException e) {
+//            throw new RuntimeException(e);
+//        }
     }
 
     private static Set<HttpMethod> methodsWithSideEffects =

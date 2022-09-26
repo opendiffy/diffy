@@ -1,20 +1,19 @@
 package ai.diffy.analysis
 
 import ai.diffy.compare.Difference
-import org.springframework.stereotype.Component
+import ai.diffy.metrics.MetricsReceiver
+import io.micrometer.core.instrument.{Counter, Metrics}
 
 import java.util.concurrent.atomic.AtomicInteger
 import scala.collection.mutable
 
-class InMemoryDifferenceCounter extends DifferenceCounter {
+class InMemoryDifferenceCounter(name: String) extends DifferenceCounter {
+  lazy val receiver = MetricsReceiver.root.get(name)
+
   val endpointsMap: mutable.Map[String, InMemoryEndpointMetadata] = mutable.Map.empty
 
-  protected[this] def endpointCollector(ep: String) = {
-    if (!endpointsMap.contains(ep)) {
-      endpointsMap += ep -> new InMemoryEndpointMetadata()
-    }
-    endpointsMap(ep)
-  }
+  protected[this] def endpointCollector(ep: String) =
+    endpointsMap.getOrElseUpdate(ep, new InMemoryEndpointMetadata(receiver))
 
   override def endpoints: Map[String, EndpointMetadata] =
     endpointsMap.toMap filter { _._2.total > 0 }
@@ -27,34 +26,33 @@ class InMemoryDifferenceCounter extends DifferenceCounter {
     endpointCollector(endpoint).add(diffs)
 }
 
-class InMemoryFieldMetadata extends FieldMetadata {
-  val atomicCount = new AtomicInteger(0)
-  val atomicSiblingsCount = new AtomicInteger(0)
+class InMemoryFieldMetadata(receiver: MetricsReceiver) extends FieldMetadata {
+  val differenceCounter = receiver.get("differences").counter
+  val siblingsCounter = receiver.get("siblings").counter
 
-  def differences = atomicCount.get
+  def differences = differenceCounter.count().toInt
   // The total # of siblings that saw differences when this field saw a difference
-  def weight = atomicSiblingsCount.get
+  def weight = siblingsCounter.count().toInt
 
   def apply(diffs: Map[String, Difference]) = {
-    atomicCount.incrementAndGet()
-    atomicSiblingsCount.addAndGet(diffs.size)
+    differenceCounter.increment()
+    siblingsCounter.increment(diffs.size)
   }
 }
 
-class InMemoryEndpointMetadata extends EndpointMetadata {
-  val atomicTotalCount = new AtomicInteger(0)
-  val atomicDifferencesCount = new AtomicInteger(0)
+class InMemoryEndpointMetadata(receiver: MetricsReceiver) extends EndpointMetadata {
+  val totalCounter = receiver.get("all").counter
+  val differenceCounter = receiver.get("different").counter
 
-  def total = atomicTotalCount.get
-  def differences = atomicDifferencesCount.get
+  // These need to be read from prometheus where they are being aggregated across an entire horizontal diffy cluster
+  def total = totalCounter.count().toInt
+  def differences = differenceCounter.count().toInt
 
   private[this] val _fields = new mutable.HashMap[String, InMemoryFieldMetadata]
 
-  def allResults = _fields.values
-
   def getMetadata(field: String): InMemoryFieldMetadata = {
     if (!_fields.contains(field)) {
-      _fields += (field -> new InMemoryFieldMetadata)
+      _fields += (field -> new InMemoryFieldMetadata(receiver.get(field)))
     }
     _fields(field)
   }
@@ -62,9 +60,9 @@ class InMemoryEndpointMetadata extends EndpointMetadata {
   def fields: Map[String, InMemoryFieldMetadata] = _fields.toMap
 
   def add(diffs: Map[String, Difference]): Unit = {
-    atomicTotalCount.incrementAndGet()
-    if (diffs.size > 0) {
-      atomicDifferencesCount.incrementAndGet()
+    totalCounter.increment()
+    if (diffs.nonEmpty) {
+      differenceCounter.increment()
     }
     diffs foreach { case (fieldPath, _) =>
       getMetadata(fieldPath)(diffs)

@@ -2,6 +2,7 @@ package ai.diffy.compare
 
 import com.fasterxml.jackson.databind.JsonNode
 import ai.diffy.lifter.{FieldMap, JsonLifter, StringLifter}
+import ai.diffy.util.Memoize
 import org.slf4j.LoggerFactory
 
 import java.nio.ByteBuffer
@@ -209,14 +210,5 @@ object Difference {
     case string: String => StringLifter.lift(string)
     case null => JsonLifter.JsonNull
     case _ => a
-  }
-  object Memoize {
-    def apply[A, B](function: A => B): A => B = {
-      val map = new ConcurrentHashMap[A, B]()
-      (a:A) => {
-        map.putIfAbsent(a, function(a))
-        map.get(a)
-      }
-    }
   }
 }

@@ -1,7 +1,11 @@
 package ai.diffy.analysis
 
+import org.springframework.data.annotation.Id
+import org.springframework.data.mongodb.core.mapping.Document
+
+@Document
 case class DifferenceResult(
-  id: Long,
+  @Id id: Long,
   traceId: String,
   endpoint: String,
   timestampMsec: Long,
