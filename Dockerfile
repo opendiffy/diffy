@@ -3,10 +3,10 @@ FROM maven:3.8.6-openjdk-18 as builder
 ENV HOME=/usr/local/src
 RUN mkdir -p $HOME
 WORKDIR $HOME
-ADD pom.xml $HOME
-RUN mvn verify --fail-never
 ADD maven_docker_cache.xml $HOME
 RUN mvn verify -f maven_docker_cache.xml --fail-never
+ADD pom.xml $HOME
+RUN mvn verify --fail-never
 ADD . $HOME
 RUN mvn package
 RUN ls

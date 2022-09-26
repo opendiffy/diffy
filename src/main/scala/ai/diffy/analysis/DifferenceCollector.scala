@@ -58,6 +58,7 @@ class DifferenceAnalyzer(
 //        store.create(diffResult)
         val saved = repository.save(diffResult)
         log.info(s"repository saved $endpointName -- ${saved.id} -- ${saved.traceId}")
+        log.info(s"repository retrieved $endpointName -- ${saved.id} -- ${saved.traceId} ${repository.findById(saved.id)}")
         Some(saved)
       } else {
         log.debug(s"endpoint[$endpointName]diff[$id]=NoDifference")

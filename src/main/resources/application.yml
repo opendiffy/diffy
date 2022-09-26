@@ -1,5 +1,8 @@
 spring.application.name: "diffy"
-
+spring:
+  mongodb:
+    embedded:
+      version: "5.0.6"
 management:
   endpoints:
     web:
