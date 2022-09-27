@@ -20,7 +20,8 @@ class Settings(
      @Value("${allowHttpSideEffects:false}") val allowHttpSideEffects: Boolean = false,
      @Value("${excludeHttpHeadersComparison:false}") val excludeHttpHeadersComparison: Boolean = false,
      @Value("${resource.mapping:}") resourceMappings: String = "",
-     @Value("${responseMode:primary}") mode: String = ServiceInstance.Primary.name)
+     @Value("${responseMode:primary}") mode: String = ServiceInstance.Primary.name,
+     @Value("${dockerComposeLocal:false}") val dockerComposeLocal: Boolean = false)
 {
   private[this] val log = LoggerFactory.getLogger(classOf[Settings])
   val candidateHost: String = candidate.split(":")(0)

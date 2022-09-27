@@ -149,7 +149,11 @@
 
         <div class="header">
           <h2 class="title">{{serviceName}}</h2>
-          <div class="subtitle">{{serviceClass}}</div>
+          <div ng-show="{{dockerComposeLocal}}">
+          <div class="subtitle"><span><a class="row" target="_blank" href="http://localhost:3000/explore">Logs</a></span></div>
+          <div class="subtitle"><span><a class="row" target="_blank" href="http://localhost:9090/graph">Metrics</a></span></div>
+          <div class="subtitle"><span><a class="row" target="_blank" href="http://localhost:16686/search">Traces</a></span></div>
+          </div>
         </div>
 
         <div class="row info last">

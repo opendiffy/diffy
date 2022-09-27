@@ -25,6 +25,7 @@ class Frontend (@Autowired settings: Settings) {
       "dashboard",
       Map(
         "serviceName" -> settings.serviceName,
+        "dockerComposeLocal" -> settings.dockerComposeLocal,
         "apiRoot" -> settings.apiRoot,
         "excludeNoise" -> false,
         "relativeThreshold" -> settings.relativeThreshold,

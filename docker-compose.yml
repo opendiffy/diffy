@@ -79,6 +79,7 @@ services:
       logging.file.max-history: 1
       logging.file.clean-history-on-start: "true"
       spring.mongodb.embedded.version: "4.4.13"
+      dockerComposeLocal: "true"
     volumes:
       - ./data/logs:/app/logs
     depends_on:
