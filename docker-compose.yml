@@ -40,6 +40,15 @@ services:
     depends_on:
       - tempo
 
+  primary:
+    image: diffy/example-service:production
+
+  secondary:
+    image: diffy/example-service:production
+
+  candidate:
+    image: diffy/example-service:candidate
+
   diffy:
     image: diffy/diffy:latest
     ports:
@@ -47,9 +56,9 @@ services:
       - "8880:8880"
     env_file: "./diffy.env"
     environment:
-      candidate: "host.docker.internal:9000"
-      master.primary: "host.docker.internal:9000"
-      master.secondary: "host.docker.internal:9000"
+      candidate: "candidate:5000"
+      master.primary: "primary:5000"
+      master.secondary: "secondary:5000"
       responseMode: "primary"
       service.protocol: "http"
       allowHttpSideEffects: "true"
@@ -74,6 +83,9 @@ services:
       - ./data/logs:/app/logs
     depends_on:
       - tempo
+      - primary
+      - secondary
+      - candidate
 
   promtail:
     image: grafana/promtail:2.2.0

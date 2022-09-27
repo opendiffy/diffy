@@ -83,8 +83,7 @@ docker run -d --name diffy-01 \
 
 You should now be able to point to:
  - http://localhost:8888 to see the web interface
- - http://localhost:8881/admin for admin console
- - Use port 8880 to make the API requests
+ - Use port 8880 to send your API traffic
 
 *NOTE*: You can  pull the [sample service](https://hub.docker.com/r/diffy/example-service/) and deploy the `production` (primary, secondary) and `candidate` tags to start playing with diffy right away.
 
