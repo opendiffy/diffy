@@ -13,7 +13,7 @@ then
     mvn package && \
 
     echo "Deploy Diffy" && \
-    java -jar ./target/diffy.jar \
+    java -javaagent:./agent/opentelemetry-javaagent.jar -jar ./target/diffy.jar \
     --candidate='localhost:9200' \
     --master.primary='localhost:9000' \
     --master.secondary='localhost:9100' \

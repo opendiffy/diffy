@@ -66,13 +66,14 @@ services:
       proxy.port: 8880
       http.port: 8888
       rootUrl: "localhost:8888"
-      otel.javaagent.debug: "true"
+      otel.javaagent.debug: "false"
       otel.traces.exporter: "jaeger"
       otel.exporter.jaeger.endpoint: "http://tempo:14250"
+      otel.exporter.jaeger.traces.endpoint: "http://tempo:14250"
       otel.resource.attributes: "service.name=diffy"
       spring.application.name: "diffy"
       logging.level.web: "INFO"
-      logging.level.io.opentelemetry: "DEBUG"
+      logging.level.io.opentelemetry: "WARN"
       logging.level.root: "INFO"
       logging.file.name: "/app/logs/diffy.log"
       logging.file.max-size: "10MB"

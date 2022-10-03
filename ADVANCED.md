@@ -20,12 +20,22 @@ curl -s -i -H Canonical-Resource : endpoint-test http://localhost:8880/noisy_reg
 
 You can now access live results as follows:
  - [Diffy](http://localhost:8888)
+   ![Diffy](/images/diffy_diffy.png)
  - [Grafana Dashboards](http://localhost:3000/explore)
    - Loki (logs)
+     ![Loki](/images/loki_diffy.png)
+     ![Loki](/images/loki_to_tempo.png)
    - Tempo (tracing)
+     ![Tempo](/images/tempo_diffy.png)
    - Prometheus (metrics)
+     ![Prometheus](/images/graphana_prometheus.png) 
  
-You can also access [Jaeger](http://localhost:16686/search) and [Prometheus](http://localhost:9090/graph) directly.
+You can also access [Jaeger](http://localhost:16686/search)
+![Jaeger](/images/jaeger_diffy_response_traces.png)
+and [Prometheus](http://localhost:9090/graph)
+![Prometheus](/images/prometheus_diffy.png)
+![Prometheus](/images/prometheus_schema_metrics.png)
+directly.
 
 ### Credit
 The above integration is largely based on examples shared on the [OpenTelemetry Java Instrumentation](https://opentelemetry.io/docs/instrumentation/java/examples/) website.
