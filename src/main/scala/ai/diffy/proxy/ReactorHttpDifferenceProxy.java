@@ -134,7 +134,9 @@ public class ReactorHttpDifferenceProxy {
         );
     }
     private Mono<HttpResponse> receiveMono(HttpClient client, HttpServerRequest req) {
-        return client.request(req.method())
+        return client
+                .headers(headers -> headers.add(req.requestHeaders()))
+                .request(req.method())
                 .uri(req.uri())
                 .send(req.receive().retain())
                 .responseSingle(
