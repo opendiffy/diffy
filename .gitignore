@@ -13,6 +13,8 @@ lib_managed/
 .DS_Store
 .ensime
 .ivyjars
+.vscode/
+.metals/
 example/ai/diffy/examples/http/
 data/logs/
 data/loki-data/

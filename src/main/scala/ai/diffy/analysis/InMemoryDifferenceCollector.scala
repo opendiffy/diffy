@@ -13,7 +13,7 @@ class InMemoryDifferenceCounter(name: String) extends DifferenceCounter {
   val endpointsMap: mutable.Map[String, InMemoryEndpointMetadata] = mutable.Map.empty
 
   protected[this] def endpointCollector(ep: String) =
-    endpointsMap.getOrElseUpdate(ep, new InMemoryEndpointMetadata(receiver))
+    endpointsMap.getOrElseUpdate(ep, new InMemoryEndpointMetadata(receiver.get(ep)))
 
   override def endpoints: Map[String, EndpointMetadata] =
     endpointsMap.toMap filter { _._2.total > 0 }
