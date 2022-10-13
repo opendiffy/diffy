@@ -1,5 +1,5 @@
 import React from 'react';
-import {AppBar, Dialog, DialogContent, Grid, IconButton, Link, List, ListItem, ListItemText, ListSubheader, Toolbar, Tooltip, Typography} from '@mui/material';
+import {AppBar, Dialog, DialogContent, Grid, IconButton, Link, List, ListItem, ListItemText, ListSubheader, Table, TableBody, TableCell, TableContainer, TableHead, TableRow, Toolbar, Tooltip, Typography} from '@mui/material';
 import SettingsIcon from '@mui/icons-material/Settings';
 import NotesIcon from '@mui/icons-material/Notes';
 import AnalyticsIcon from '@mui/icons-material/Analytics';
@@ -7,7 +7,7 @@ import AccountTreeIcon from '@mui/icons-material/AccountTree';
 
 import logo from './logo.svg';
 import './App.css';
-import { RecursiveTreeView } from './RecursiveTreeView';
+import { createTreeView } from './RecursiveTreeView';
 
 const target = ""
 class App extends React.Component {
@@ -26,7 +26,7 @@ class App extends React.Component {
     selectedEndpoint: false,
     endpoint: {
       endpoint:{},
-      fields:[]
+      fields:{}
     },
     field: {
       requests:[]
@@ -42,32 +42,43 @@ class App extends React.Component {
     endpoints : '/api/1/info'
   }
   async componentDidMount() {
+    this.fetchEndpoints();
     setInterval(() => {
-      fetch('/api/1/endpoints')
-      .then(response => response.json())
-      .then(endpoints => this.setState({...this.state, endpoints}));
-
+      this.fetchEndpoints()
       if(this.state.selectedEndpoint){
-        fetch(`/api/1/endpoints/${this.state.selectedEndpoint}/stats?include_weights=true&exclude_noise=false`)
-        .then(response => response.json())
-        .then(endpoint => this.setState({...this.state, endpoint}));
+        this.fetchEndpoint(this.state.selectedEndpoint)
       }
-
       if(this.state.selectedField){
-        fetch(`/api/1/endpoints/${this.state.selectedEndpoint}/fields/${this.state.selectedField}/results`)
-        .then(response => response.json())
-        .then(field => this.setState({...this.state, field}));
+        this.fetchField(this.state.selectedEndpoint, this.state.selectedField)
       }
     }, 2000);
     fetch('/api/1/info')
       .then(response => response.json())
       .then(info => this.setState({...this.state, info}));
   }
+  
+  fetchEndpoints(){
+    fetch('/api/1/endpoints')
+    .then(response => response.json())
+    .then(endpoints => this.setState({...this.state, endpoints}));
+  }
+
+  fetchField(endpointName, fieldName){
+    fetch(`/api/1/endpoints/${endpointName}/fields/${fieldName}/results`)
+    .then(response => response.json())
+    .then(field => this.setState({...this.state, field, selectedField: fieldName}));
+  }
+  fetchEndpoint(endpointName){
+    fetch(`/api/1/endpoints/${endpointName}/stats?include_weights=true&exclude_noise=false`)
+    .then(response => response.json())
+    .then(endpoint => this.setState({...this.state, endpoint, selectedEndpoint: endpointName}));
+  }
   fetchRequest(id){
     fetch(`/api/1/requests/${id}`)
     .then(response => response.json())
     .then(request => this.setState({...this.state, request, requestOpen:true}));
   }
+
   render() {
     const {info, endpoints, endpoint, field, request} = this.state;
     return (
@@ -105,33 +116,17 @@ class App extends React.Component {
   </Grid>
   <Grid item xs={3}>
     <List subheader={<ListSubheader>Endpoints</ListSubheader>}>
-      {Object.keys(endpoints).map((name, i) => {
+      {Object.keys(endpoints).map(name => {
           const {total, differences} = endpoints[name]
-          return <ListItem onClick={() => {this.setState({...this.state, selectedEndpoint: name})}}>
+          return <ListItem key={name} button onClick={() => {this.fetchEndpoint(name)}}>
             <ListItemText primary={name} secondary={`${differences} failing of ${total} requests`}/>
           </ListItem>
           })}
     </List>
   </Grid>
   <Grid item xs={4}>
-
     <List subheader={<ListSubheader>Fields</ListSubheader>}>
-    <RecursiveTreeView
-      fields = {endpoint.fields}
-      // fields = {{
-      //   "a.b.c":{noise:0,relative_difference:0,absolute_difference:0,differences:0,weight:0},
-      //   "a.b.d":{noise:0,relative_difference:0,absolute_difference:0,differences:0,weight:0},
-      //   "a.d.c":{noise:0,relative_difference:0,absolute_difference:0,differences:0,weight:0},
-      //   "a.d.d":{noise:0,relative_difference:0,absolute_difference:0,differences:0,weight:0},
-      // }}
-      setFieldPrefix = {(prefix) => this.setState({...this.state, selectedField: prefix})}
-    />
-      {Object.keys(endpoint.fields).map((field) => {
-          const {noise,relative_difference,absolute_difference,differences,weight} = endpoint.fields[field];
-          return <ListItem onClick={() => {this.setState({...this.state, selectedField: field})}}>
-            <ListItemText primary={field} secondary={`${differences} diffs ${noise} noise`}/>
-          </ListItem>
-          })}
+    {createTreeView(endpoint.fields, (prefix) => this.fetchField(this.state.selectedEndpoint, prefix))}
     </List>
   </Grid>
   <Grid item xs={5}>
@@ -139,63 +134,82 @@ class App extends React.Component {
       {field.requests.map((request) => {
         const {id} = request
         const {type, left, right} = request.differences[this.state.selectedField]
-          return <ListItem onClick={() => {this.fetchRequest(id)}}>
-            <ListItemText primary={type} secondary={`${left} ${right}`}/>
-          </ListItem>
-          })}
+        return <ListItem key={id} button onClick={() => {this.fetchRequest(id)}}>
+          <ListItemText primary={type} secondary={`${left} ${right}`}/>
+        </ListItem>;
+      })}
     </List>
   </Grid>
-  <Dialog open={!!this.state.dialog} onClose={()=>{this.setState({...this.state, dialog: false})}}>
+  <Dialog
+    fullWidth
+    maxWidth='md'
+    open={!!this.state.dialog}
+    onClose={()=>{this.setState({...this.state, dialog: false})}}>
     <DialogContent>
     <Grid container>
-      <Grid item sx={6}>
+      <Grid item xs={6}>
         <Typography>Candidate Server</Typography>
       </Grid>
-      <Grid item sx={6}>
+      <Grid item xs={6}>
         <Typography>{info.candidate.target}</Typography>
       </Grid>
-      <Grid item sx={6}>
+      <Grid item xs={6}>
         <Typography>Primary Server</Typography>
       </Grid>
-      <Grid item sx={6}>
+      <Grid item xs={6}>
         <Typography>{info.primary.target}</Typography>
       </Grid>
-      <Grid item sx={6}>
+      <Grid item xs={6}>
         <Typography>Secondary Server</Typography>
       </Grid>
-      <Grid item sx={6}>
+      <Grid item xs={6}>
         <Typography>{info.secondary.target}</Typography>
       </Grid>
-      <Grid item sx={6}>
+      <Grid item xs={6}>
         <Typography>Protocol</Typography>
       </Grid>
-      <Grid item sx={6}>
+      <Grid item xs={6}>
         <Typography>{info.protocol}</Typography>
       </Grid>
-      <Grid item sx={6}>
+      <Grid item xs={6}>
         <Typography>Last Reset</Typography>
       </Grid>
-      <Grid item sx={6}>
-        <Typography>{new Date(info.last_reset).toDateString}</Typography>
+      <Grid item xs={6}>
+        <Typography>{new Date(info.last_reset).toDateString()}</Typography>
       </Grid>
-      <Grid item sx={6}>
+      <Grid item xs={6}>
         <Typography>Thresholds</Typography>
       </Grid>
-      <Grid item sx={6}>
+      <Grid item xs={6}>
         <Typography><strong>{info.relativeThreshold}%</strong> relative, <strong>{info.absoluteThreshold}%</strong> absolute</Typography>
       </Grid>
     </Grid>
     </DialogContent>
   </Dialog>
-  <Dialog open={!!this.state.requestOpen} onClose={()=>{this.setState({...this.state, requestOpen: false})}}>
-    <Grid container>
+  <Dialog
+    fullWidth
+    maxWidth='md'
+    open={!!this.state.requestOpen}
+    onClose={()=>{this.setState({...this.state, requestOpen: false})}}>
       <DialogContent>
-        <Grid item sx={12}>Request</Grid>
-        <Grid item sx={12}>{JSON.stringify(request.request,null,4)}</Grid>
-        <Grid item sx={6}>Primary</Grid>
-        <Grid item sx={6}>Candidate</Grid>
+        <TableContainer>
+        <Table>
+        <TableHead><TableRow><TableCell>Request</TableCell></TableRow></TableHead>
+        <TableBody><TableRow><TableCell>{<pre>{JSON.stringify(request.request,null,4)}</pre>}</TableCell></TableRow></TableBody>
+        </Table>
+        <Table>
+        <TableHead>
+        <TableRow><TableCell>Primary</TableCell><TableCell>Candidate</TableCell></TableRow>
+        </TableHead>
+        <TableBody>
+        <TableRow>
+        <TableCell>{<pre>{JSON.stringify(request.left,null,4)}</pre>}</TableCell>
+        <TableCell>{<pre>{JSON.stringify(request.right,null,4)}</pre>}</TableCell>
+        </TableRow>
+        </TableBody>
+        </Table>
+        </TableContainer>
       </DialogContent>
-    </Grid>
   </Dialog>
 </Grid>);
   }
