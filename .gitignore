@@ -30,6 +30,7 @@ frontend/coverage
 
 # production
 frontend/build
+frontend/node
 
 # misc
 frontend/.DS_Store
@@ -43,3 +44,4 @@ frontend/yarn-debug.log*
 frontend/yarn-error.log*
 
 frontend/package-lock.json
+frontend/yarn.lock
