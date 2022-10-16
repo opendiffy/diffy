@@ -1,19 +1,17 @@
 import React from 'react';
-import {AppBar, Dialog, DialogContent, Divider, Grid, IconButton, Link, List, ListItem, ListItemIcon, ListItemText, ListSubheader, Stack, Table, TableBody, TableCell, TableContainer, TableHead, TableRow, Toolbar, Tooltip, Typography} from '@mui/material';
+import {AppBar, Dialog, DialogContent, Divider, Grid, IconButton, Link, List, ListItem, ListItemText, ListSubheader, Table, TableBody, TableCell, TableContainer, TableHead, TableRow, Toolbar, Tooltip, Typography} from '@mui/material';
 import SettingsIcon from '@mui/icons-material/Settings';
 import NotesIcon from '@mui/icons-material/Notes';
 import AnalyticsIcon from '@mui/icons-material/Analytics';
 import AccountTreeIcon from '@mui/icons-material/AccountTree';
-import Checkbox from '@mui/joy/Checkbox';
+import Switch from '@mui/material/Switch';
 import OpenInNewIcon from '@mui/icons-material/OpenInNew';
-import NotificationsOffIcon from '@mui/icons-material/NotificationsOff';
-
-// import './App.css';
 import { RecursiveTreeView } from './RecursiveTreeView';
 
 const target = ""
 class App extends React.Component {
   state = {
+    ignoreNoise: false,
     isIgnored:{},
     dialog: false,
     info : {
@@ -40,13 +38,9 @@ class App extends React.Component {
       right:{}
     }
   };
-  api = {
-    info : '/api/1/info',
-    endpoints : '/api/1/info'
-  }
+
   async componentDidMount() {
-    this.fetchEndpoints();
-    setInterval(() => {
+    this.interval = setInterval(() => {
       this.fetchEndpoints()
       if(this.state.selectedEndpoint){
         this.fetchEndpoint(this.state.selectedEndpoint)
@@ -54,10 +48,15 @@ class App extends React.Component {
       if(this.state.selectedField){
         this.fetchField(this.state.selectedEndpoint, this.state.selectedField)
       }
-    }, 2000);
+    }, 10*1000);
     fetch('/api/1/info')
       .then(response => response.json())
-      .then(info => this.setState({...this.state, info}));
+      .then(info => this.setState({...this.state, info}))
+      .then(()=> this.fetchEndpoints());
+  }
+
+  componentWillUnmount(){
+    clearInterval(this.interval)
   }
   
   fetchEndpoints(){
@@ -72,7 +71,7 @@ class App extends React.Component {
     .then(field => this.setState({...this.state, field, selectedField: fieldName}));
   }
   fetchEndpoint(endpointName){
-    return fetch(`/api/1/endpoints/${endpointName}/stats?include_weights=true&exclude_noise=false`)
+    return fetch(`/api/1/endpoints/${endpointName}/stats?include_weights=true&exclude_noise=${this.state.ignoreNoise}`)
     .then(response => response.json())
     .then(endpoint => this.setState({...this.state, endpoint, selectedEndpoint: endpointName}));
   }
@@ -85,6 +84,9 @@ class App extends React.Component {
   toggleIgnore(endpointName, fieldPrefix){
     const isIgnored = {...this.state.isIgnored}
     isIgnored[endpointName] = isIgnored[endpointName] || {}
+    if(this.isIgnored(endpointName, fieldPrefix) && !isIgnored[endpointName][fieldPrefix]){
+      return;
+    }
     isIgnored[endpointName][fieldPrefix] = !isIgnored[endpointName][fieldPrefix]
     this.setState({...this.state, isIgnored})
   }
@@ -104,6 +106,15 @@ class App extends React.Component {
     <AppBar position='static'>
       <Toolbar>
         <Typography variant="h6" color="inherit" sx={{ flexGrow: 1 }}>Diffy</Typography>
+        <Tooltip title="Ignore Noise">
+          <IconButton color="inherit" aria-label="logs">
+            <Switch
+              color="secondary"
+              onChange={(event) => {this.setState({...this.state, ignoreNoise: event.currentTarget.checked})}}
+            />
+          </IconButton>
+        </Tooltip>
+        <Divider orientation="vertical" variant="middle" flexItem/>
         <Tooltip title="Logs">
           <Link color="inherit" target="_blank" href="http://localhost:3000/explore">
             <IconButton color="inherit" aria-label="logs"><NotesIcon/></IconButton>
@@ -137,19 +148,21 @@ class App extends React.Component {
           const {total, differences} = endpoints[name]
           return <ListItem key={name} button onClick={() => {this.fetchEndpoint(name)}}>
             <ListItemText primary={name} secondary={`${differences} failing of ${total} requests`}/>
-            <ListItemIcon><NotificationsOffIcon/></ListItemIcon>
           </ListItem>
           })}
     </List>
   </Grid>
   <Grid item xs={4}>
     <List subheader={<ListSubheader>Fields</ListSubheader>}>
-    <RecursiveTreeView
-      fields={endpoint.fields}
-      setFieldPrefix={(prefix) => this.fetchField(this.state.selectedEndpoint, prefix)}
-      toggleIgnore={(prefix) => this.toggleIgnore(this.state.selectedEndpoint, prefix)}
-      isIgnored={(prefix) => this.isIgnored(this.state.selectedEndpoint, prefix)}
-    />
+      <RecursiveTreeView
+        fields={endpoint.fields}
+        setFieldPrefix={(prefix) => this.fetchField(this.state.selectedEndpoint, prefix)}
+        toggleIgnore={(prefix) => this.toggleIgnore(this.state.selectedEndpoint, prefix)}
+        isIgnored={(prefix) => this.isIgnored(this.state.selectedEndpoint, prefix)}
+        ignoreNoise={this.state.ignoreNoise}
+        relativeThreshold={this.state.info.relativeThreshold}
+        absoluteThreshold={this.state.info.absoluteThreshold}
+      />
     </List>
   </Grid>
   <Grid item xs={5}>

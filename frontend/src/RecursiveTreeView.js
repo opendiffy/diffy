@@ -5,8 +5,7 @@ import ChevronRightIcon from '@mui/icons-material/ChevronRight';
 import TreeItem from '@mui/lab/TreeItem';
 
 import _ from 'lodash';
-import { Checkbox, ListItemText, Typography, Stack, ListItem } from '@mui/material';
-import NotificationsOffIcon from '@mui/icons-material/NotificationsOff';
+import { Checkbox, ListItemText, Typography, Stack, ListItem, Tooltip } from '@mui/material';
 
 
 class Metrics {
@@ -64,15 +63,12 @@ label(nodes, tree){
     primary={
       <Stack direction={'row'}>
         <Typography sx={{ flexGrow : 1 }}>{nodes.name}</Typography>
-        <Checkbox
-          checked={this.props.isIgnored(nodes.id)}
-          onClick={() => {
-            // const newState = {isIgnored:{...this.state.isIgnored}}
-            // newState[nodes.id] = !newState[nodes.id]
-            // this.setState(newState);
-            this.props.toggleIgnore(nodes.id);
-          }}
-        />
+        <Tooltip title={'Ignore'}>
+          <Checkbox
+            checked={this.props.isIgnored(nodes.id)}
+            onClick={() => {this.props.toggleIgnore(nodes.id)}}
+          />
+        </Tooltip>
       </Stack>
     }
     secondary={typeof metrics.message === 'function' ? metrics.message() : undefined}/>
@@ -92,7 +88,11 @@ renderTree(nodes, setFieldPrefix, tree) {
 render() {
   const tree = {}
   Object.keys(this.props.fields).forEach(path => {
-    _.update(tree, path, () => new Metrics(this.props.fields[path]))
+    const metrics = new Metrics(this.props.fields[path])
+    const included = metrics.differences > metrics.noise && metrics.relative_difference > this.props.relativeThreshold && metrics.absolute_difference > this.props.absoluteThreshold;
+    if(included && !this.props.isIgnored(path) || !this.props.ignoreNoise){
+      _.update(tree, path, () => metrics)
+    }
   })
 
   return <TreeView
