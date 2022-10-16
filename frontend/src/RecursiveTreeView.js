@@ -5,7 +5,9 @@ import ChevronRightIcon from '@mui/icons-material/ChevronRight';
 import TreeItem from '@mui/lab/TreeItem';
 
 import _ from 'lodash';
-import { ListItemText, Typography } from '@mui/material';
+import { Checkbox, ListItemText, Typography, Stack, ListItem } from '@mui/material';
+import NotificationsOffIcon from '@mui/icons-material/NotificationsOff';
+
 
 class Metrics {
   constructor(obj){
@@ -22,41 +24,75 @@ class Metrics {
     return `${this.differences} diffs | ${this.noise/this.differences*100.00}% noise`
   }
 }
-function childrenOf(obj, objName) {
+export class RecursiveTreeView extends React.Component{
+  state = {
+    isIgnored:{}
+  }
+nodeOf(obj, path, name){
+  const id = path?`${path}.${name}` : name;
+  return {
+    id,
+    name,
+    children: this.childrenOf(obj, id),
+    isIgnored: false
+  }
+}
+childrenOf(obj, objName) {
   if(typeof obj !== 'object' || obj instanceof Metrics) {
     return []
   }
-  const result = Object.keys(obj).map(name => {
-    const path = objName?`${objName}.${name}` : name;
-    return {
-      id : path,
-      name,
-      children : childrenOf(obj[name], path),
+  return Object.keys(obj).map(name => this.nodeOf(obj[name], objName, name))
+}
+isIgnored(id){
+  if(!id){
+    return false;
+  }
+  const names = id.split('.').reverse()
+  var root = names.pop()
+  while (names.length > 0) {
+    root = `${root}.${names.pop()}`
+    if(this.state.isIgnored[root]){
+      return true;
     }
-  })
-  return result;
+  }
+  return false;
 }
 
-function renderTree(nodes, setFieldPrefix, tree) {
-  if(nodes.children.length === 0) {
-    const metrics = _.get(tree, nodes.id)
+label(nodes, tree){
+  const metrics = _.get(tree, nodes.id)
+  return <ListItemText
+    primary={
+      <Stack direction={'row'}>
+        <Typography sx={{ flexGrow : 1 }}>{nodes.name}</Typography>
+        <Checkbox
+          checked={this.props.isIgnored(nodes.id)}
+          onClick={() => {
+            // const newState = {isIgnored:{...this.state.isIgnored}}
+            // newState[nodes.id] = !newState[nodes.id]
+            // this.setState(newState);
+            this.props.toggleIgnore(nodes.id);
+          }}
+        />
+      </Stack>
+    }
+    secondary={typeof metrics.message === 'function' ? metrics.message() : undefined}/>
+}
+renderTree(nodes, setFieldPrefix, tree) {
     return <TreeItem
       key={nodes.id}
       nodeId={nodes.id}
-      label={<ListItemText primary={nodes.name} secondary={metrics.message()}/>}
+      label={this.label(nodes, tree)}
       onClick={() => setFieldPrefix(nodes.id)}
-    />
-  }
-  return <TreeItem key={nodes.id} nodeId={nodes.id} label={nodes.name} onClick={() => {}}>
-    {Array.isArray(nodes.children) ? nodes.children.map((node) => renderTree(node, setFieldPrefix, tree)) : null}
-  </TreeItem>
+    >
+      {Array.isArray(nodes.children) ? nodes.children.map((node) => this.renderTree(node, setFieldPrefix, tree)) : null}
+    </TreeItem>
 }
 
 
-export function createTreeView(fields, setFieldPrefix) {
+render() {
   const tree = {}
-  Object.keys(fields).forEach(path => {
-    _.update(tree, path, () => new Metrics(fields[path]))
+  Object.keys(this.props.fields).forEach(path => {
+    _.update(tree, path, () => new Metrics(this.props.fields[path]))
   })
 
   return <TreeView
@@ -64,8 +100,9 @@ export function createTreeView(fields, setFieldPrefix) {
     defaultExpanded={['result', 'result.200 OK']}
     defaultExpandIcon={<ChevronRightIcon />}
   >
-    {childrenOf(tree, '').map(child =>
-      renderTree(child, setFieldPrefix, tree)
+    {this.childrenOf(tree, '').map(child =>
+      this.renderTree(child, this.props.setFieldPrefix, tree)
     )}
   </TreeView>;
+}
 }
