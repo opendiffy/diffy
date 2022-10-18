@@ -212,7 +212,7 @@
                 </configuration>
                 <executions>
                     <execution>
-                        <id>install node</id>
+                        <id>install-node</id>
                         <goals>
                             <goal>install-node-and-yarn</goal>
                         </goals>
@@ -222,7 +222,7 @@
                         </configuration>
                     </execution>
                     <execution>
-                        <id>yarn install</id>
+                        <id>yarn-install</id>
                         <goals>
                             <goal>yarn</goal>
                         </goals>
