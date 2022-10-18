@@ -15,6 +15,7 @@ class App extends React.Component {
     isIgnored:{},
     dialog: false,
     info : {
+      name: 'Unknown',
       primary: {target},
       secondary: {target},
       candidate: {target},
@@ -105,7 +106,7 @@ class App extends React.Component {
   <Grid item xs={12}>
     <AppBar position='static'>
       <Toolbar>
-        <Typography variant="h6" color="inherit" sx={{ flexGrow: 1 }}>Diffy</Typography>
+        <Typography variant="h6" color="inherit" sx={{ flexGrow: 1 }}>{this.state.info.name}</Typography>
         <Tooltip title={this.state.ignoreNoise?"Include Noise":"Remove Noise"}>
           <IconButton color="inherit" aria-label="logs">
             <Switch
