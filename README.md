@@ -1,14 +1,23 @@
 # Diffy
-
-[![Build status](https://github.com/opendiffy/diffy/actions/workflows/maven.yml/badge.svg
-)](https://github.com/opendiffy/diffy/actions/workflows/maven.yml)
-[![Coverage status](https://img.shields.io/codecov/c/github/opendiffy/diffy/master.svg)](https://codecov.io/github/opendiffy/diffy)
 [![Project status](https://img.shields.io/badge/status-active-brightgreen.svg)](#status)
-[![Gitter](https://img.shields.io/badge/gitter-join%20chat-green.svg)](https://gitter.im/opendiffy/diffy)
 [![Docker](https://img.shields.io/docker/pulls/diffy/diffy)](https://hub.docker.com/r/diffy/diffy)
 [![Downloads](https://img.shields.io/github/downloads/opendiffy/diffy/total.svg)](https://github.com/opendiffy/diffy/releases/latest)
 [![License: CC](https://img.shields.io/badge/License-CC%20BY%20NC%20ND-blue.svg)](https://creativecommons.org/licenses/by-nc-nd/4.0/legalcode)
 
+[![Build status](https://github.com/opendiffy/diffy/actions/workflows/maven_macos_12.yml/badge.svg
+)](https://github.com/opendiffy/diffy/actions/workflows/maven_macos_12.yml)
+[![Build status](https://github.com/opendiffy/diffy/actions/workflows/maven_macos_latest.yml/badge.svg
+)](https://github.com/opendiffy/diffy/actions/workflows/maven_macos_latest.yml)
+[![Build status](https://github.com/opendiffy/diffy/actions/workflows/maven_macos_10.yml/badge.svg
+)](https://github.com/opendiffy/diffy/actions/workflows/maven_macos_10.yml)
+
+[![Build status](https://github.com/opendiffy/diffy/actions/workflows/maven_windows_latest.yml/badge.svg
+)](https://github.com/opendiffy/diffy/actions/workflows/maven_windows_latest.yml)
+[![Build status](https://github.com/opendiffy/diffy/actions/workflows/maven_windows_2019.yml/badge.svg
+)](https://github.com/opendiffy/diffy/actions/workflows/maven_windows_2019.yml)
+
+[![Build status](https://github.com/opendiffy/diffy/actions/workflows/maven.yml/badge.svg
+)](https://github.com/opendiffy/diffy/actions/workflows/maven.yml)
 ## Status
 
 Diffy is used in production at:
