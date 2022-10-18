@@ -162,6 +162,7 @@ class App extends React.Component {
         setFieldPrefix={(prefix) => this.fetchField(this.state.selectedEndpoint, prefix)}
         toggleIgnore={(prefix) => this.toggleIgnore(this.state.selectedEndpoint, prefix)}
         isIgnored={(prefix) => this.isIgnored(this.state.selectedEndpoint, prefix)}
+        isDirectlyIgnored={(prefix) => this.state.isIgnored[this.state.selectedEndpoint][prefix]}
         ignoreNoise={this.state.ignoreNoise}
         relativeThreshold={this.state.info.relativeThreshold}
         absoluteThreshold={this.state.info.absoluteThreshold}

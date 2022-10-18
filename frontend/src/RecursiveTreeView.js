@@ -66,6 +66,7 @@ label(nodes, tree){
         <Tooltip title={'Ignore'}>
           <Checkbox
             checked={this.props.isIgnored(nodes.id)}
+            disabled={this.props.isIgnored(nodes.id) && !this.props.isDirectlyIgnored(nodes.id)}
             onClick={() => {this.props.toggleIgnore(nodes.id)}}
           />
         </Tooltip>
