@@ -97,7 +97,7 @@ class App extends React.Component {
     return this.isIgnoredPath(root, path.pop(), path)
   }
   isIgnoredPath(root, prefix, remainingPath){
-    return root && (root[prefix] || remainingPath.length && this.isIgnoredPath(root, `${prefix}.${remainingPath.pop()}`, remainingPath));
+    return root && (root[prefix] || (remainingPath.length && this.isIgnoredPath(root, `${prefix}.${remainingPath.pop()}`, remainingPath)));
   }
   render() {
     const {info, endpoints, endpoint, field, request} = this.state;

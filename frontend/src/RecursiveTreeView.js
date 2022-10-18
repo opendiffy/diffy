@@ -5,7 +5,7 @@ import ChevronRightIcon from '@mui/icons-material/ChevronRight';
 import TreeItem from '@mui/lab/TreeItem';
 
 import _ from 'lodash';
-import { Checkbox, ListItemText, Typography, Stack, ListItem, Tooltip } from '@mui/material';
+import { Checkbox, ListItemText, Typography, Stack, Tooltip } from '@mui/material';
 
 
 class Metrics {
@@ -90,7 +90,7 @@ render() {
   Object.keys(this.props.fields).forEach(path => {
     const metrics = new Metrics(this.props.fields[path])
     const included = metrics.differences > metrics.noise && metrics.relative_difference > this.props.relativeThreshold && metrics.absolute_difference > this.props.absoluteThreshold;
-    if(included && !this.props.isIgnored(path) || !this.props.ignoreNoise){
+    if((included && !this.props.isIgnored(path)) || !this.props.ignoreNoise){
       _.update(tree, path, () => metrics)
     }
   })
