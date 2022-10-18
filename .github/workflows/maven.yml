@@ -3,9 +3,7 @@
 
 name: Java CI with Maven
 env:
-  process:
-    env:
-      CI: false
+  CI: false
 
 on:
   push:
