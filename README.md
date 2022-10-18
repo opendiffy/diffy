@@ -1,6 +1,7 @@
 # Diffy
 
-[![Build status](https://img.shields.io/travis/opendiffy/diffy/master.svg)](https://travis-ci.org/opendiffy/diffy)
+[![Build status](https://github.com/opendiffy/diffy/actions/workflows/maven.yml/badge.svg
+)](https://github.com/opendiffy/diffy/actions/workflows/maven.yml)
 [![Coverage status](https://img.shields.io/codecov/c/github/opendiffy/diffy/master.svg)](https://codecov.io/github/opendiffy/diffy)
 [![Project status](https://img.shields.io/badge/status-active-brightgreen.svg)](#status)
 [![Gitter](https://img.shields.io/badge/gitter-join%20chat-green.svg)](https://gitter.im/opendiffy/diffy)
