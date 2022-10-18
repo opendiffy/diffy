@@ -143,14 +143,9 @@
                     <mainClass>ai.diffy.Main</mainClass>
                     <fork>true</fork>
                     <skip>false</skip>
-                    <argLine>
-                        -javaagent:./agent/opentelemetry-javaagent-all.jar
-                        -Dotel.trace.exporter=jaeger
-                        -Dotel.exporter.jaeger.endpoint=localhost:14250
-                        -Dotel.resource.attributes=service.name=diffy
-                        -Dotel.javaagent.debug=false
-                        -Dotel.metrics.exporter=none
-                    </argLine>
+                    <arguments>
+                        <argument>-javaagent:./agent/opentelemetry-javaagent.jar</argument>
+                    </arguments>
                 </configuration>
                 <version>2.3.7.RELEASE</version>
             </plugin>

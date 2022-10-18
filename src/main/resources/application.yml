@@ -24,4 +24,4 @@ master:
 service:
   protocol : "http"
 
-serviceName : "Sample Service"
+serviceName : "Default Sample Service"

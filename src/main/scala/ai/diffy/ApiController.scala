@@ -53,8 +53,15 @@ class ApiController(
   }
 
   @GetMapping(path = Array("/api/1/endpoints"))
-  def getEndpoints(): Map[String, Any] = {
-    Renderer.endpoints(proxy.joinedDifferences.raw.counter.endpoints)
+  def getEndpoints(
+    @RequestParam(name = "exclude_noise", defaultValue = "false") excludeNoise: Boolean
+  ): Map[String, Any] = {
+    Renderer.endpoints(
+      proxy.joinedDifferences.raw.counter.endpoints filterNot { case (ep, _) => {
+        excludeNoise &&
+        getStats(ep, excludeNoise, false).getOrElse("fields", Map.empty).asInstanceOf[Map[String,_]].isEmpty
+      }}
+    )
   }
 
   @GetMapping(path = Array("/api/1/endpoints/{endpoint}/stats"))
@@ -144,6 +151,7 @@ class ApiController(
 
   @GetMapping(path = Array("/api/1/info"))
   def getInfo(): Map[String, _] = Map(
+        "name" -> settings.serviceName,
         "candidate" -> httpServiceToMap(s"${settings.candidateHost}:${settings.candidatePort}"),
         "primary" -> httpServiceToMap(s"${settings.primaryHost}:${settings.primaryPort}"),
         "secondary" -> httpServiceToMap(s"${settings.secondaryHost}:${settings.secondaryPort}"),

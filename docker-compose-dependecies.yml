@@ -29,6 +29,7 @@ services:
       - "14250:14250"  # Jaeger - GRPC
       - "55680:55680"  # OpenTelemetry
       - "3102:3100"   # tempo
+#      - "4317:4317" # returns not implemented
 
   tempo-query:
     image: grafana/tempo-query:0.7.0
@@ -41,54 +42,19 @@ services:
       - tempo
 
   primary:
+    ports:
+      - "9100:5000"
     image: diffy/example-service:production
 
   secondary:
+    ports:
+      - "9200:5000"
     image: diffy/example-service:production
 
   candidate:
-    image: diffy/example-service:candidate
-
-  diffy:
-    image: diffy/diffy:latest
     ports:
-      - "8888:8888"
-      - "8880:8880"
-    env_file: "./diffy.env"
-    environment:
-      candidate: "candidate:5000"
-      master.primary: "primary:5000"
-      master.secondary: "secondary:5000"
-      responseMode: "primary"
-      service.protocol: "http"
-      allowHttpSideEffects: "true"
-      serviceName: "Sample Service"
-      proxy.port: 8880
-      http.port: 8888
-      rootUrl: "localhost:8888"
-      otel.javaagent.debug: "false"
-      otel.metrics.exporter: "none"
-      otel.traces.exporter: "jaeger"
-      otel.exporter.jaeger.endpoint: "http://tempo:14250"
-      otel.exporter.jaeger.traces.endpoint: "http://tempo:14250"
-      otel.resource.attributes: "service.name=diffy"
-      spring.application.name: "diffy"
-      logging.level.web: "INFO"
-      logging.level.io.opentelemetry: "WARN"
-      logging.level.root: "INFO"
-      logging.file.name: "/app/logs/diffy.log"
-      logging.file.max-size: "10MB"
-      logging.file.max-history: 1
-      logging.file.clean-history-on-start: "true"
-      spring.mongodb.embedded.version: "4.4.13"
-      dockerComposeLocal: "true"
-    volumes:
-      - ./data/logs:/app/logs
-    depends_on:
-      - tempo
-      - primary
-      - secondary
-      - candidate
+      - "9000:5000"
+    image: diffy/example-service:candidate
 
   promtail:
     image: grafana/promtail:2.2.0

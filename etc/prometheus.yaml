@@ -18,4 +18,4 @@ scrape_configs:
   - job_name: 'diffy'
     metrics_path: /actuator/prometheus
     static_configs:
-    - targets: ['diffy:8888']
+    - targets: ['host.docker.internal:8888']
