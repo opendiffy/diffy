@@ -29,15 +29,11 @@ frontend/.pnp.js
 frontend/coverage
 
 # production
-frontend/build
+frontend/dist
 frontend/node
 
 # misc
-frontend/.DS_Store
-frontend/.env.local
-frontend/.env.development.local
-frontend/.env.test.local
-frontend/.env.production.local
+frontend/.vscode
 
 frontend/npm-debug.log*
 frontend/yarn-debug.log*
