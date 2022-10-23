@@ -1,24 +1,25 @@
 package ai.diffy
 
-import ai.diffy.analysis.{DifferenceResult, EndpointMetadata, FieldMetadata, JoinedField}
+import ai.diffy.analysis.{DifferenceResult, EndpointMetadata, FieldDifference, FieldMetadata, JoinedField}
 import ai.diffy.lifter.JsonLifter
 
+import scala.jdk.CollectionConverters.IterableHasAsScala
 import scala.language.postfixOps
 
 object Renderer {
-  def differences(diffs: Map[String, String]) =
-    diffs map { case (k, v) => k -> JsonLifter.decode(v) }
+  def differences(diffs: Iterable[FieldDifference]) =
+    diffs map { case fd => fd.field -> JsonLifter.decode(fd.difference) } toMap
 
   def differenceResults(drs: Iterable[DifferenceResult], includeRequestResponses: Boolean = false) =
     drs map { differenceResult(_, includeRequestResponses) }
 
   def differenceResult(dr: DifferenceResult, includeRequestResponses: Boolean = false) =
     Map(
-      "id" -> dr.id.toString,
+      "id" -> dr.id,
       "trace_id" -> dr.traceId,
       "timestamp_msec" -> dr.timestampMsec,
       "endpoint" -> dr.endpoint,
-      "differences" -> differences(dr.differences.toMap)
+      "differences" -> differences(dr.differences.asScala)
     ) ++ {
       if (includeRequestResponses) {
         Map(

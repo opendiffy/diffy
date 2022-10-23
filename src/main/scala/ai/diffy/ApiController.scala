@@ -134,7 +134,7 @@ class ApiController(
     if(id.isEmpty) {
       RequestPurgedException
     } else {
-      repository.findById(id.toLong) map { case dr =>
+      repository.findById(id) map { case dr =>
         Renderer.differenceResult(
           dr,
           includeRequest

@@ -7,6 +7,7 @@ import io.opentelemetry.api.trace.Span
 import org.slf4j.LoggerFactory
 
 import java.util.Date
+import scala.jdk.CollectionConverters.SeqHasAsJava
 import scala.util.Random
 
 object DifferenceAnalyzer {
@@ -36,24 +37,23 @@ class DifferenceAnalyzer(
       val rawDiff = Difference(primary, candidate).flattened
       val noiseDiff = Difference(primary, secondary).flattened
 
-      val id = Random.nextLong();
+      val id = new String(Random.alphanumeric.take(10).toArray);
       rawCounter.counter.count(endpointName, rawDiff)
       noiseCounter.counter.count(endpointName, noiseDiff)
 
       if (rawDiff.size > 0) {
-        val diffResult = DifferenceResult(
+        val diffResult = new DifferenceResult(
           id,
           Span.current().getSpanContext.getTraceId,
           endpointName,
           new Date().getTime,
-          differencesToJson(rawDiff),
+          differencesToJson(rawDiff).asJava,
           JsonLifter.encode(request.result),
-          Responses(
-            candidate = JsonLifter.encode(candidate.result),
-            primary = JsonLifter.encode(primary.result),
-            secondary = JsonLifter.encode(secondary.result)
-          )
-        )
+          new Responses(
+            JsonLifter.encode(candidate.result),
+            JsonLifter.encode(primary.result),
+            JsonLifter.encode(secondary.result)
+          ));
         store.create(diffResult)
         val saved = repository.save(diffResult)
         log.info(s"repository saved $endpointName -- ${saved.id} -- ${saved.traceId}")
@@ -72,17 +72,19 @@ class DifferenceAnalyzer(
     repository.deleteAll()
   }
 
-  def differencesToJson(diffs: Map[String, Difference]): Map[String, String] =
-    diffs map {
+  def differencesToJson(diffs: Map[String, Difference]): Seq[FieldDifference] =
+    diffs.toSeq map {
       case (field, diff @ PrimitiveDifference(_: Long, _)) =>
-        field ->
+        new FieldDifference(
+          field,
           JsonLifter.encode(
             diff.toMap map {
               case (k, v) => k -> v.toString
             }
           )
+        )
 
-      case (field, diff) => field -> JsonLifter.encode(diff.toMap)
+      case (field, diff) => new FieldDifference(field, JsonLifter.encode(diff.toMap))
     }
 
   private[this] def getEndpointName(

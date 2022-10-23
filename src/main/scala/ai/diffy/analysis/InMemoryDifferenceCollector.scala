@@ -6,6 +6,8 @@ import io.micrometer.core.instrument.{Counter, Metrics}
 
 import java.util.concurrent.atomic.AtomicInteger
 import scala.collection.mutable
+import scala.jdk.CollectionConverters.ListHasAsScala
+import scala.util.Try
 
 class InMemoryDifferenceCounter(name: String) extends DifferenceCounter {
   lazy val receiver = MetricsReceiver.root.get(name)
@@ -30,13 +32,16 @@ class InMemoryFieldMetadata(receiver: MetricsReceiver) extends FieldMetadata {
   val differenceCounter = receiver.get("differences").counter
   val siblingsCounter = receiver.get("siblings").counter
 
-  def differences = differenceCounter.count().toInt
+  val Seq(diffsAtomic,sibsAtomic) = Seq.fill(2)(new AtomicInteger(0))
+  def differences = diffsAtomic.get()//differenceCounter.count().toInt
   // The total # of siblings that saw differences when this field saw a difference
-  def weight = siblingsCounter.count().toInt
+  def weight = sibsAtomic.get()//siblingsCounter.count().toInt
 
   def apply(diffs: Map[String, Difference]) = {
     differenceCounter.increment()
     siblingsCounter.increment(diffs.size)
+    diffsAtomic.incrementAndGet()
+    sibsAtomic.addAndGet(diffs.size)
   }
 }
 
@@ -44,9 +49,11 @@ class InMemoryEndpointMetadata(receiver: MetricsReceiver) extends EndpointMetada
   val totalCounter = receiver.get("all").counter
   val differenceCounter = receiver.get("different").counter
 
+  val totalAtomic = new AtomicInteger(0)
+  val differenceAtomic = new AtomicInteger(0)
   // These need to be read from prometheus where they are being aggregated across an entire horizontal diffy cluster
-  def total = totalCounter.count().toInt
-  def differences = differenceCounter.count().toInt
+  def total = totalAtomic.get()//totalCounter.count().toInt
+  def differences = differenceAtomic.get()//differenceCounter.count().toInt
 
   private[this] val _fields = new mutable.HashMap[String, InMemoryFieldMetadata]
 
@@ -60,9 +67,11 @@ class InMemoryEndpointMetadata(receiver: MetricsReceiver) extends EndpointMetada
   def fields: Map[String, InMemoryFieldMetadata] = _fields.toMap
 
   def add(diffs: Map[String, Difference]): Unit = {
-    totalCounter.increment()
+    Try(totalCounter.increment())
+    totalAtomic.incrementAndGet()
     if (diffs.nonEmpty) {
       differenceCounter.increment()
+      differenceAtomic.incrementAndGet()
     }
     diffs foreach { case (fieldPath, _) =>
       getMetadata(fieldPath)(diffs)
@@ -83,7 +92,8 @@ class InMemoryDifferenceCollector {
   private[this] def sanitizePath(p: String) = p.stripSuffix("/").stripPrefix("/")
 
   def create(dr: DifferenceResult): Unit = {
-    dr.differences foreach { case (path, _) =>
+    dr.differences.asScala foreach { case fieldDifference: FieldDifference =>
+      val path = fieldDifference.field
       val queue =
         fields.getOrElseUpdate(
           Field(dr.endpoint, sanitizePath(path)),

@@ -1,8 +1,5 @@
 package ai.diffy.analysis
 
-import org.springframework.beans.factory.annotation.Autowired
-import org.springframework.stereotype.Component
-
 import scala.math.abs
 
 object DifferencesFilterFactory {

@@ -125,11 +125,11 @@ public class ReactorHttpDifferenceProxy {
         final Span span = Span.current();
         analyzer.apply(r, c, p, s).foreach(diffResult ->
             span.addEvent("DifferenceResult", Attributes.of(
-                AttributeKey.stringKey("endpoint"), diffResult.endpoint(),
-                AttributeKey.stringKey("request"), diffResult.request(),
-                AttributeKey.stringKey("candidate"), diffResult.responses().candidate(),
-                AttributeKey.stringKey("primary"), diffResult.responses().primary(),
-                AttributeKey.stringKey("secondary"), diffResult.responses().secondary()
+                AttributeKey.stringKey("endpoint"), diffResult.endpoint,
+                AttributeKey.stringKey("request"), diffResult.request,
+                AttributeKey.stringKey("candidate"), diffResult.responses.candidate,
+                AttributeKey.stringKey("primary"), diffResult.responses.primary,
+                AttributeKey.stringKey("secondary"), diffResult.responses.secondary
             ))
         );
     }
