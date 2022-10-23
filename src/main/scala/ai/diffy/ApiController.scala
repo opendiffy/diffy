@@ -2,15 +2,18 @@ package ai.diffy
 
 import ai.diffy.analysis.{DifferencesFilterFactory, JoinedEndpoint}
 import ai.diffy.proxy.ReactorHttpDifferenceProxy
-import ai.diffy.repository.DifferenceResultRepository
+import ai.diffy.repository.{DifferenceResultRepository, NoiseRepository}
 import org.springframework.beans.factory.annotation.Autowired
 import org.springframework.web.bind.annotation.{GetMapping, PathVariable, RequestParam, RestController}
 
+import scala.collection.convert.ImplicitConversions.`collection AsScalaIterable`
+
 @RestController
 class ApiController(
-                     @Autowired repository: DifferenceResultRepository,
-                     @Autowired proxy: ReactorHttpDifferenceProxy,
-                     @Autowired settings: Settings)
+    @Autowired noise: NoiseRepository,
+    @Autowired repository: DifferenceResultRepository,
+    @Autowired proxy: ReactorHttpDifferenceProxy,
+    @Autowired settings: Settings)
 {
   val MissingEndpointException = Renderer.error("Specify an endpoint")
   val MissingEndpointPathException = Renderer.error("Specify an endpoint and path")
@@ -20,21 +23,23 @@ class ApiController(
     DifferencesFilterFactory(settings.relativeThreshold, settings.absoluteThreshold)
 
   def endpointMap(
-    JoinedEndpoint: JoinedEndpoint,
+    ep: String,
+    joinedEndpoint: JoinedEndpoint,
     includeWeights: Boolean,
     excludeNoise: Boolean
   ) =
     Map(
-      "endpoint" -> Renderer.endpoint(JoinedEndpoint.endpoint),
+      "endpoint" -> Renderer.endpoint(joinedEndpoint.endpoint),
       "fields" ->
         Renderer.fields(
           // Only show fields that are above the thresholds
           if (excludeNoise) {
-            JoinedEndpoint.fields.filter { case ((_, field)) =>
-              thresholdFilter(field)
+            val noisyFields = noise.findById(ep).map(_.noisyfields.toSeq).orElse(Nil)
+            joinedEndpoint.fields.filter { case ((path, field)) =>
+              thresholdFilter(field) && !noisyFields.exists(path.startsWith)
             }
           } else {
-            JoinedEndpoint.fields
+            joinedEndpoint.fields
           },
           includeWeights
         )
@@ -47,7 +52,7 @@ class ApiController(
  ) : Map[String, Any] = {
     proxy.joinedDifferences.endpoints match { case eps =>
       eps.map { case (endpoint, diffs) =>
-        endpoint -> endpointMap(diffs, includeWeights, excludeNoise)
+        endpoint -> endpointMap(endpoint, diffs, includeWeights, excludeNoise)
       }
     }
   }
@@ -57,9 +62,12 @@ class ApiController(
     @RequestParam(name = "exclude_noise", defaultValue = "false") excludeNoise: Boolean
   ): Map[String, Any] = {
     Renderer.endpoints(
-      proxy.joinedDifferences.raw.counter.endpoints filterNot { case (ep, _) => {
+      proxy.joinedDifferences.raw.counter.endpoints filterNot  { case (ep, meta) => {
         excludeNoise &&
-        getStats(ep, excludeNoise, false).getOrElse("fields", Map.empty).asInstanceOf[Map[String,_]].isEmpty
+          getStats(ep, excludeNoise, false)
+            .getOrElse("fields", Map.empty)
+            .asInstanceOf[Map[String, _]]
+            .isEmpty
       }}
     )
   }
@@ -75,7 +83,7 @@ class ApiController(
     } else {
       try {
         proxy.joinedDifferences.endpoint(endpoint) match { case joinedEndpoint =>
-          endpointMap(joinedEndpoint, includeWeights, excludeNoise)
+          endpointMap(endpoint, joinedEndpoint, includeWeights, excludeNoise)
         }
       } catch {
         case t: Throwable => Renderer.error(t.getMessage())
