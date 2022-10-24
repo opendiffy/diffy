@@ -89,7 +89,8 @@ public class ReactorHttpDifferenceProxy {
                     req.uri(),
                     req.path(),
                     req.params(),
-                    new HttpMessage(req.requestHeaders(), body)
+                    req.requestHeaders(),
+                    body
             ));
         });
 
@@ -117,7 +118,7 @@ public class ReactorHttpDifferenceProxy {
         });
 
         return Mono.fromFuture(messages[responseIndex])
-                .flatMap(r -> res.headers(r.getMessage().headers).sendString(Mono.just(r.getMessage().body)).then());
+                .flatMap(r -> res.headers(r.headers).sendString(Mono.just(r.body)).then());
     }
 
     @WithSpan
@@ -142,8 +143,7 @@ public class ReactorHttpDifferenceProxy {
                 .responseSingle(
                         (headers, body) ->
                                 body.asString()
-                                        .map(b -> new HttpMessage(headers.responseHeaders(), b))
-                                        .map(m -> new HttpResponse(headers.status().toString(), m))
+                                        .map(b -> new HttpResponse(headers.status().toString(), headers.responseHeaders(), b))
                 );
     }
     private ForkJoinPool pool = ForkJoinPool.commonPool();

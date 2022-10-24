@@ -35,7 +35,7 @@ class HttpLifter(settings: Settings) {
   }
 
   def liftRequest(req: HttpRequest): Message = {
-    val headers = req.getMessage.getHeaders.asScala.toMap
+    val headers = req.getHeaders.asScala.toMap
 
     val canonicalResource: Option[String] = headers
       .get("Canonical-Resource")
@@ -43,7 +43,7 @@ class HttpLifter(settings: Settings) {
       .orElse(Some(s"${req.getMethod}:${req.getPath}"))
 
     val params = req.getParams
-    val body = StringLifter.lift(req.getMessage.getBody)
+    val body = StringLifter.lift(req.getBody)
       Message(
         canonicalResource,
         new FieldMap(
@@ -60,7 +60,7 @@ class HttpLifter(settings: Settings) {
   }
 
   def liftResponse(r: HttpResponse): Message = {
-    val responseMap = Map(r.getStatus -> StringLifter.lift(r.getMessage.getBody())) ++ headersMap(r.getMessage)
+    val responseMap = Map(r.getStatus -> StringLifter.lift(r.getBody())) ++ headersMap(r)
     Message(None, new FieldMap(responseMap))
   }
 }

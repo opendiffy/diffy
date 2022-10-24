@@ -1,20 +1,21 @@
 package ai.diffy.proxy;
 
+import io.netty.handler.codec.http.HttpHeaders;
+
 import java.util.Map;
 
-public class HttpRequest {
+public class HttpRequest extends HttpMessage {
     private final String method;
     private final String uri;
     private final String path;
     private final Map<String, String> params;
-    private final HttpMessage message;
 
-    public HttpRequest(String method, String uri, String path, Map<String, String> params, HttpMessage message) {
+    public HttpRequest(String method, String uri, String path, Map<String, String> params, HttpHeaders headers, String body) {
+        super(headers, body);
         this.method = method;
         this.uri = uri;
         this.path = path;
         this.params = params;
-        this.message = message;
     }
 
     public String getMethod() {
@@ -33,12 +34,8 @@ public class HttpRequest {
         return params;
     }
 
-    public HttpMessage getMessage() {
-        return message;
-    }
-
     @Override
     public String toString() {
-        return "path = "+ path+"\n"+"params =\n"+ params+"\n"+"message =\n"+ message+"\n";
+        return "path = "+ path+"\n"+"params =\n"+ params+"\n"+"message =\n"+ super.toString()+"\n";
     }
 }

@@ -1,26 +1,23 @@
 package ai.diffy.proxy;
 
+import io.netty.handler.codec.http.HttpHeaders;
+
 import java.util.Map;
 
-public class HttpResponse {
+public class HttpResponse extends HttpMessage {
     private final String status;
-    private final HttpMessage message;
 
-    public HttpResponse(String status, HttpMessage message) {
+    public HttpResponse(String status, HttpHeaders headers, String body) {
+        super(headers, body);
         this.status = status;
-        this.message = message;
     }
 
     public String getStatus() {
         return status;
     }
 
-    public HttpMessage getMessage() {
-        return message;
-    }
-
     @Override
     public String toString() {
-        return "\nstatus = "+ status+"\n"+"message =\n"+ message+"\n";
+        return "\nstatus = "+ status+"\n"+"message =\n"+ super.toString()+"\n";
     }
 }
