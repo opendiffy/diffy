@@ -1,7 +1,7 @@
 package ai.diffy.analysis
 
 import ai.diffy.compare.{Difference, PrimitiveDifference}
-import ai.diffy.lifter.{JsonLifter, Message}
+import ai.diffy.lifter.{AnalysisRequest, JsonLifter, Message}
 import ai.diffy.repository.DifferenceResultRepository
 import io.opentelemetry.api.trace.Span
 import org.slf4j.LoggerFactory
@@ -26,6 +26,9 @@ class DifferenceAnalyzer(
 {
   import DifferenceAnalyzer._
 
+  def analyze(analysisRequest: AnalysisRequest): Option[DifferenceResult] = {
+    apply(analysisRequest.request, analysisRequest.candidate, analysisRequest.primary, analysisRequest.secondary)
+  }
   def apply(
     request: Message,
     candidate: Message,

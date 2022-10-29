@@ -63,9 +63,9 @@ public class ReactorHttpDifferenceProxy {
         this.joinedDifferences = JoinedDifferences.apply(raw,noise);
 
         this.analyzer = Async.common(
-            new SpanWrapper<>(
-                new AnalyzerEndpoint(new DifferenceAnalyzer(raw, noise, collector, repository)),
-                AnalysisSpanLogger.INSTANCE
+            new IndependentEndpoint<>(
+                "analyzer",
+                () -> new DifferenceAnalyzer(raw, noise, collector, repository)::analyze
             )
         );
 
@@ -76,8 +76,8 @@ public class ReactorHttpDifferenceProxy {
          * Let's build a topology
          */
         primary = Async.common(HttpEndpoint.from("primary", settings.primaryHost(), settings.primaryPort()));
-        secondary = Async.common(HttpEndpoint.from("secondary", settings.primaryHost(), settings.primaryPort()));
-        candidate = Async.common(HttpEndpoint.from("candidate", settings.primaryHost(), settings.primaryPort()));
+        secondary = Async.common(HttpEndpoint.from("secondary", settings.secondaryHost(), settings.secondaryPort()));
+        candidate = Async.common(HttpEndpoint.from("candidate", settings.candidateHost(), settings.candidatePort()));
         multicastProxy = Endpoint.from(
                 "proxy",
                 primary,
