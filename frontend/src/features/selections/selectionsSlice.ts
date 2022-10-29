@@ -2,6 +2,7 @@ import {createSlice, PayloadAction} from '@reduxjs/toolkit';
 interface Selections {
     noiseCancellationIsOn: boolean, // Noise cancellation from AppBarView
     infoIsOpen: boolean, // InfoView dialog
+    deleteRequestAlertIsOpen: boolean, // Alert that shows up inside info view when all reqests are deleted
     requestIsOpen: boolean, // RequestView Dialog
     endpointName: string|undefined, // Selected endpoint from EnpointsView
     fieldPrefix: string|undefined, // Selected field prefix from FieldsView
@@ -13,6 +14,7 @@ const initialState: Selections = {
     fieldPrefix: undefined,
     requestId: undefined,
     infoIsOpen: false,
+    deleteRequestAlertIsOpen: false,
     requestIsOpen: false
 };
 const slice = createSlice({
@@ -27,6 +29,12 @@ const slice = createSlice({
         },
         closeInfoView(state){
             state.infoIsOpen = false;
+        },
+        openDeleteRequestsAlert(state){
+            state.deleteRequestAlertIsOpen = true;
+        },
+        closeDeleteRequestsAlert(state){
+            state.deleteRequestAlertIsOpen = false;
         },
         openRequestView(state){
             state.requestIsOpen = true;
@@ -50,6 +58,8 @@ export const {
     toggleNoiseCancellation,
     openInfoView,
     closeInfoView,
+    openDeleteRequestsAlert,
+    closeDeleteRequestsAlert,
     openRequestView,
     closeRequestView,
     selectEndpoint,

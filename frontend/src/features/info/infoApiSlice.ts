@@ -24,12 +24,20 @@ export const apiInfoSlice = createApi({
                 query(){
                     return '/info';
                 }
+            }),
+            deleteRequests: builder.mutation<string, void>({
+                query(){
+                    return {
+                        url: `/clear`,
+                        method: 'GET'
+                    }
+                },
             })
         }
     },
 });
 
-export const {useFetchInfoQuery} = apiInfoSlice;
+export const {useFetchInfoQuery, useDeleteRequestsMutation} = apiInfoSlice;
 export function fetchinfo(){
     const target = 'Unknown';
     return useFetchInfoQuery().data || {

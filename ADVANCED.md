@@ -20,7 +20,7 @@ curl -s -i -H Canonical-Resource : endpoint-test http://localhost:8880/noisy_reg
 
 You can now access live results as follows:
  - [Diffy](http://localhost:8888)
-   ![Diffy](/images/diffy_diffy.png)
+   ![Diffy](/images/diffy_ui.png)
  - [Grafana Dashboards](http://localhost:3000/explore)
    - Loki (logs)
      ![Loki](/images/loki_diffy.png)
