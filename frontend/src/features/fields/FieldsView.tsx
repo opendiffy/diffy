@@ -79,7 +79,7 @@ export function FieldsView(){
         if(!metric.differences){
           return `No differences observed.`
         }
-        return `${metric.differences} diffs | ${metric.noise/metric.differences*100.00}% noise`
+        return `${metric.differences} diffs | ${metric.noise/(metric.noise+metric.differences)*100.00}% noise`
       }
     return       (<List subheader={<ListSubheader>Fields</ListSubheader>}>
     <TreeView
