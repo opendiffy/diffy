@@ -11,8 +11,8 @@ import java.util.stream.Collectors;
 import java.util.stream.Stream;
 
 public abstract class Endpoint<Request, Response> implements Function<Request, Response> {
-    protected final String name;
-    private volatile Function<Request, Response> applier;
+    protected String name;
+    private final Function<Request, Response> applier;
     private volatile SymmetricUnaryOperator<Request, Response> collapsedMiddleware = apply -> apply;
 
     public Endpoint(String name, Function<Request, Response> applier){
@@ -27,7 +27,6 @@ public abstract class Endpoint<Request, Response> implements Function<Request, R
          */
         return collapsedMiddleware.apply(applier).apply(request);
     }
-
 
     public abstract List<Endpoint> getDownstream();
     public abstract Endpoint<Request, Response> deepClone();
@@ -72,7 +71,14 @@ public abstract class Endpoint<Request, Response> implements Function<Request, R
     public String getName() {
         return name;
     }
-
+    protected void setName(String name) {
+        this.name = name;
+    }
+    public Endpoint<Request, Response> withName(String name){
+        Endpoint<Request, Response> result = withDownstream(getDownstream());
+        result.setName(name);
+        return result;
+    }
     public abstract Endpoint<Request, Response> withDownstream(List<Endpoint> downstream);
 
     public static <Req, Rep> IndependentEndpoint<Req, Rep> from(String name, NullOperator<Req, Rep> filter){
