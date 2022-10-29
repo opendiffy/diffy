@@ -5,11 +5,14 @@ import io.netty.handler.codec.http.HttpHeaders;
 import java.util.Map;
 
 public class HttpRequest extends HttpMessage {
-    private final String method;
-    private final String uri;
-    private final String path;
-    private final Map<String, String> params;
+    private  String method;
+    private  String uri;
+    private  String path;
+    private  Map<String, String> params;
 
+    public HttpRequest(){
+        super();
+    }
     public HttpRequest(String method, String uri, String path, Map<String, String> params, HttpHeaders headers, String body) {
         super(headers, body);
         this.method = method;

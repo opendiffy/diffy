@@ -12,6 +12,7 @@ import ai.diffy.functional.topology.Async;
 import ai.diffy.functional.topology.SpanWrapper;
 import ai.diffy.functional.topology.InvocationLogger;
 import ai.diffy.repository.DifferenceResultRepository;
+import io.netty.handler.codec.http.HttpHeaders;
 import io.netty.handler.codec.http.HttpMethod;
 import org.reactivestreams.Publisher;
 import org.slf4j.Logger;
@@ -115,7 +116,12 @@ public class ReactorHttpDifferenceProxy {
             return res.send();
         }
         return Mono.fromFuture(loggedMulticastProxy.apply(req))
-                .flatMap(r -> res.headers(r.headers).sendString(Mono.just(r.body)).then());
+                .flatMap(r ->
+                    res
+                    .headers(HttpMessage.toHttpHeaders(r.headers))
+                    .sendString(Mono.just(r.body))
+                    .then()
+                );
     }
 
 
