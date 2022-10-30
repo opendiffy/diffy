@@ -20,7 +20,7 @@ public class TriDependentEndpoint<
                     Request2, Response2,
                     Request3, Response3,
                     ResponseOut> filter;
-    public TriDependentEndpoint(
+    protected TriDependentEndpoint(
             String name,
             Endpoint<Request1, Response1> dependency1,
             Endpoint<Request2, Response2> dependency2,

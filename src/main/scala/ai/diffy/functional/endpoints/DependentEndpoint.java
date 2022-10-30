@@ -12,7 +12,7 @@ public class DependentEndpoint<
     private final UnaryOperator<RequestIn,
                         RequestOut, ResponseIn,
                         ResponseOut> unaryOperator;
-    public DependentEndpoint(
+    protected DependentEndpoint(
         String name,
         Endpoint<RequestOut, ResponseIn> dependency,
         UnaryOperator<RequestIn,

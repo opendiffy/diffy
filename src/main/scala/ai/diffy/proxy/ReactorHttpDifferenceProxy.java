@@ -2,6 +2,7 @@ package ai.diffy.proxy;
 
 import ai.diffy.Settings;
 import ai.diffy.analysis.*;
+import ai.diffy.functional.topology.ControlFlowLogger;
 import ai.diffy.lifter.AnalysisRequest;
 import ai.diffy.lifter.HttpLifter;
 import ai.diffy.lifter.Message;
@@ -64,7 +65,7 @@ public class ReactorHttpDifferenceProxy {
         this.joinedDifferences = JoinedDifferences.apply(raw,noise);
 
         this.analyzer = Async.common(
-            new IndependentEndpoint<>(
+            Endpoint.from(
                 "analyzer",
                 () -> new DifferenceAnalyzer(raw, noise, collector, repository)::analyze
             )
@@ -85,9 +86,9 @@ public class ReactorHttpDifferenceProxy {
                 secondary,
                 candidate,
                 analyzer,
-                new IndependentEndpoint<>("liftRequest", ()-> lifter::liftRequest),
-                new IndependentEndpoint<>("liftResponse", ()-> lifter::liftResponse),
-                new IndependentEndpoint<>("responsePicker", () -> (x) -> responseIndex),
+                Endpoint.from("liftRequest", ()-> lifter::liftRequest),
+                Endpoint.from("liftResponse", ()-> lifter::liftResponse),
+                Endpoint.from("responsePicker", () -> (x) -> responseIndex),
                 new MulticastProxy());
         /**
          * Now that our topology is ready let's install some filter middleware.
@@ -101,7 +102,6 @@ public class ReactorHttpDifferenceProxy {
                 );
         loggedMulticastProxy = multicastProxy
                 .andThenMiddleware(next -> (req) -> next.apply(req).thenApply(responseTx.suppressThrowable()))
-                .deepTransform(InvocationLogger::mapper)
         ;
         /**
          * All set. We should be able to see InvocationLogger messages in the logs now.
@@ -121,13 +121,16 @@ public class ReactorHttpDifferenceProxy {
             log.info("Ignoring {} request for safety. Use --allowHttpSideEffects=true to turn safety off.", req.method());
             return res.send();
         }
-        return Mono.fromFuture(loggedMulticastProxy.apply(req).whenComplete((response, t)->{
-            if(t != null) {
-                log.error("request failed to get response",t);
-                res
+        return Mono.fromFuture(
+            loggedMulticastProxy
+                .deepTransform(new ControlFlowLogger()::mapper)
+                .apply(req).whenComplete((response, t)->{
+                    if(t != null) {
+                        log.error("request failed to get response",t);
+                        res
                         .status(HttpResponseStatus.INTERNAL_SERVER_ERROR)
                         .sendString(Mono.just(t.getMessage())).then();
-            }
+                    }
                 }))
                 .flatMap(r ->
                     res

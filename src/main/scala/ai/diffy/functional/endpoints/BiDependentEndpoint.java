@@ -17,7 +17,7 @@ public class BiDependentEndpoint<
                     Request1, Response1,
                     Request2, Response2,
                     ResponseOut> filter;
-    public BiDependentEndpoint(
+    protected BiDependentEndpoint(
             String name,
             Endpoint<Request1, Response1> dependency1,
             Endpoint<Request2, Response2> dependency2,

@@ -6,7 +6,7 @@ import java.util.List;
 
 public class IndependentEndpoint<Request, Response> extends Endpoint<Request, Response>{
     private final NullOperator<Request, Response> filter;
-    public IndependentEndpoint(String name, NullOperator<Request, Response> filter) {
+    protected IndependentEndpoint(String name, NullOperator<Request, Response> filter) {
         super(name, filter.get());
         this.filter = filter;
     }

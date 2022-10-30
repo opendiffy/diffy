@@ -24,7 +24,7 @@ public class PentaDependentEndpoint<
                     Request4, Response4,
                     Request5, Response5,
                     ResponseOut> filter;
-    public PentaDependentEndpoint(
+    protected PentaDependentEndpoint(
             String name,
             Endpoint<Request1, Response1> dependency1,
             Endpoint<Request2, Response2> dependency2,

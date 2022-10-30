@@ -21,7 +21,7 @@ public class QuadDependentEndpoint<
                     Request3, Response3,
                     Request4, Response4,
                     ResponseOut> filter;
-    public QuadDependentEndpoint(
+    protected QuadDependentEndpoint(
             String name,
             Endpoint<Request1, Response1> dependency1,
             Endpoint<Request2, Response2> dependency2,

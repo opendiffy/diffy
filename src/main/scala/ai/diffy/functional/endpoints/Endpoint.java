@@ -15,7 +15,7 @@ public abstract class Endpoint<Request, Response> implements Function<Request, R
     private final Function<Request, Response> applier;
     private volatile SymmetricUnaryOperator<Request, Response> collapsedMiddleware = apply -> apply;
 
-    public Endpoint(String name, Function<Request, Response> applier){
+    protected Endpoint(String name, Function<Request, Response> applier){
         this.name = name;
         this.applier = applier;
     }
@@ -280,6 +280,50 @@ public abstract class Endpoint<Request, Response> implements Function<Request, R
                 dependency5,
                 dependency6,
                 dependency7,
+                filter
+        );
+    }
+
+
+    public static <RequestIn,
+            Request1, Response1,
+            Request2, Response2,
+            Request3, Response3,
+            Request4, Response4,
+            Request5, Response5,
+            Request6, Response6,
+            Request7, Response7,
+            Request8, Response8,
+            ResponseOut> OctaDependentEndpoint                                                                                                                             from(
+            String name,
+            Endpoint<Request1, Response1> dependency1,
+            Endpoint<Request2, Response2> dependency2,
+            Endpoint<Request3, Response3> dependency3,
+            Endpoint<Request4, Response4> dependency4,
+            Endpoint<Request5, Response5> dependency5,
+            Endpoint<Request6, Response6> dependency6,
+            Endpoint<Request7, Response7> dependency7,
+            Endpoint<Request8, Response8> dependency8,
+            OctaOperator<RequestIn,
+            Request1, Response1,
+            Request2, Response2,
+            Request3, Response3,
+            Request4, Response4,
+            Request5, Response5,
+            Request6, Response6,
+            Request7, Response7,
+            Request8, Response8,
+            ResponseOut> filter){
+        return new OctaDependentEndpoint(
+                name,
+                dependency1,
+                dependency2,
+                dependency3,
+                dependency4,
+                dependency5,
+                dependency6,
+                dependency7,
+                dependency8,
                 filter
         );
     }

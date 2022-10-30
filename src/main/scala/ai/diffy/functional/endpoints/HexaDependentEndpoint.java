@@ -27,7 +27,7 @@ public class HexaDependentEndpoint<
                         Request5, Response5,
                         Request6, Response6,
                         ResponseOut> filter;
-    public HexaDependentEndpoint(
+    protected HexaDependentEndpoint(
             String name,
             Endpoint<Request1, Response1> dependency1,
             Endpoint<Request2, Response2> dependency2,
