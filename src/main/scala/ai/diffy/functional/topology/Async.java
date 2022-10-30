@@ -21,7 +21,10 @@ public class Async<Request, Response> extends DependentEndpoint<Request, Request
             CompletableFuture<Response> result = new CompletableFuture<>();
             pool.execute(()-> {
                 Try<Boolean> x = Try.of(() -> result.complete(applyDependency.apply(request)));
-                x.isNormal();
+                if(!x.isNormal()){
+                    result.completeExceptionally(x.getThrowable());
+                }
+                assert result.isDone();
             });
             return result;
         });

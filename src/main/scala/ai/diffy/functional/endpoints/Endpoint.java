@@ -32,8 +32,8 @@ public abstract class Endpoint<Request, Response> implements Function<Request, R
     public abstract Endpoint<Request, Response> deepClone();
     public Endpoint<Request, Response> deepTransform(SymmetricUnaryOperator<Request, Response> operator) {
         return deepTransform((e,d)->
-                e.withDownstream(d)
-                .overrideMiddleware(getMiddleware().andThen(operator))
+            e.withDownstream(d)
+            .overrideMiddleware(getMiddleware().andThen(operator))
         );
     }
     public Endpoint<Request, Response> deepTransform(BiFunction<Endpoint, List<Endpoint>, Endpoint> mapper){
@@ -42,9 +42,9 @@ public abstract class Endpoint<Request, Response> implements Function<Request, R
 
         while (transformed.size() < deep.size()) {
             deep.stream().filter( e ->
-                    !transformed.containsKey(e) &&
-                    e.getDownstream().stream()
-                            .filter(d -> !transformed.containsKey(d)).toList().isEmpty()
+                !transformed.containsKey(e) &&
+                e.getDownstream().stream()
+                .filter(d -> !transformed.containsKey(d)).toList().isEmpty()
             ).forEach(e -> {
                 List<Endpoint> transformedDownstream = e.getDownstream().stream().map(d -> transformed.get(d)).toList();
                 transformed.put(e, mapper.apply(e, transformedDownstream));
@@ -101,8 +101,8 @@ public abstract class Endpoint<Request, Response> implements Function<Request, R
             String name,
             Endpoint<RequestOut, ResponseIn> dependency,
             UnaryOperator<RequestIn,
-                                                                                            RequestOut, ResponseIn,
-                                                                                            ResponseOut> unaryOperator){
+            RequestOut, ResponseIn,
+            ResponseOut> unaryOperator){
         return new DependentEndpoint(
                 name,
                 dependency,
@@ -119,9 +119,9 @@ public abstract class Endpoint<Request, Response> implements Function<Request, R
             Endpoint<Request1, Response1> dependency1,
             Endpoint<Request2, Response2> dependency2,
             BinaryOperator<RequestIn,
-                                            Request1, Response1,
-                                            Request2, Response2,
-                                            ResponseOut> filter){
+            Request1, Response1,
+            Request2, Response2,
+            ResponseOut> filter){
         return new BiDependentEndpoint(
                 name,
                 dependency1,
@@ -140,10 +140,10 @@ public abstract class Endpoint<Request, Response> implements Function<Request, R
             Endpoint<Request2, Response2> dependency2,
             Endpoint<Request3, Response3> dependency3,
             TernaryOperator<RequestIn,
-                                                        Request1, Response1,
-                                                        Request2, Response2,
-                                                        Request3, Response3,
-                                                        ResponseOut> filter){
+            Request1, Response1,
+            Request2, Response2,
+            Request3, Response3,
+            ResponseOut> filter){
         return new TriDependentEndpoint(
                 name,
                 dependency1,
@@ -165,11 +165,11 @@ public abstract class Endpoint<Request, Response> implements Function<Request, R
             Endpoint<Request3, Response3> dependency3,
             Endpoint<Request4, Response4> dependency4,
             QuadOperator<RequestIn,
-                                        Request1, Response1,
-                                        Request2, Response2,
-                                        Request3, Response3,
-                                        Request4, Response4,
-                                        ResponseOut> filter){
+            Request1, Response1,
+            Request2, Response2,
+            Request3, Response3,
+            Request4, Response4,
+            ResponseOut> filter){
         return new QuadDependentEndpoint(
                 name,
                 dependency1,
@@ -193,12 +193,12 @@ public abstract class Endpoint<Request, Response> implements Function<Request, R
             Endpoint<Request4, Response4> dependency4,
             Endpoint<Request5, Response5> dependency5,
             PentaOperator<RequestIn,
-                                                        Request1, Response1,
-                                                        Request2, Response2,
-                                                        Request3, Response3,
-                                                        Request4, Response4,
-                                                        Request5, Response5,
-                                                        ResponseOut> filter){
+            Request1, Response1,
+            Request2, Response2,
+            Request3, Response3,
+            Request4, Response4,
+            Request5, Response5,
+            ResponseOut> filter){
         return new PentaDependentEndpoint(
                 name,
                 dependency1,
@@ -226,13 +226,13 @@ public abstract class Endpoint<Request, Response> implements Function<Request, R
             Endpoint<Request5, Response5> dependency5,
             Endpoint<Request6, Response6> dependency6,
             HexaOperator<RequestIn,
-                                Request1, Response1,
-                                Request2, Response2,
-                                Request3, Response3,
-                                Request4, Response4,
-                                Request5, Response5,
-                                Request6, Response6,
-                                ResponseOut> filter){
+            Request1, Response1,
+            Request2, Response2,
+            Request3, Response3,
+            Request4, Response4,
+            Request5, Response5,
+            Request6, Response6,
+            ResponseOut> filter){
         return new HexaDependentEndpoint(
                 name,
                 dependency1,
@@ -263,14 +263,14 @@ public abstract class Endpoint<Request, Response> implements Function<Request, R
             Endpoint<Request6, Response6> dependency6,
             Endpoint<Request7, Response7> dependency7,
             SeptaOperator<RequestIn,
-                                Request1, Response1,
-                                Request2, Response2,
-                                Request3, Response3,
-                                Request4, Response4,
-                                Request5, Response5,
-                                Request6, Response6,
-                                Request7, Response7,
-                                ResponseOut> filter){
+            Request1, Response1,
+            Request2, Response2,
+            Request3, Response3,
+            Request4, Response4,
+            Request5, Response5,
+            Request6, Response6,
+            Request7, Response7,
+            ResponseOut> filter){
         return new SeptaDependentEndpoint(
                 name,
                 dependency1,

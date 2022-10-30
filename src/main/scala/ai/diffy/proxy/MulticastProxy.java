@@ -64,20 +64,14 @@ public class MulticastProxy
                 body
             ));
         });
-        CompletableFuture<HttpMessage>[] messages = new CompletableFuture[]{
-                new CompletableFuture<>(),
-                new CompletableFuture<>(),
-                new CompletableFuture<>(),
-                new CompletableFuture<>()
-        };
-
-        primary.apply(req).thenAccept(messages[0]::complete);
-        messages[0].thenAccept(msgP -> {
-            candidate.apply(req).thenAccept(messages[1]::complete);
-        });
-        messages[1].thenAccept(msgC -> {
-            secondary.apply(req).thenAccept(messages[2]::complete);
-        });
+        CompletableFuture<HttpMessage>[] messages = new CompletableFuture[4];
+        messages[0] = primary.apply(req);
+        messages[1] = messages[0]
+                .thenCompose((success) -> candidate.apply(req))
+                .exceptionallyCompose((error) -> candidate.apply(req));
+        messages[2] = messages[1]
+                .thenCompose((success) -> secondary.apply(req))
+                .exceptionallyCompose((error) -> secondary.apply(req));
         messages[3] = request;
         return messages;
     };

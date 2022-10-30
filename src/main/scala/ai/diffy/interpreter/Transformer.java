@@ -1,15 +1,14 @@
 package ai.diffy.interpreter;
 
-import com.fasterxml.jackson.core.JsonProcessingException;
+import ai.diffy.functional.algebra.Bijection;
+import ai.diffy.functional.algebra.UnsafeFunction;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import org.graalvm.polyglot.Context;
 import org.graalvm.polyglot.Engine;
 import org.graalvm.polyglot.Source;
 import org.graalvm.polyglot.Value;
 
-import java.util.function.Function;
-
-public class Transformer<A> implements Function<A, A> {
+public class Transformer<A> implements UnsafeFunction<A, A> {
     private static ObjectMapper mapper = new ObjectMapper();
     private static ThreadLocal<Context> context =
         ThreadLocal.withInitial(() ->
@@ -26,36 +25,23 @@ public class Transformer<A> implements Function<A, A> {
     private static Source parserSource = Source.create("js", "(x)=>(JSON.parse(x))");
     private static Source stringifySource = Source.create("js", "(x)=>(JSON.stringify(x))");
 
-    private final Value parser;
-    private final Value stringify;
-    private final Value transformation;
-    private final Class<A> cls;
+    private final UnsafeFunction<A, A> applier;
+
     public Transformer(Class<A> cls, String transformationSource){
         this(cls, Source.create("js", transformationSource));
     }
     public Transformer(Class<A> cls, Source transformationSource){
-        this.parser = context.get().eval(parserSource);
-        this.stringify = context.get().eval(stringifySource);
-        this.stringify.execute(this.parser.execute("{}")); // warmup
-        this.transformation = context.get().eval(transformationSource);
-        this.cls = cls;
+        Value parser = context.get().eval(parserSource);
+        Value stringify = context.get().eval(stringifySource);
+        Bijection<String, Value> parseJson = Bijection.of(parser::execute, (obj) -> stringify.execute(obj).asString());
+        stringify.execute(parser.execute("{}")); // warmup
+        Value transformation = context.get().eval(transformationSource);
+        Bijection<A, String> serializeToJson = Bijection.of(mapper::writeValueAsString, str -> mapper.readValue(str, cls));
+        this.applier = serializeToJson.andThen(parseJson).wrap(transformation::execute);
     }
 
     @Override
-    public A apply(A a) {
-        try {
-            return mapper.readValue(
-                    stringify.execute(
-                            transformation.execute(
-                                    parser.execute(
-                                            mapper.writeValueAsString(a)
-                                    )
-                            )
-                    ).asString(),
-                    cls
-            );
-        } catch (JsonProcessingException e) {
-            throw new RuntimeException(e);
-        }
+    public A apply(A a) throws Throwable {
+        return applier.apply(a);
     }
 }

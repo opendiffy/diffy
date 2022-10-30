@@ -13,6 +13,7 @@ import ai.diffy.functional.topology.InvocationLogger;
 import ai.diffy.repository.DifferenceResultRepository;
 import ai.diffy.interpreter.Transformer;
 import io.netty.handler.codec.http.HttpMethod;
+import io.netty.handler.codec.http.HttpResponseStatus;
 import org.reactivestreams.Publisher;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -88,7 +89,6 @@ public class ReactorHttpDifferenceProxy {
                 new IndependentEndpoint<>("liftResponse", ()-> lifter::liftResponse),
                 new IndependentEndpoint<>("responsePicker", () -> (x) -> responseIndex),
                 new MulticastProxy());
-        //(, responseIndex, primary, secondary, candidate, analyzer);
         /**
          * Now that our topology is ready let's install some filter middleware.
          * In this example we will install an InvocationLogger that monitors
@@ -97,10 +97,10 @@ public class ReactorHttpDifferenceProxy {
         Transformer<HttpResponse> responseTx =
                 new Transformer<>(
                     HttpResponse.class,
-                    "(r)=>{console.log(\"hello there\");console.log(JSON.stringify(r));return r;}"
+                    "(r)=>{console.log(`proxy middleware: sending ${JSON.stringify(r)} response`);return r;}"
                 );
         loggedMulticastProxy = multicastProxy
-                .andThenMiddleware(applier -> (req) -> applier.apply(req).thenApply(responseTx))
+                .andThenMiddleware(next -> (req) -> next.apply(req).thenApply(responseTx.suppressThrowable()))
                 .deepTransform(InvocationLogger::mapper)
         ;
         /**
@@ -121,9 +121,17 @@ public class ReactorHttpDifferenceProxy {
             log.info("Ignoring {} request for safety. Use --allowHttpSideEffects=true to turn safety off.", req.method());
             return res.send();
         }
-        return Mono.fromFuture(loggedMulticastProxy.apply(req))
+        return Mono.fromFuture(loggedMulticastProxy.apply(req).whenComplete((response, t)->{
+            if(t != null) {
+                log.error("request failed to get response",t);
+                res
+                        .status(HttpResponseStatus.INTERNAL_SERVER_ERROR)
+                        .sendString(Mono.just(t.getMessage())).then();
+            }
+                }))
                 .flatMap(r ->
                     res
+                    .status(HttpResponseStatus.parseLine(r.getStatus()))
                     .headers(HttpMessage.toHttpHeaders(r.headers))
                     .sendString(Mono.just(r.body))
                     .then()
