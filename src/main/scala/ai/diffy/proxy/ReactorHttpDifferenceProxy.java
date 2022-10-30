@@ -9,10 +9,9 @@ import ai.diffy.functional.endpoints.Endpoint;
 import ai.diffy.functional.endpoints.IndependentEndpoint;
 import ai.diffy.functional.endpoints.SeptaDependentEndpoint;
 import ai.diffy.functional.topology.Async;
-import ai.diffy.functional.topology.SpanWrapper;
 import ai.diffy.functional.topology.InvocationLogger;
 import ai.diffy.repository.DifferenceResultRepository;
-import io.netty.handler.codec.http.HttpHeaders;
+import ai.diffy.interpreter.Transformer;
 import io.netty.handler.codec.http.HttpMethod;
 import org.reactivestreams.Publisher;
 import org.slf4j.Logger;
@@ -95,8 +94,15 @@ public class ReactorHttpDifferenceProxy {
          * In this example we will install an InvocationLogger that monitors
          * the beginning and end of a NameEndpoint invocation
          */
-//        loggedMulticastProxy = InvocationLogger.wrap(multicastProxy);
-        loggedMulticastProxy = multicastProxy.deepTransform(InvocationLogger::mapper);
+        Transformer<HttpResponse> responseTx =
+                new Transformer<>(
+                    HttpResponse.class,
+                    "(r)=>{console.log(\"hello there\");console.log(JSON.stringify(r));return r;}"
+                );
+        loggedMulticastProxy = multicastProxy
+                .andThenMiddleware(applier -> (req) -> applier.apply(req).thenApply(responseTx))
+                .deepTransform(InvocationLogger::mapper)
+        ;
         /**
          * All set. We should be able to see InvocationLogger messages in the logs now.
          */

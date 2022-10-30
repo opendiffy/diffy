@@ -73,7 +73,7 @@ public class InvocationLogger{
     }
 
     public static final <Request, Response> Endpoint<Request, Response> mapper(Endpoint<Request, Response> e, List<Endpoint> d) {
-        return e.withMiddleware((apply) -> (request) -> {
+        return e.andThenMiddleware((apply) -> (request) -> {
             String name = e.getName();
             final int invocationInstance = invocationCount.getAndIncrement();
             System.out.println(name + " starting [" + invocationInstance + "]");

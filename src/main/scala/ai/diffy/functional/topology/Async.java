@@ -2,6 +2,7 @@ package ai.diffy.functional.topology;
 
 import ai.diffy.functional.endpoints.DependentEndpoint;
 import ai.diffy.functional.endpoints.Endpoint;
+import ai.diffy.functional.functions.Try;
 
 import java.util.concurrent.CompletableFuture;
 import java.util.concurrent.ForkJoinPool;
@@ -18,7 +19,10 @@ public class Async<Request, Response> extends DependentEndpoint<Request, Request
     public Async(ForkJoinPool pool, Endpoint<Request, Response> dependency) {
         super(dependency.getName()+".async", dependency, applyDependency -> (Request request) -> {
             CompletableFuture<Response> result = new CompletableFuture<>();
-            pool.execute(() -> result.complete(applyDependency.apply(request)));
+            pool.execute(()-> {
+                Try<Boolean> x = Try.of(() -> result.complete(applyDependency.apply(request)));
+                x.isNormal();
+            });
             return result;
         });
     }

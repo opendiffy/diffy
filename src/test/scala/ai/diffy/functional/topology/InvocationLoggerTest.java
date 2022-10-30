@@ -1,8 +1,7 @@
-package ai.diffy.functional;
+package ai.diffy.functional.topology;
 
 import ai.diffy.functional.algebra.monoids.functions.SymmetricUnaryOperator;
 import ai.diffy.functional.endpoints.Endpoint;
-import ai.diffy.functional.topology.InvocationLogger;
 
 import java.util.Stack;
 import java.util.concurrent.ConcurrentLinkedQueue;
@@ -10,12 +9,12 @@ import java.util.concurrent.atomic.AtomicInteger;
 import java.util.function.Function;
 import java.util.stream.Stream;
 
-public class Test {
+public class InvocationLoggerTest {
     public static void main(String [] args){
         Endpoint<String,String> repeat = Endpoint.from("repeat", () -> (str)->(str+" "+str));
         System.out.println(repeat.apply("lower"));
         Endpoint<String, String> repeatlower = repeat
-                .withMiddleware(apply -> (str) -> str.toLowerCase())
+                .overrideMiddleware(apply -> (str) -> str.toLowerCase())
                 .withName("repeatlower");
         System.out.println(repeatlower.apply("UPPER"));
         Endpoint<String, String> composed = Endpoint.from("composed", repeat, repeatlower, (_repeat, _repeatlower) -> _repeat.andThen(_repeatlower));
@@ -69,7 +68,7 @@ public class Test {
                     return invocation.output;
                 });
 
-                return e.withDownstream(d).withMiddleware(newMiddleware.compose(existingMiddleware));
+                return e.withDownstream(d).overrideMiddleware(newMiddleware.compose(existingMiddleware));
             }).apply(input);
             System.out.println(input +" -> "+output);
         });
@@ -82,7 +81,7 @@ public class Test {
                         + " invocation # " + span.invocation.startSequenceNumber + " -> " + span.invocation.endSequenceNumber + " : "
                         + span.invocation.endpointName + "(" + span.invocation.input + ") => " + span.invocation.output
         );
-        span.children.forEach(x -> Test.print( prefix + " " + span.spanId, x));
+        span.children.forEach(x -> InvocationLoggerTest.print( prefix + " " + span.spanId, x));
     }
 
     static class Span {

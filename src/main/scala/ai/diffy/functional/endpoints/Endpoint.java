@@ -30,7 +30,12 @@ public abstract class Endpoint<Request, Response> implements Function<Request, R
 
     public abstract List<Endpoint> getDownstream();
     public abstract Endpoint<Request, Response> deepClone();
-
+    public Endpoint<Request, Response> deepTransform(SymmetricUnaryOperator<Request, Response> operator) {
+        return deepTransform((e,d)->
+                e.withDownstream(d)
+                .overrideMiddleware(getMiddleware().andThen(operator))
+        );
+    }
     public Endpoint<Request, Response> deepTransform(BiFunction<Endpoint, List<Endpoint>, Endpoint> mapper){
         Set<Endpoint> deep = deepDown();
         ConcurrentHashMap<Endpoint, Endpoint> transformed = new ConcurrentHashMap<>(deep.size());
@@ -63,7 +68,12 @@ public abstract class Endpoint<Request, Response> implements Function<Request, R
         this.collapsedMiddleware = operator;
         return this;
     }
-    public Endpoint<Request, Response> withMiddleware(SymmetricUnaryOperator<Request, Response> operator){
+    public Endpoint<Request, Response> andThenMiddleware(SymmetricUnaryOperator<Request, Response> operator){
+        Endpoint<Request, Response> result = withDownstream(getDownstream());
+        result.setMiddleware(getMiddleware().andThen(operator));
+        return result;
+    }
+    public Endpoint<Request, Response> overrideMiddleware(SymmetricUnaryOperator<Request, Response> operator){
         Endpoint<Request, Response> result = withDownstream(getDownstream());
         result.setMiddleware(operator);
         return result;

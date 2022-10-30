@@ -5,8 +5,9 @@ import io.netty.handler.codec.http.HttpHeaders;
 import java.util.Map;
 
 public class HttpResponse extends HttpMessage {
-    private final String status;
+    private String status;
 
+    public HttpResponse(){}
     public HttpResponse(String status, HttpHeaders headers, String body) {
         super(headers, body);
         this.status = status;

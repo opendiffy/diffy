@@ -18,11 +18,7 @@ public abstract class HttpMessage {
     }
 
     public Map<String, String> getHeaders(){
-        Map<String, String> map = new TreeMap<>();
-        this.headers.entrySet().forEach(entry -> {
-            map.put(entry.getKey(), Arrays.stream(entry.getValue().split(";")).sorted().collect(Collectors.joining(", ")));
-        });
-        return map;
+        return this.headers;
     }
     private static Map<String, String> group(Iterable<Map.Entry<String, String>> entries){
         Map<String, List<String>> grouped = new TreeMap<>();
@@ -32,7 +28,7 @@ public abstract class HttpMessage {
         });
         Map<String, String> values = new HashMap<>(grouped.size());
         grouped.entrySet().forEach(entry -> {
-            values.put(entry.getKey(), String.join(";",entry.getValue()));
+            values.put(entry.getKey(), String.join(",",entry.getValue().stream().sorted().toList()));
         });
         return values;
     }
@@ -41,8 +37,12 @@ public abstract class HttpMessage {
     }
 
     public static HttpHeaders toHttpHeaders(Map<String, String> entries) {
-        HttpHeaders result = EmptyHttpHeaders.INSTANCE;
-        entries.forEach((key, values) -> { result.add(key, values.split(";")); });
+        HttpHeaders result = EmptyHttpHeaders.INSTANCE.copy();
+        entries.forEach((key, values) ->
+            Arrays.stream(values.split(",")).forEach(value ->
+                result.add(key, value)
+            )
+        );
         return result;
     }
     @Override
