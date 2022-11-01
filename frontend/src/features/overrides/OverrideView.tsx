@@ -1,21 +1,14 @@
-import SaveIcon from '@mui/icons-material/Save';
-import SettingsBackupRestoreIcon from '@mui/icons-material/SettingsBackupRestore';
-import { Alert, Grid, IconButton, Snackbar, Tooltip, Typography } from '@mui/material';
+import { Grid, Tooltip, Typography } from '@mui/material';
 
 import { useAppDispatch, useAppSelector } from '../../app/hooks'
 
-import { openAlert, closeAlert, highlightEdge, selectEdge} from './overrideSlice';
-import {useUpdateOverrideMutation} from './transformationsApiSlice';
+import { highlightEdge, selectEdge} from './overrideSlice';
 import CodeEditor from './editor/CodeEditor';
 
 export function OverrideView(){
   const dispatch = useAppDispatch();
-  const alertIsOpen = useAppSelector((state) => state.overrides.alertIsOpen);
   const highlightedEdge = useAppSelector((state) => state.overrides.highlightedEdge);
   const selectedEdge = useAppSelector((state) => state.overrides.selectedEdge);
-  const currentTxJs = useAppSelector((state) => state.overrides.currentTransformationJs)
-  const close = () => dispatch(closeAlert());
-  const [updateOverride, { isLoading: isUpdating, isSuccess }] = useUpdateOverrideMutation();
 
   function isHighlighted(edge: string): boolean {
     return highlightedEdge === edge || highlightedEdge === 'all' || isSelected(edge);
@@ -81,38 +74,5 @@ return     <Grid container>
       <CodeEditor/>
     </Grid>
         }
-
-    <Grid item xs={3}>
-      <Tooltip title="Save transformation">
-        <IconButton
-          color="inherit"
-          aria-label="save"
-          onClick={
-            ()=>selectedEdge && updateOverride({injectionPoint: selectedEdge, transformationJs: currentTxJs})
-          .then(() => dispatch(openAlert(`Save success. Transformation will be applied to ${selectEdge}.`)))
-          }>
-          <SaveIcon color="inherit"/>
-        </IconButton>
-      </Tooltip>
-
-      <Tooltip title="Reset field mutation">
-        <IconButton
-          color="inherit"
-          aria-label="reset"
-          onClick={
-            ()=>selectedEdge && updateOverride({injectionPoint: selectedEdge, transformationJs:'(request)=>(request)'})
-            .then(() => dispatch(openAlert(`Reset success. No transformation will be applied to ${selectedEdge}`)))
-          }>
-          <SettingsBackupRestoreIcon color="inherit"/>
-        </IconButton>
-      </Tooltip>
-    </Grid>
-    <Grid item xs={9}>
-      <Snackbar open={!!alertIsOpen} autoHideDuration={3000} onClose={close}>
-        <Alert onClose={close} severity="success" sx={{ width: '100%' }}>
-          {alertIsOpen}
-        </Alert>
-      </Snackbar>
-    </Grid>
   </Grid>
 }

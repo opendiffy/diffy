@@ -4,6 +4,8 @@ type Transformation = {injectionPoint:string, transformationJs:string}
 
 export const apiTransformationsSlice = createApi({
     reducerPath: 'transformations',
+    tagTypes: ['Transformations'],
+
     baseQuery: fetchBaseQuery({
         baseUrl: '/api/1'
     }),
@@ -12,7 +14,8 @@ export const apiTransformationsSlice = createApi({
             fetchOverride: builder.query<Transformation, string>({
                 query(injectionPoint){
                     return `/transformations/${injectionPoint}`;
-                }
+                },
+                providesTags: ['Transformations']
             }),
             updateOverride: builder.mutation<void, Transformation>({
                 query({injectionPoint, transformationJs}){
@@ -22,6 +25,7 @@ export const apiTransformationsSlice = createApi({
                         body: transformationJs
                     }
                 },
+                invalidatesTags: ['Transformations']
             })
         }
     },

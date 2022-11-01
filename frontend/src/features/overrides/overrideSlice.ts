@@ -27,6 +27,12 @@ const slice = createSlice({
             state.selectedEdge = undefined;
             state.currentTransformationJs = undefined;
         },
+        clearSelections(state){
+            state.alertIsOpen = undefined;
+            state.highlightedEdge = undefined;
+            state.selectedEdge = undefined;
+            state.currentTransformationJs = undefined;
+        },
         openAlert(state, message){
             state.alertIsOpen = message.payload;
         },
