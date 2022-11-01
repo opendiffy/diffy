@@ -3,10 +3,12 @@ import SettingsIcon from '@mui/icons-material/Settings';
 import NotesIcon from '@mui/icons-material/Notes';
 import AnalyticsIcon from '@mui/icons-material/Analytics';
 import AccountTreeIcon from '@mui/icons-material/AccountTree';
+import JavascriptIcon from '@mui/icons-material/Javascript';
 
 import { fetchinfo } from "../info/infoApiSlice";
 import { useAppDispatch, useAppSelector } from '../../app/hooks'
 import { openInfoView, toggleNoiseCancellation } from '../selections/selectionsSlice';
+import { openOverrideView } from '../overrides/overrideSlice';
 
 export default function AppBarView(){
   const info = fetchinfo();
@@ -22,6 +24,14 @@ export default function AppBarView(){
             checked={excludeNoise}
             onChange={()=> {dispatch(toggleNoiseCancellation())}}
           />
+        </IconButton>
+      </Tooltip>
+      <Tooltip title='Mutate requests with Javascript'>
+        <IconButton
+          color="inherit"
+          aria-label="mark"
+          onClick={() => dispatch(openOverrideView())}>
+          <JavascriptIcon/>
         </IconButton>
       </Tooltip>
       <Divider orientation="vertical" variant="middle" color="neutral" flexItem/>

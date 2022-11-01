@@ -1,26 +1,26 @@
-import { Metric, isMetric } from "./Metric";
+import { NamedMetric, isNamedMetric } from "./Metric";
 
 export interface FieldNode {
     id: string,
     name: string,
     children: FieldNode[],
-    metric: Metric|undefined
+    namedMetric: NamedMetric|undefined
 }
 
 export function nodeOf(obj: any, path: string, name: string): FieldNode {
     const id = path?`${path}.${name}` : name;
     const children = childrenOf(obj, id);
-    const metric = children.length ? undefined : obj as Metric;
+    const namedMetric = children.length ? undefined : obj as NamedMetric;
     return {
       id,
       name,
       children,
-      metric
+      namedMetric
     }
 }
 
 function childrenOf(obj: any, objName: string): FieldNode[] {
-    if(typeof obj !== 'object' || isMetric(obj)) {
+    if(typeof obj !== 'object' || isNamedMetric(obj)) {
         return [];
     }
     return Object.keys(obj).map(name => nodeOf(obj[name], objName, name));

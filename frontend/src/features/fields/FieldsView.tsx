@@ -7,7 +7,7 @@ import {ExpandMore, ChevronRight} from '@mui/icons-material';
 import { useAppSelector, useAppDispatch } from '../../app/hooks';
 import { selectFieldPrefix } from '../selections/selectionsSlice';
 import { FieldNode, nodeOf } from './FieldNode';
-import { isMetric, Metric } from './Metric';
+import { isNamedMetric, Metric, NamedMetric } from './Metric';
 import { useFetchNoiseQuery, usePostNoiseMutation, useFetchFieldsQuery } from '../noise/noiseApiSlice';
 
 
@@ -22,33 +22,39 @@ export function FieldsView(){
         return <List subheader={<ListSubheader>Fields</ListSubheader>}><ListItem><ListItemText>No differences.</ListItemText></ListItem></List>;
     }
     const fields = endpoint.fields;
-    const tree = {};
+    const tree = {request:{}, result:{}};
     Object.entries(fields).forEach(([field, metric]) => {
-        _.update(tree, field, () => metric);
+      const tokens = field.split('.');
+      const name = tokens.pop();
+      const namedMetric : NamedMetric = {...metric, name};
+        _.update(tree, tokens.join('.'), () => namedMetric);
     })
     const children = nodeOf(tree,'','').children // discard the root and render its children
+    const request = children.find(child => child.name === 'request')
+    const response = children.find(child => child.name === 'response')
     let disabledNode = ''
-    function renderTree(node: FieldNode, tree: any) {
+    function renderTree(node: FieldNode, tree: any, noDiff: boolean) {
         return <TreeItem
           key={node.id}
           nodeId={node.id}
-          label={label(selectedEndpoint, node, tree)}
+          label={label(selectedEndpoint, node, tree, noDiff)}
           onClick={() => dispatch(selectFieldPrefix(node.id))}
           disabled={ disabledNode === node.id }
         >
-          {node.children.map((child) => renderTree(child, tree))}
+          {node.children.map((child) => renderTree(child, tree, noDiff))}
         </TreeItem>
     }
-    function label(endpoint: string, node: FieldNode, tree: any){
+    function label(endpoint: string, node: FieldNode, tree: any, noDiff: boolean){
         const metrics = _.get(tree, node.id)
+        const isNoDifference = metrics && metrics.name === 'NoDifference';
         const fieldPrefix = node.id;
         const checked = isDirectlyMarkedAsNoise(fieldPrefix);
         return <ListItemText
           primary={
             <Stack direction={'row'} height={30}>
               <Typography sx={{ flexGrow : 1 }}>{node.name}</Typography>
-              <Tooltip title={!checked?'Ignore':'Include'}>
-                <IconButton color="inherit" aria-label="logs">
+              <Tooltip title={!checked?'Ignore':'Include'} hidden={isNoDifference || noDiff}>
+                <IconButton color="inherit" aria-label="mark">
                   <Switch
                     checked={checked}
                     disabled={(isNoise(fieldPrefix) && !checked) || isUpdating}
@@ -59,7 +65,7 @@ export function FieldsView(){
               </Tooltip>
             </Stack>
           }
-          secondary={message(metrics)}/>
+          secondary={message(metrics, noDiff)}/>
     }
     function isNoise(prefix: string) {
         for(let i in noisyPrefixes){
@@ -72,22 +78,29 @@ export function FieldsView(){
     function isDirectlyMarkedAsNoise(prefix:string){
         return noisyPrefixes.includes(prefix);
     }
-    function   message(metric: Metric){
-        if(!isMetric(metric)){
+    function   message(metric: NamedMetric, noDiff: boolean){
+        if(!isNamedMetric(metric) || noDiff){
             return undefined;
         }
-        if(!metric.differences){
+        if(!metric.differences || metric.name === 'NoDifference'){
           return `No differences observed.`
         }
-        return `${metric.differences} diffs | ${metric.noise/(metric.noise+metric.differences)*100.00}% noise`
+        return `${metric.name}: ${metric.differences} diffs | ${metric.noise/(metric.differences)*100.00}% noise/diffs`
       }
     return       (<List subheader={<ListSubheader>Fields</ListSubheader>}>
-    <TreeView
+          <TreeView
       defaultCollapseIcon={<ExpandMore />}
-      defaultExpanded={['result', 'result.200 OK']}
+      defaultExpanded={['request']}
       defaultExpandIcon={<ChevronRight />}
     >
-      {children.map(child => renderTree(child, tree))}
+      {request && renderTree(request, tree, true)}
+    </TreeView>
+    <TreeView
+      defaultCollapseIcon={<ExpandMore />}
+      defaultExpanded={['response']}
+      defaultExpandIcon={<ChevronRight />}
+    >
+      {response && renderTree(response, tree, false)}
     </TreeView>
   </List>);
 }

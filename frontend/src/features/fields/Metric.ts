@@ -6,7 +6,8 @@ export interface Metric {
     weight: number;
 }
 
-const zero: Metric = {
+const zero: NamedMetric = {
+    name: 'NoDifference',
     noise: 0,
     relative_difference: 0,
     absolute_difference: 0,
@@ -16,7 +17,8 @@ const zero: Metric = {
 
 const metricKeys: Set<string> = new Set(Object.keys(zero))
 
-export function isMetric(obj: any): obj is Metric {
+export type NamedMetric = Metric & {name: string}
+export function isNamedMetric(obj: any): obj is NamedMetric {
     if(!obj){
         return false;
     }

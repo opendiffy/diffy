@@ -8,12 +8,15 @@ import AppBarView from "./features/appbar/AppBarView";
 import { FieldsView } from './features/fields/FieldsView';
 import { RequestView } from './features/requests/RequestView';
 import { closeInfoView, closeRequestView } from './features/selections/selectionsSlice';
+import { closeOverrideView } from './features/overrides/overrideSlice';
 import { DifferencesView } from './features/differences/DifferencesView';
+import { OverrideView } from './features/overrides/OverrideView';
 
 function App() {
   const dispatch = useAppDispatch();
   const infoIsOpen = useAppSelector((state) => state.selections.infoIsOpen);
   const requestIsOpen = useAppSelector((state) => state.selections.requestIsOpen);
+  const overrideViewIsOpen = useAppSelector((state) => state.overrides.overrideViewIsOpen);
 
   return (
     <Grid container>
@@ -49,6 +52,17 @@ function App() {
         <RequestView/>
       </DialogContent>
     </Dialog>
+
+    <Dialog
+      fullWidth
+      maxWidth='md'
+      open={overrideViewIsOpen}
+      onClose={()=>{dispatch(closeOverrideView())}}>
+      <DialogContent>
+        <OverrideView/>
+      </DialogContent>
+    </Dialog>
+    
   </Grid>
   )
 }
