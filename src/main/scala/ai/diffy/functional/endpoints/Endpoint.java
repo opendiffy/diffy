@@ -28,6 +28,9 @@ public abstract class Endpoint<Request, Response> implements Function<Request, R
         return collapsedMiddleware.apply(applier).apply(request);
     }
 
+    public <RequestIn, ResponseOut> Endpoint<RequestIn, ResponseOut> map(UnaryOperator<RequestIn, Request, Response,ResponseOut> operator){
+        return Endpoint.from(getName(), () -> (requestIn) -> operator.apply(applier).apply(requestIn));
+    }
     public abstract List<Endpoint> getDownstream();
     public abstract Endpoint<Request, Response> deepClone();
     public Endpoint<Request, Response> deepTransform(SymmetricUnaryOperator<Request, Response> operator) {
@@ -52,7 +55,7 @@ public abstract class Endpoint<Request, Response> implements Function<Request, R
         }
         return transformed.get(this);
     }
-    public Set<Endpoint> deepDown(){
+    private Set<Endpoint> deepDown(){
         return (Set<Endpoint>) Stream.concat(
             Stream.of(this),
             this.getDownstream().stream()

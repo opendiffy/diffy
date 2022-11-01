@@ -1,6 +1,7 @@
 package ai.diffy.analysis
 
-import ai.diffy.compare.{Difference, PrimitiveDifference}
+import ai.diffy.compare.{Difference, NoDifference, PrimitiveDifference}
+import ai.diffy.flat.{FlatEntry, FlatObject}
 import ai.diffy.lifter.{AnalysisRequest, JsonLifter, Message}
 import ai.diffy.repository.DifferenceResultRepository
 import io.opentelemetry.api.trace.Span
@@ -9,6 +10,7 @@ import org.slf4j.LoggerFactory
 import java.util.Date
 import scala.jdk.CollectionConverters.SeqHasAsJava
 import scala.util.Random
+import scala.language.postfixOps
 
 object DifferenceAnalyzer {
   val log = LoggerFactory.getLogger(classOf[DifferenceAnalyzer])
@@ -37,12 +39,26 @@ class DifferenceAnalyzer(
   ): Option[DifferenceResult] = {
     getEndpointName(request.endpoint, candidate.endpoint,
         primary.endpoint, secondary.endpoint) flatMap { endpointName =>
-      val rawDiff = Difference(primary, candidate).flattened
-      val noiseDiff = Difference(primary, secondary).flattened
+      val requestDiff: Map[String, Difference] =
+        FlatObject.lift(request.result)
+          .rendered map { case FlatEntry(key, value) =>
+          s"request.$key.NoDifference" -> NoDifference(value)
+        } toMap
+//      val requestDiff =
+//        Difference(request.result, request.result)
+//          .flattened map {case (k,v) => s"request.$k" -> v}
+
+      val rawDiff: Map[String, Difference] = requestDiff ++
+        (Difference(primary.result, candidate.result)
+          .flattened map {case (k,v) => s"response.$k" -> v})
+
+      val noiseDiff = requestDiff ++
+        (Difference(primary.result, secondary.result)
+          .flattened map {case (k,v) => s"response.$k" -> v})
 
       val id = new String(Random.alphanumeric.take(10).toArray);
       rawCounter.counter.count(endpointName, rawDiff)
-      noiseCounter.counter.count(endpointName, noiseDiff)
+      noiseCounter.counter.count(endpointName, noiseDiff ++ requestDiff)
 
       if (rawDiff.size > 0) {
         val diffResult = new DifferenceResult(

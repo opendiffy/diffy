@@ -4,7 +4,7 @@ import ai.diffy.functional.endpoints.IndependentEndpoint;
 import reactor.netty.http.client.HttpClient;
 import reactor.netty.http.server.HttpServerRequest;
 
-public class HttpEndpoint extends IndependentEndpoint<HttpServerRequest, HttpMessage> {
+public class HttpEndpoint extends IndependentEndpoint<HttpServerRequest, HttpResponse> {
     public HttpEndpoint(String name, HttpClient client) {
         super(name, () -> (HttpServerRequest req) ->
             client

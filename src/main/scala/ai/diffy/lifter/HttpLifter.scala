@@ -60,7 +60,7 @@ class HttpLifter(settings: Settings) {
   }
 
   def liftResponse(r: HttpResponse): Message = {
-    val responseMap = Map(r.getStatus -> StringLifter.lift(r.getBody())) ++ headersMap(r)
+    val responseMap = Map("status" -> r.getStatus, "body" -> StringLifter.lift(r.getBody())) ++ headersMap(r)
     Message(None, new FieldMap(responseMap))
   }
 }

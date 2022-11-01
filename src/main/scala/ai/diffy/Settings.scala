@@ -1,27 +1,27 @@
 package ai.diffy
 
-import ai.diffy.util.{ResourceMatcher, ServiceInstance}
+import ai.diffy.util.{ResourceMatcher, ResponseMode}
 import org.slf4j.LoggerFactory
 import org.springframework.beans.factory.annotation.Value
 import org.springframework.stereotype.Component
 
 @Component
 class Settings(
-     @Value("${proxy.port}") val servicePort: Int,
-     @Value("${candidate}") candidate: String,
-     @Value("${master.primary}") primary: String,
-     @Value("${master.secondary}") secondary: String,
-     @Value("${service.protocol}") val protocol: String,
-     @Value("${serviceName}") val serviceName: String,
-     @Value("${apiRoot:}") val apiRoot: String = "",
-     @Value("${threshold.relative:20.0}") val relativeThreshold: Double = 20.0,
-     @Value("${threshold.absolute:0.03}") val absoluteThreshold: Double = 0.03,
-     @Value("${rootUrl:}") val rootUrl: String = "",
-     @Value("${allowHttpSideEffects:false}") val allowHttpSideEffects: Boolean = false,
-     @Value("${excludeHttpHeadersComparison:false}") val excludeHttpHeadersComparison: Boolean = false,
-     @Value("${resource.mapping:}") resourceMappings: String = "",
-     @Value("${responseMode:primary}") mode: String = ServiceInstance.Primary.name,
-     @Value("${dockerComposeLocal:false}") val dockerComposeLocal: Boolean = false)
+                @Value("${proxy.port}") val servicePort: Int,
+                @Value("${candidate}") candidate: String,
+                @Value("${master.primary}") primary: String,
+                @Value("${master.secondary}") secondary: String,
+                @Value("${service.protocol}") val protocol: String,
+                @Value("${serviceName}") val serviceName: String,
+                @Value("${apiRoot:}") val apiRoot: String = "",
+                @Value("${threshold.relative:20.0}") val relativeThreshold: Double = 20.0,
+                @Value("${threshold.absolute:0.03}") val absoluteThreshold: Double = 0.03,
+                @Value("${rootUrl:}") val rootUrl: String = "",
+                @Value("${allowHttpSideEffects:false}") val allowHttpSideEffects: Boolean = false,
+                @Value("${excludeHttpHeadersComparison:false}") val excludeHttpHeadersComparison: Boolean = false,
+                @Value("${resource.mapping:}") resourceMappings: String = "",
+                @Value("${responseMode:primary}") mode: String = ResponseMode.primary.name(),
+                @Value("${dockerComposeLocal:false}") val dockerComposeLocal: Boolean = false)
 {
   private[this] val log = LoggerFactory.getLogger(classOf[Settings])
   val candidateHost: String = candidate.split(":")(0)
@@ -42,5 +42,5 @@ class Settings(
       .toList)
     .map(new ResourceMatcher(_))
 
-  val responseMode = ServiceInstance.from(mode).getOrElse(ServiceInstance.Primary)
+  val responseMode = ResponseMode.valueOf(mode);
 }

@@ -6,7 +6,6 @@ import ai.diffy.util.Memoize
 import org.slf4j.LoggerFactory
 
 import java.nio.ByteBuffer
-import java.util.concurrent.ConcurrentHashMap
 import scala.language.postfixOps
 
 trait Difference {
@@ -19,8 +18,8 @@ trait TerminalDifference extends Difference {
 }
 
 case class NoDifference[A](value: A) extends TerminalDifference {
-  override val flattened = Map.empty[String, Difference]
-  override def toMap = Map.empty
+//  override val flattened = Map.empty[String, Difference]
+  override def toMap = super.toMap ++ Seq("left" -> value, "right" -> value)
 }
 
 case class TypeDifference[A, B](
@@ -136,7 +135,7 @@ object Difference {
 
   def apply[A](left: Any, right: Any): Difference =
     (lift(left), lift(right)) match {
-      case (l, r) if l == r => NoDifference(l)
+      case (l, r) if isPrimitive(l) && l == r => NoDifference(l)
       case (l, r) if isPrimitive(l) && l.getClass == r.getClass => PrimitiveDifference(l, r)
       case (ls: Seq[_], rs: Seq[_]) => diffSeq(ls, rs)
       case (ls: Set[A], rs: Set[A]) => diffSet(ls, rs)
