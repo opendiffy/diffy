@@ -1,6 +1,6 @@
 import SaveIcon from '@mui/icons-material/Save';
 import SettingsBackupRestoreIcon from '@mui/icons-material/SettingsBackupRestore';
-import { Alert, Grid, IconButton, Snackbar, Tooltip } from '@mui/material';
+import { Alert, Grid, IconButton, Snackbar, Tooltip, Typography } from '@mui/material';
 
 import AceEditor from "react-ace";
 import "ace-builds/src-noconflict/mode-java";
@@ -8,7 +8,7 @@ import "ace-builds/src-noconflict/theme-github";
 import "ace-builds/src-noconflict/ext-language_tools"
 
 import { useAppDispatch, useAppSelector } from '../../../app/hooks'
-import { openAlert, closeAlert, selectEdge} from '../overrideSlice';
+import { openAlert, closeAlert} from '../overrideSlice';
 import { setTransformationJs} from '../overrideSlice';
 import {useFetchOverrideQuery, useUpdateOverrideMutation} from '../transformationsApiSlice';
 
@@ -17,19 +17,23 @@ export default function CodeEditor() {
   const selectedEdge = useAppSelector((state) => state.overrides.selectedEdge) || 'none';
   const alertIsOpen = useAppSelector((state) => state.overrides.alertIsOpen);
   const close = () => dispatch(closeAlert());
-  const [updateOverride, { isLoading: isUpdating, isSuccess }] = useUpdateOverrideMutation();
+  const [updateOverride] = useUpdateOverrideMutation();
   const currentTxJs = useAppSelector((state) => state.overrides.currentTransformationJs);
-  const {data , error, endpointName} = useFetchOverrideQuery(selectedEdge);
+  const {data} = useFetchOverrideQuery(selectedEdge);
   const remoteTx = !!data ? data :  {injectionPoint:'none', transformationJs:'rt => rt'};
   const txJs = !!currentTxJs ? currentTxJs : remoteTx.transformationJs;
   return <Grid>
+          <Typography>Overriding traffic to <strong>{selectedEdge}</strong> with the following function:</Typography>
     <Tooltip title="Save transformation">
       <IconButton
         color="inherit"
         aria-label="save"
         onClick={
           ()=>selectedEdge && updateOverride({injectionPoint: selectedEdge, transformationJs: currentTxJs})
-        .then(() => dispatch(openAlert(`Save success. Transformation will be applied to ${selectedEdge}.`)))
+        .then(() => {
+          dispatch(setTransformationJs(undefined));
+          dispatch(openAlert(`Save success. Transformation will be applied to ${selectedEdge}.`));
+        })
         }>
         <SaveIcon color="inherit"/>
       </IconButton>
@@ -41,7 +45,10 @@ export default function CodeEditor() {
         aria-label="reset"
         onClick={
           ()=>selectedEdge && updateOverride({injectionPoint: selectedEdge, transformationJs: '(request)=>(request)'})
-          .then(() => dispatch(openAlert(`Reset success. No transformation will be applied to ${selectedEdge}.`)))
+          .then(() => {
+            dispatch(setTransformationJs(undefined));
+            dispatch(openAlert(`Reset success. No transformation will be applied to ${selectedEdge}.`));
+          })
         }>
         <SettingsBackupRestoreIcon color="inherit"/>
       </IconButton>

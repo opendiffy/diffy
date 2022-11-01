@@ -58,21 +58,16 @@ export function OverrideView(){
   }
 return     <Grid container>
     <Grid item xs={4}>
-    <Typography>Request Pattern</Typography>
-    <svg height="400" width="400">
-      {drawEdge('candidate', candidate)}
-      {drawEdge('primary', primary)}
-      {drawEdge('secondary', secondary)}
-      {drawEdge('all', all)}
-    </svg>
+      <Typography>Request Pattern</Typography>
+      <svg height="400" width="400">
+        {drawEdge('candidate', candidate)}
+        {drawEdge('primary', primary)}
+        {drawEdge('secondary', secondary)}
+        {drawEdge('all', all)}
+      </svg>
     </Grid>
-    {!selectedEdge
-        ? <Grid item xs={8}></Grid>
-        : 
     <Grid item xs={8}>
-      <Typography>Overriding traffic to <strong>{selectedEdge}</strong> with the following function:</Typography>
-      <CodeEditor/>
+      {!selectedEdge ? <></> : <CodeEditor/>}
     </Grid>
-        }
   </Grid>
 }

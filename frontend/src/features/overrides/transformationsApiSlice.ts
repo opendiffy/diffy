@@ -26,9 +26,22 @@ export const apiTransformationsSlice = createApi({
                     }
                 },
                 invalidatesTags: ['Transformations']
-            })
+            }),
+            deleteOverride: builder.mutation<void, Transformation>({
+                query({injectionPoint, transformationJs}){
+                    return {
+                        url: `/transformations/${injectionPoint}`,
+                        method: 'DELETE'
+                    }
+                },
+                invalidatesTags: ['Transformations']
+            }),
         }
     },
 });
 
-export const {useFetchOverrideQuery, useUpdateOverrideMutation} = apiTransformationsSlice;
+export const {
+    useFetchOverrideQuery,
+    useUpdateOverrideMutation,
+    useDeleteOverrideMutation
+} = apiTransformationsSlice;
