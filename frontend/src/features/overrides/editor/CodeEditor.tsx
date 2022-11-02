@@ -29,7 +29,7 @@ export default function CodeEditor() {
         color="inherit"
         aria-label="save"
         onClick={
-          ()=>selectedEdge && updateOverride({injectionPoint: selectedEdge, transformationJs: currentTxJs})
+          ()=>selectedEdge && updateOverride({injectionPoint: selectedEdge, transformationJs: currentTxJs || '(request)=>(request)'})
         .then(() => {
           dispatch(setTransformationJs(undefined));
           dispatch(openAlert(`Save success. Transformation will be applied to ${selectedEdge}.`));

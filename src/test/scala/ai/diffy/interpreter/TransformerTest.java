@@ -9,7 +9,7 @@ import java.io.File;
 import java.util.HashMap;
 import java.util.Map;
 
-public class TxTest {
+public class TransformerTest {
     public static void main(String [] args) {
         try {
             Source tx = Source.newBuilder("js", new File("src/test/scala/ai/diffy/interpreter/transform.js")).build();
@@ -22,7 +22,7 @@ public class TxTest {
             System.out.println("All done!");
             System.out.println("\n\nHere's the original:\n"+request);
             System.out.println("\n\nHere's the transformed:\n"+transformed);
-        } catch (Exception e) {
+        } catch (Throwable e) {
             throw new RuntimeException(e);
         }
     }
