@@ -77,11 +77,14 @@ public class ReactorHttpDifferenceProxy {
         RawDifferenceCounter raw = RawDifferenceCounter.apply(new InMemoryDifferenceCounter("raw"));
         NoiseDifferenceCounter noise = NoiseDifferenceCounter.apply(new InMemoryDifferenceCounter("noise"));
         this.joinedDifferences = JoinedDifferences.apply(raw,noise);
-        this.responsePicker = t3 -> switch (settings.responseMode()) {
-            case primary -> t3.getT1();
-            case candidate -> t3.getT2();
-            case secondary -> t3.getT3();
-            case none -> None;
+        this.responsePicker = t3 -> {
+            switch (settings.responseMode()) {
+                case primary : return t3.getT1();
+                case candidate : return t3.getT2();
+                case secondary : return t3.getT3();
+                case none : return None;
+            }
+            return None;
         };
 
         this.lifter = new HttpLifter(settings);
