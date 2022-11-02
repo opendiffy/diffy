@@ -18,6 +18,8 @@
 
 [![Build status](https://github.com/opendiffy/diffy/actions/workflows/maven.yml/badge.svg
 )](https://github.com/opendiffy/diffy/actions/workflows/maven.yml)
+
+[!["Buy Me A Coffee"](https://www.buymeacoffee.com/assets/img/custom_images/orange_img.png)](https://www.buymeacoffee.com/diffy)
 ## Status
 
 Diffy is used in production at:

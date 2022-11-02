@@ -1,7 +1,11 @@
 # Getting started
 ## Running the example
-The example.sh script included here builds and launches example servers as well as a diffy instance. Verify
-that the following ports are available (9000, 9100, 9200, 8880, 8881, & 8888) and run `./example/run.sh start`.
+The downstream.sh and example.sh script included here build and launche example servers as well as a diffy instance.
+1. Verify that ports 9000, 9100, 9200 are available and run `./example/downstream.sh`.
+2. You have just built and deployed candidate(localhost:9000), primary(localhost:9100) and secondary(localhost:9200).
+3. Now open another terminal and prepare to deploy Diffy.
+4. Verify that the ports 8880 and 8888 are available and run `./example/run.sh start`.
+5. You have just deployed Diffy UI(localhost:8888) and proxy(localhost:8880).
 
 Once your local Diffy instance is deployed, you send it a few requests by running `./example/traffic.sh`.
 
@@ -67,12 +71,12 @@ You can pull the [official docker image](https://hub.docker.com/r/diffy/diffy/) 
 
 And run it with
 ```
-docker run -d --name diffy-01 \
-  -p 8880:8880 -p 8881:8881 -p 8888:8888 \
-  diffy/diffy \
-    --candidate=localhost:9992 \
-    --master.primary=localhost:9990 \
-    --master.secondary=localhost:9991 \
+docker run --env OTEL_JAVAAGENT_ENABLED=false -d --name diffy-01 \
+  -p 8880:8880 -p 8888:8888 \
+  diffy/diffy  env \
+    --candidate=host.docker.internal:9000 \
+    --master.primary=host.docker.internal:9100 \
+    --master.secondary=host.docker.internal:9200 \
     --responseMode=primary \
     --service.protocol=http \
     --serviceName="Sample Service" \
@@ -88,7 +92,6 @@ You should now be able to point to:
 *NOTE*: You can  pull the [sample service](https://hub.docker.com/r/diffy/example-service/) and deploy the `production` (primary, secondary) and `candidate` tags to start playing with diffy right away.
 
 You can always build the image from source with `docker build -t diffy .`
-
 
 ## FAQ's
    For safety reasons `POST`, `PUT`, `PATCH`, ` DELETE ` are ignored by default . Add ` --allowHttpSideEffects=true ` to your command line arguments to enable these verbs.

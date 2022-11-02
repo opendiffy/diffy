@@ -2,21 +2,15 @@
 
 if [ "$1" = "start" ];
 then
-
-    echo "Build primary, secondary, and candidate servers" && \
-    javac -d example src/test/scala/ai/diffy/examples/http/ExampleServers.java && \
-
-    echo "Deploy primary, secondary, and candidate servers" && \
-    java -cp example ai.diffy.examples.http.ExampleServers 9100 9200 9000 & \
-
     echo "Build Diffy" && \
     mvn package && \
 
     echo "Deploy Diffy" && \
     java -jar ./target/diffy.jar \
-    --candidate='localhost:9200' \
-    --master.primary='localhost:9000' \
-    --master.secondary='localhost:9100' \
+    --candidate='localhost:9000' \
+    --master.primary='localhost:9100' \
+    --master.secondary='localhost:9200' \
+    --allowHttpSideEffects='true' \
     --responseMode='candidate' \
     --service.protocol='http' \
     --serviceName='ExampleService' \
@@ -26,5 +20,5 @@ then
     echo "Your Diffy UI can be reached at http://localhost:8888"
 
 else
-    echo "Please make sure ports 9000, 9100, 9200, 8880, & 8888 are available before running \"example/run.sh start\""
+    echo "Please make sure you run \"example/downstream.sh\" before running \"example/run.sh start\""
 fi
