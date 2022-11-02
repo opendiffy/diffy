@@ -14,6 +14,6 @@
         body: ''
     }
 
-    response.body = request.body.toLowerCase();
+    response.body = body;
     return response;
 }
