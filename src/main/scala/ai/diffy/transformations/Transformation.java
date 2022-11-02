@@ -1,4 +1,4 @@
-package ai.diffy.repository.transformations;
+package ai.diffy.transformations;
 
 import org.springframework.data.annotation.Id;
 import org.springframework.data.mongodb.core.mapping.Document;

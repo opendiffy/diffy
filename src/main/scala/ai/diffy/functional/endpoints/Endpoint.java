@@ -71,6 +71,11 @@ public abstract class Endpoint<Request, Response> implements Function<Request, R
         this.collapsedMiddleware = operator;
         return this;
     }
+    public Endpoint<Request, Response> composeMiddleware(SymmetricUnaryOperator<Request, Response> operator){
+        Endpoint<Request, Response> result = withDownstream(getDownstream());
+        result.setMiddleware(getMiddleware().compose(operator));
+        return result;
+    }
     public Endpoint<Request, Response> andThenMiddleware(SymmetricUnaryOperator<Request, Response> operator){
         Endpoint<Request, Response> result = withDownstream(getDownstream());
         result.setMiddleware(getMiddleware().andThen(operator));

@@ -1,6 +1,8 @@
 package ai.diffy.functional.topology;
 
+import ai.diffy.functional.algebra.UnsafeFunction;
 import ai.diffy.functional.endpoints.Endpoint;
+import ai.diffy.functional.functions.Try;
 import reactor.util.function.Tuple2;
 import reactor.util.function.Tuple3;
 import reactor.util.function.Tuples;
@@ -13,11 +15,11 @@ public class ControlFlowLogger {
     private final List<Tuple3<String, Object, Object>> events = new ArrayList<>();
 
     public <Request, Response> Endpoint<Request, Response> mapper(Endpoint<Request, Response> e, List<Endpoint> d) {
-        return e.andThenMiddleware((apply) -> (request) -> {
-            Response result = apply.apply(request);
+        return e.andThenMiddleware((apply) -> ((UnsafeFunction<Request, Response>)((request) -> {
+            Try<Response> result = Try.of(() -> apply.apply(request));
             events.add(Tuples.of(e.getName(), request, result));
-            return result;
-        }).withDownstream(d);
+            return result.get();
+        })).suppressThrowable()).withDownstream(d);
     }
 
     @Override

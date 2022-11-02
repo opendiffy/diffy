@@ -1,5 +1,6 @@
 package ai.diffy.functional.functions;
 
+import java.util.concurrent.CompletableFuture;
 import java.util.function.Function;
 
 public class Try<T> {
@@ -23,8 +24,6 @@ public class Try<T> {
     public Try(Proceeder<T> proceeder) {
         try {
             this.normal = proceeder.get();
-        } catch (RuntimeException throwable){
-            this.throwable = throwable.getCause();
         } catch (Throwable throwable){
             this.throwable = throwable;
         }
@@ -36,6 +35,13 @@ public class Try<T> {
 
     public Throwable getThrowable() {
         return throwable;
+    }
+
+    public CompletableFuture<T> toFuture(){
+        if (isNormal()) {
+            return CompletableFuture.completedFuture(getNormal());
+        }
+        return CompletableFuture.failedFuture(getThrowable());
     }
 
     public <U> Try<U> map(Function<T, U> mapper) {

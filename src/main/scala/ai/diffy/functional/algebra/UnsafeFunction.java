@@ -22,7 +22,7 @@ public interface UnsafeFunction<T, R> {
             try {
                 return this.apply(request);
             } catch (Throwable e) {
-                throw new RuntimeException(e.getCause());
+                throw new RuntimeException(e);
             }
         };
     }
