@@ -39,7 +39,7 @@ If your organization is using Diffy, consider adding a link here and sending us 
 
 Diffy is being actively developed and maintained by the engineering team at [Sn126](https://www.sn126.com).
 
-Feel free to contact us via [linkedin](https://www.linkedin.com/company/diffy), [gitter](https://gitter.im/opendiffy/diffy) or [twitter](https://twitter.com/diffyproject).
+Feel free to contact us via [discord](https://discord.gg/QEJRxgVfD8), [linkedin](https://www.linkedin.com/company/diffy), or [twitter](https://twitter.com/diffyproject).
 
 ## What is Diffy?
 
