@@ -16,8 +16,8 @@
 [![Build status](https://github.com/opendiffy/diffy/actions/workflows/maven_windows_2019.yml/badge.svg
 )](https://github.com/opendiffy/diffy/actions/workflows/maven_windows_2019.yml)
 
-[![Build status](https://github.com/opendiffy/diffy/actions/workflows/maven.yml/badge.svg
-)](https://github.com/opendiffy/diffy/actions/workflows/maven.yml)
+[![Build status](https://github.com/opendiffy/diffy/actions/workflows/maven_ubuntu_latest.yml/badge.svg
+)](https://github.com/opendiffy/diffy/actions/workflows/maven_ubuntu_latest.yml)
 
 [!["Buy Me A Coffee"](https://www.buymeacoffee.com/assets/img/custom_images/orange_img.png)](https://www.buymeacoffee.com/diffy)
 ## Status
