@@ -1,14 +1,4 @@
 spring.application.name: "diffy"
-spring:
-  mongodb:
-    embedded:
-      version: "5.0.6"
-management:
-  endpoints:
-    web:
-      exposure:
-        include: health,info,prometheus
-
 server:
   port: ${http.port:8888}
 
@@ -25,6 +15,16 @@ service:
   protocol : "http"
 
 serviceName : "Default Sample Service"
+
+spring:
+  mongodb:
+    embedded:
+      version: "5.0.6"
+management:
+  endpoints:
+    web:
+      exposure:
+        include: health,info,prometheus
 
 logging:
   pattern:

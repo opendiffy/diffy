@@ -20,26 +20,7 @@ start using Diffy to compare three instances of your service:
 2. Deploy your old code to `localhost:9991`. This is your secondary.
 3. Deploy your new code to `localhost:9992`. This is your candidate.
 4. Download the latest Diffy binary from maven central or build your own from the code using `mvn package`.
-5. Create a YAML config file (let's call it diffy.yml) with the following properties:
-
-   ```
-   server:
-      port: 8888
-   
-   proxy:
-      port: 8880
-   
-   candidate: "localhost:9992"
-   
-   master:
-      primary: "localhost:9990"
-      secondary: "localhost:9991"
-   
-   service:
-      protocol : "http"
-
-   serviceName : "Diffy Sample Service"
-   ```
+5. Create a YAML config file (let's call it diffy.yml) by copying and modifying the [default config file](/src/main/resources/application.yml).
 6. Run the Diffy jar with following command line arguments:
 
     ```
