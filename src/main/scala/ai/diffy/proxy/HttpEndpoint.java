@@ -13,15 +13,22 @@ import java.util.concurrent.CompletableFuture;
 import java.util.function.Function;
 
 public class HttpEndpoint extends IndependentEndpoint<HttpRequest, HttpResponse> {
-    private static final Function<HttpServerRequest, CompletableFuture<HttpRequest>> requestBuffer = ((req) ->
-            req.receive().aggregate().asString().toFuture().thenApply(body -> new HttpRequest(
-                    req.method().name(),
-                    req.uri(),
-                    req.path(),
-                    req.params(),
-                    req.requestHeaders(),
-                    body
-            )));
+    private static final Function<HttpServerRequest, CompletableFuture<HttpRequest>> requestBuffer = (req) -> {
+        if(req.isMultipart()){
+            throw new RuntimeException("Content-Type : multipart/form-data is not supported");
+        }
+        if(req.isFormUrlencoded()){
+            throw new RuntimeException("Content-Type : application/x-www-form-urlencoded is not supported");
+        }
+        return req.receive().aggregate().asString().toFuture().thenApply(body -> new HttpRequest(
+            req.method().name(),
+            req.uri(),
+            req.path(),
+            req.params(),
+            req.requestHeaders(),
+            body
+        ));
+    };
 
     public static final Endpoint<HttpServerRequest, CompletableFuture<HttpRequest>> RequestBuffer =
             Async.contain(Endpoint.from("RequestBuffer", () ->requestBuffer));

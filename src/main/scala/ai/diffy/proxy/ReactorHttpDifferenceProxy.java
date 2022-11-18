@@ -2,15 +2,12 @@ package ai.diffy.proxy;
 
 import ai.diffy.Settings;
 import ai.diffy.analysis.*;
-import ai.diffy.functional.endpoints.BiDependentEndpoint;
+import ai.diffy.functional.endpoints.Endpoint;
+import ai.diffy.functional.topology.Async;
 import ai.diffy.functional.topology.ControlFlowLogger;
 import ai.diffy.lifter.AnalysisRequest;
 import ai.diffy.lifter.HttpLifter;
-import ai.diffy.functional.endpoints.Endpoint;
-import ai.diffy.functional.topology.Async;
-import ai.diffy.functional.topology.InvocationLogger;
 import ai.diffy.repository.DifferenceResultRepository;
-import ai.diffy.interpreter.Transformer;
 import ai.diffy.transformations.TransformationCachingService;
 import ai.diffy.transformations.TransformationEdge;
 import io.netty.handler.codec.http.EmptyHttpHeaders;
@@ -30,8 +27,6 @@ import reactor.util.function.Tuple3;
 import scala.Option;
 
 import java.util.Date;
-import java.util.List;
-import java.util.Optional;
 import java.util.Set;
 import java.util.concurrent.CompletableFuture;
 import java.util.function.Function;
