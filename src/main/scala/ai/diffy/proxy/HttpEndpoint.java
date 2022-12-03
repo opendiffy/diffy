@@ -22,7 +22,7 @@ public class HttpEndpoint extends IndependentEndpoint<HttpRequest, HttpResponse>
         }
         if(req.isFormUrlencoded() &&
                 HttpHeaderValues.APPLICATION_X_WWW_FORM_URLENCODED
-                        .equals(req.requestHeaders().get(HttpHeaderNames.CONTENT_TYPE))){
+                        .contentEquals(req.requestHeaders().get(HttpHeaderNames.CONTENT_TYPE))){
             throw new RuntimeException("Content-Type : application/x-www-form-urlencoded is not supported");
         }
         return req.receive().aggregate().asString().toFuture().thenApply(body -> new HttpRequest(
