@@ -1,6 +1,6 @@
 package ai.diffy.analysis
 
-import ai.diffy.compare.Difference
+import ai.diffy.compare.{Difference, NoDifference}
 import ai.diffy.metrics.MetricsReceiver
 import io.micrometer.core.instrument.{Counter, Metrics}
 
@@ -69,7 +69,7 @@ class InMemoryEndpointMetadata(receiver: MetricsReceiver) extends EndpointMetada
   def add(diffs: Map[String, Difference]): Unit = {
     Try(totalCounter.increment())
     totalAtomic.incrementAndGet()
-    if (diffs.nonEmpty) {
+    if (diffs.filterNot{case (_, diff) => diff.isInstanceOf[NoDifference]}.nonEmpty) {
       differenceCounter.increment()
       differenceAtomic.incrementAndGet()
     }
