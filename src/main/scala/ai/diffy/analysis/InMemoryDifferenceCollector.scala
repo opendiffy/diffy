@@ -69,7 +69,7 @@ class InMemoryEndpointMetadata(receiver: MetricsReceiver) extends EndpointMetada
   def add(diffs: Map[String, Difference]): Unit = {
     Try(totalCounter.increment())
     totalAtomic.incrementAndGet()
-    if (diffs.filterNot{case (_, diff) => diff.isInstanceOf[NoDifference]}.nonEmpty) {
+    if (diffs.filterNot{case (_, diff) => diff.isInstanceOf[NoDifference[_]]}.nonEmpty) {
       differenceCounter.increment()
       differenceAtomic.incrementAndGet()
     }
