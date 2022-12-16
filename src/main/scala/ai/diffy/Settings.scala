@@ -1,16 +1,19 @@
 package ai.diffy
 
+import ai.diffy.functional.functions.Try
 import ai.diffy.util.{ResourceMatcher, ResponseMode}
 import org.slf4j.LoggerFactory
 import org.springframework.beans.factory.annotation.Value
 import org.springframework.stereotype.Component
 
+import java.net.URL
+
 @Component
 class Settings(
                 @Value("${proxy.port}") val servicePort: Int,
-                @Value("${candidate}") candidate: String,
-                @Value("${master.primary}") primary: String,
-                @Value("${master.secondary}") secondary: String,
+                @Value("${candidate}") candidateAddress: String,
+                @Value("${master.primary}") primaryAddress: String,
+                @Value("${master.secondary}") secondaryAddress: String,
                 @Value("${service.protocol}") val protocol: String,
                 @Value("${serviceName}") val serviceName: String,
                 @Value("${apiRoot:}") val apiRoot: String = "",
@@ -24,12 +27,9 @@ class Settings(
                 @Value("${dockerComposeLocal:false}") val dockerComposeLocal: Boolean = false)
 {
   private[this] val log = LoggerFactory.getLogger(classOf[Settings])
-  val candidateHost: String = candidate.split(":")(0)
-  val candidatePort: Int = candidate.split(":")(1).toInt
-  val primaryHost: String = primary.split(":")(0)
-  val primaryPort: Int = primary.split(":")(1).toInt
-  val secondaryHost: String = secondary.split(":")(0)
-  val secondaryPort: Int = secondary.split(":")(1).toInt
+  val candidate = Downstream(candidateAddress)
+  val primary = Downstream(primaryAddress)
+  val secondary = Downstream(secondaryAddress)
   val resourceMatcher: Option[ResourceMatcher] = Option(resourceMappings).map(
     _.split(",")
       .map(_.split(";"))
@@ -44,3 +44,15 @@ class Settings(
 
   val responseMode = ResponseMode.valueOf(mode);
 }
+
+object Downstream {
+  def apply(address: String): Downstream = {
+    if (Try.of(() => new URL(address)).isNormal)
+      BaseUrl(address)
+    else
+      HostPort(address.split(":")(0), address.split(":")(1).toInt)
+  }
+}
+sealed trait Downstream
+case class HostPort(host: String, port: Int) extends Downstream
+case class BaseUrl(baseUrl: String) extends Downstream

@@ -1,5 +1,8 @@
 package ai.diffy.proxy;
 
+import ai.diffy.BaseUrl;
+import ai.diffy.Downstream;
+import ai.diffy.HostPort;
 import ai.diffy.functional.endpoints.Endpoint;
 import ai.diffy.functional.endpoints.IndependentEndpoint;
 import ai.diffy.functional.topology.Async;
@@ -58,5 +61,18 @@ public class HttpEndpoint extends IndependentEndpoint<HttpRequest, HttpResponse>
         final HttpClient client = HttpClient
                 .create().host(host).port(port);
         return new HttpEndpoint(name, client);
+    }
+    public static HttpEndpoint from(String name, String baseUrl) {
+        final HttpClient client = HttpClient
+                .create().baseUrl(baseUrl);
+        return new HttpEndpoint(name, client);
+    }
+
+    public static HttpEndpoint from(String name, Downstream downstream) {
+        if(downstream instanceof BaseUrl){
+            return from(name, ((BaseUrl) downstream).baseUrl());
+        }
+        HostPort hostport = (HostPort)downstream;
+        return from(name, hostport.host(), hostport.port());
     }
 }

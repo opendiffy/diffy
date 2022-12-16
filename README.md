@@ -73,10 +73,9 @@ Diffy measures how often primary and secondary disagree with each other vs. how 
 candidate disagree with each other. If these measurements are roughly the same, then Diffy
 determines that there is nothing wrong and that the error can be ignored.
 
-## Getting started
+## Documentation
 
-If you are new to Diffy, please refer to our [Quickstart](/QUICKSTART.md) guide.
-If you are looking for advanced deployment configurations, please refer to our [Advanced](/ADVANCED.md) guide.
+Detailed Diffy Documenation is available [here](https://content.sn126.com/docs/diffy).
 
 ### Support
 Please reach out to isotope@sn126.com for support. We look forward to hearing from you.

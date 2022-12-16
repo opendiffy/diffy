@@ -90,14 +90,14 @@ public class ReactorHttpDifferenceProxy {
          */
         primary = Async.common(HttpEndpoint.from(
                 "primary",
-                settings.primaryHost(), settings.primaryPort()
+                settings.primary()
         ));
         secondary = Async.common(HttpEndpoint.from(
                 "secondary",
-                settings.secondaryHost(), settings.secondaryPort()
+                settings.secondary()
         ));
         candidate = Async.common(HttpEndpoint.from(
-                "candidate", settings.candidateHost(), settings.candidatePort()
+                "candidate", settings.candidate()
         ));
         analyzer = Async.common(Endpoint.from(
             "analyzer",
