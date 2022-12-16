@@ -54,5 +54,9 @@ object Downstream {
   }
 }
 sealed trait Downstream
-case class HostPort(host: String, port: Int) extends Downstream
-case class BaseUrl(baseUrl: String) extends Downstream
+case class HostPort(host: String, port: Int) extends Downstream{
+  override def toString: String = s"${host}:${port}"
+}
+case class BaseUrl(baseUrl: String) extends Downstream {
+  override def toString: String = baseUrl
+}

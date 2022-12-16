@@ -160,9 +160,9 @@ class ApiController(
   @GetMapping(path = Array("/api/1/info"))
   def getInfo(): Map[String, _] = Map(
         "name" -> settings.serviceName,
-        "candidate" -> httpServiceToMap(s"${settings.candidateHost}:${settings.candidatePort}"),
-        "primary" -> httpServiceToMap(s"${settings.primaryHost}:${settings.primaryPort}"),
-        "secondary" -> httpServiceToMap(s"${settings.secondaryHost}:${settings.secondaryPort}"),
+        "candidate" -> httpServiceToMap(settings.candidate.toString),
+        "primary" -> httpServiceToMap(settings.primary.toString),
+        "secondary" -> httpServiceToMap(settings.secondary.toString),
         "relativeThreshold" -> settings.relativeThreshold,
         "absoluteThreshold" -> settings.absoluteThreshold,
         "protocol" -> "http",
