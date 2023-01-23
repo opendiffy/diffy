@@ -62,7 +62,7 @@
             <artifactId>opentelemetry-bom</artifactId>
             <version>${opentelemetry.version}</version>
             <type>pom</type>
-            <scope>import</scope>
+            <scope>runtime</scope>
         </dependency>
         <dependency>
             <groupId>io.micrometer</groupId>
