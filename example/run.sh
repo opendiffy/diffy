@@ -2,7 +2,9 @@
 
 if [ "$1" = "start" ];
 then
-    echo "Build Diffy" && \
+    echo "Your Diffy UI will be reached at http://localhost:8888" && \
+    echo "You can run \"example/downstream.sh\" to send traffic to your Diffy instance." && \
+    echo "Building Diffy" && \
     mvn package && \
 
     echo "Deploy Diffy" && \
@@ -15,10 +17,7 @@ then
     --service.protocol='http' \
     --serviceName='ExampleService' \
     --proxy.port=8880 \
-    --http.port=8888 & \
-
-    echo "Your Diffy UI can be reached at http://localhost:8888"
-    echo "You can now run \"example/downstream.sh\" to send traffic to your Diffy instance."
+    --http.port=8888
 else
     echo "Please make sure you run \"example/downstream.sh\" before running \"example/run.sh start\""
 fi
