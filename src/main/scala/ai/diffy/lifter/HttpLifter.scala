@@ -30,7 +30,7 @@ class HttpLifter(settings: Settings) {
 
   private[this] def headersMap(response: HttpMessage): Map[String, Any] = {
     if(!excludeHttpHeadersComparison) {
-      Map( "headers" -> new FieldMap(response.getHeaders.asScala.toMap))
+      Map( "headers" -> new FieldMap(response.getHeaders.asScala.toMap map {case (k,v) => k.toLowerCase ->v }))
     } else Map.empty
   }
 

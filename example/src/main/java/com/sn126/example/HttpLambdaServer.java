@@ -20,6 +20,7 @@ public class HttpLambdaServer {
                         req.receive().aggregate().asString().toFuture().thenApply(lambda)
                     ).flatMap(responseBody ->
                         res
+                                .header("UPPERCASE_TO_LOWERCASE", "must_convert")
                             .sendString(Mono.justOrEmpty(responseBody))
                             .then()
                     )

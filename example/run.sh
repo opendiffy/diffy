@@ -18,7 +18,7 @@ then
     --http.port=8888 & \
 
     echo "Your Diffy UI can be reached at http://localhost:8888"
-
+    echo "You can now run \"example/downstream.sh\" to send traffic to your Diffy instance."
 else
     echo "Please make sure you run \"example/downstream.sh\" before running \"example/run.sh start\""
 fi
