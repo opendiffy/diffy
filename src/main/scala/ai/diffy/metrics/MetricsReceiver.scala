@@ -5,11 +5,11 @@ import io.micrometer.core.instrument.{Counter, Metrics}
 
 object MetricsReceiver {
   private class MemoizedMetricsReceiver(val tokens: Seq[String]) extends  MetricsReceiver {
-    val name = tokens reduce {
+    val name = tokens map { _.substring(0,1) } reduce {
       _ + "." + _
     }
 
-    override lazy val counter = Metrics.globalRegistry.counter(name)
+    override lazy val counter = Metrics.globalRegistry.counter(name.take(63))
 
     override def get(name: String): MetricsReceiver = new MemoizedMetricsReceiver(tokens :+ name)
   }
