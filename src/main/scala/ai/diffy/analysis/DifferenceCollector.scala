@@ -69,9 +69,9 @@ class DifferenceAnalyzer(
           differencesToJson(rawDiff).asJava,
           JsonLifter.encode(request.result),
           new Responses(
-            JsonLifter.encode(candidate.result),
             JsonLifter.encode(primary.result),
-            JsonLifter.encode(secondary.result)
+            JsonLifter.encode(secondary.result),
+            JsonLifter.encode(candidate.result)
           ));
         store.create(diffResult)
         val saved = repository.save(diffResult)
