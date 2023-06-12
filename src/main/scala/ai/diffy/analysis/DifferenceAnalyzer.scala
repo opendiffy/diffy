@@ -9,8 +9,8 @@ import org.slf4j.LoggerFactory
 
 import java.util.Date
 import scala.jdk.CollectionConverters.SeqHasAsJava
-import scala.util.Random
 import scala.language.postfixOps
+import scala.util.Random
 
 object DifferenceAnalyzer {
   val log = LoggerFactory.getLogger(classOf[DifferenceAnalyzer])
@@ -18,13 +18,10 @@ object DifferenceAnalyzer {
   def normalizeEndpointName(name: String) = name.replace("/", "-")
 }
 
-case class Field(endpoint: String, prefix: String)
-
 class DifferenceAnalyzer(
     rawCounter: RawDifferenceCounter,
     noiseCounter: NoiseDifferenceCounter,
-    store: InMemoryDifferenceCollector,
-    repository: DifferenceResultRepository)
+    store: InMemoryDifferenceCollector)
 {
   import DifferenceAnalyzer._
 
@@ -74,9 +71,7 @@ class DifferenceAnalyzer(
             JsonLifter.encode(candidate.result)
           ));
         store.create(diffResult)
-        val saved = repository.save(diffResult)
-        log.info(s"repository saved $endpointName -- ${saved.id} -- ${saved.traceId}")
-        Some(saved)
+        Some(diffResult)
       } else {
         log.debug(s"endpoint[$endpointName]diff[$id]=NoDifference")
         None
@@ -88,7 +83,6 @@ class DifferenceAnalyzer(
     rawCounter.counter.clear()
     noiseCounter.counter.clear()
     store.clear()
-    repository.deleteAll()
   }
 
   def differencesToJson(diffs: Map[String, Difference]): Seq[FieldDifference] =

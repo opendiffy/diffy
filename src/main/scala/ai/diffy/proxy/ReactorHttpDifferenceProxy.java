@@ -30,6 +30,7 @@ import scala.Option;
 import java.util.Date;
 import java.util.Set;
 import java.util.concurrent.CompletableFuture;
+import ai.diffy.functional.algebra.monoids.functions.BinaryOperator;
 import java.util.function.Function;
 import java.util.stream.Collectors;
 import java.util.stream.Stream;
@@ -101,8 +102,13 @@ public class ReactorHttpDifferenceProxy {
                 "candidate", settings.candidate()
         ));
         analyzer = Async.common(Endpoint.from(
-            "analyzer",
-            () -> new DifferenceAnalyzer(raw, noise, collector, repository)::analyze
+            "analyzerWithRepo",
+                Endpoint.from("analyzer", () -> new DifferenceAnalyzer(raw, noise, collector)::analyze),
+                Endpoint.from("repo", () -> repository::save),
+                (BinaryOperator<AnalysisRequest,
+                        AnalysisRequest, Option<DifferenceResult>,
+                        DifferenceResult, DifferenceResult,
+                        Option<DifferenceResult>>) (analyzerLambda, repoSave) -> analyzerLambda.andThen(ro -> ro.map(r -> repoSave.apply(r)))
         ));
         multicastProxy =
             Endpoint.from(
