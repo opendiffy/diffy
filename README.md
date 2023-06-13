@@ -75,7 +75,7 @@ determines that there is nothing wrong and that the error can be ignored.
 
 ## Documentation
 
-Detailed Diffy Documenation is available [here](https://content.sn126.com/docs/diffy).
+Detailed Diffy Documentation is available [here](https://content.sn126.com/docs/diffy).
 
 ### Support
 Please reach out to isotope@sn126.com for support. We look forward to hearing from you.
