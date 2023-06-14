@@ -4,12 +4,14 @@
 [![Downloads](https://img.shields.io/github/downloads/opendiffy/diffy/total.svg)](https://github.com/opendiffy/diffy/releases/latest)
 [![License: CC](https://img.shields.io/badge/License-CC%20BY%20NC%20ND-blue.svg)](https://creativecommons.org/licenses/by-nc-nd/4.0/legalcode)
 
+[![Build status](https://github.com/opendiffy/diffy/actions/workflows/maven_macos_13.yml/badge.svg
+)](https://github.com/opendiffy/diffy/actions/workflows/maven_macos_13.yml)
 [![Build status](https://github.com/opendiffy/diffy/actions/workflows/maven_macos_12.yml/badge.svg
 )](https://github.com/opendiffy/diffy/actions/workflows/maven_macos_12.yml)
+[![Build status](https://github.com/opendiffy/diffy/actions/workflows/maven_macos_11.yml/badge.svg
+)](https://github.com/opendiffy/diffy/actions/workflows/maven_macos_11.yml)
 [![Build status](https://github.com/opendiffy/diffy/actions/workflows/maven_macos_latest.yml/badge.svg
 )](https://github.com/opendiffy/diffy/actions/workflows/maven_macos_latest.yml)
-[![Build status](https://github.com/opendiffy/diffy/actions/workflows/maven_macos_10.yml/badge.svg
-)](https://github.com/opendiffy/diffy/actions/workflows/maven_macos_10.yml)
 
 [![Build status](https://github.com/opendiffy/diffy/actions/workflows/maven_windows_latest.yml/badge.svg
 )](https://github.com/opendiffy/diffy/actions/workflows/maven_windows_latest.yml)
