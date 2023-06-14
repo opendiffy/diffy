@@ -3,6 +3,7 @@ package ai.diffy.proxy;
 import ai.diffy.Settings;
 import ai.diffy.analysis.*;
 import ai.diffy.functional.endpoints.Endpoint;
+import ai.diffy.functional.endpoints.SeptaDependentEndpoint;
 import ai.diffy.functional.topology.Async;
 import ai.diffy.functional.topology.ControlFlowLogger;
 import ai.diffy.lifter.AnalysisRequest;
@@ -141,26 +142,33 @@ public class ReactorHttpDifferenceProxy {
             log.info("Ignoring {} request for safety. Use --allowHttpSideEffects=true to turn safety off.", req.method());
             return res.send();
         }
+        Endpoint<HttpRequest, CompletableFuture<HttpResponse>> transformedPrimary = transformations.apply(TransformationEdge.primary, primary);
+        Endpoint<HttpRequest, CompletableFuture<HttpResponse>> transformedSecondary = transformations.apply(TransformationEdge.secondary, secondary);
+        Endpoint<HttpRequest, CompletableFuture<HttpResponse>> transformedCandidate = transformations.apply(TransformationEdge.candidate, candidate);
+
+        SeptaDependentEndpoint all = Endpoint.from(
+                "proxy",
+                transformedPrimary,
+                transformedSecondary,
+                transformedCandidate,
+                analyzer,
+                Endpoint.from("liftRequest", () -> lifter::liftRequest),
+                Endpoint.from("liftResponse", () -> lifter::liftResponse),
+                Endpoint.from("responsePicker", () -> responsePicker),
+                MulticastProxy.Operator
+        );
+
         Endpoint<HttpServerRequest, CompletableFuture<HttpResponse>> perRequestEndpoint = Endpoint.from(
                 "buffer",
                 HttpEndpoint.RequestBuffer,
-                transformations.apply(TransformationEdge.all, Endpoint.from(
-                        "proxy",
-                        transformations.apply(TransformationEdge.primary, primary),
-                        transformations.apply(TransformationEdge.secondary, secondary),
-                        transformations.apply(TransformationEdge.candidate, candidate),
-                        analyzer,
-                        Endpoint.from("liftRequest", () -> lifter::liftRequest),
-                        Endpoint.from("liftResponse", () -> lifter::liftResponse),
-                        Endpoint.from("responsePicker", () -> responsePicker),
-                        MulticastProxy.Operator
-                )),
+                transformations.apply(TransformationEdge.all, all),
                 (Function<HttpServerRequest, CompletableFuture<HttpRequest>> buffer,
                  Function<HttpRequest, CompletableFuture<HttpResponse>> proxy) ->
                         (HttpServerRequest srvReq) -> buffer.apply(srvReq).thenCompose(proxy::apply)
         );
 
         ControlFlowLogger controlFlow = new ControlFlowLogger();
+        
         return Mono.fromFuture(
                 perRequestEndpoint.apply(req).whenComplete((response, t)->{
                     if(t != null) {

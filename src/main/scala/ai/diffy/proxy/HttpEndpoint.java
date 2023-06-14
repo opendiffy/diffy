@@ -6,6 +6,7 @@ import ai.diffy.HostPort;
 import ai.diffy.functional.endpoints.Endpoint;
 import ai.diffy.functional.endpoints.IndependentEndpoint;
 import ai.diffy.functional.topology.Async;
+import ai.diffy.transformations.TransformationEdge;
 import io.netty.handler.codec.http.HttpHeaderNames;
 import io.netty.handler.codec.http.HttpHeaderValues;
 import io.netty.handler.codec.http.HttpHeaders;
@@ -34,7 +35,8 @@ public class HttpEndpoint extends IndependentEndpoint<HttpRequest, HttpResponse>
             req.path(),
             req.params(),
             req.requestHeaders(),
-            body
+            body,
+            TransformationEdge.all
         ));
     };
 

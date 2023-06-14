@@ -1,6 +1,7 @@
 package ai.diffy.interpreter;
 
 import ai.diffy.proxy.HttpRequest;
+import ai.diffy.transformations.TransformationEdge;
 import io.netty.handler.codec.http.EmptyHttpHeaders;
 import io.netty.handler.codec.http.HttpHeaders;
 import org.graalvm.polyglot.Source;
@@ -17,7 +18,7 @@ public class TransformerTest {
             Map<String, String> params = new HashMap<>();
             params.put("hello", "world");
             HttpHeaders headers = EmptyHttpHeaders.INSTANCE;
-            HttpRequest request = new HttpRequest("POST", "/json?Mixpanel", "/json",params,headers,"oh yeah!");
+            HttpRequest request = new HttpRequest("POST", "/json?Mixpanel", "/json",params,headers,"oh yeah!", TransformationEdge.all);
             HttpRequest transformed = reqTx.apply(request);
             System.out.println("All done!");
             System.out.println("\n\nHere's the original:\n"+request);
