@@ -16,13 +16,13 @@ public class HttpRequest extends HttpMessage {
     public HttpRequest(){
         super();
     }
-    public HttpRequest(String method, String uri, String path, Map<String, String> params, HttpHeaders headers, String body, TransformationEdge routingMode) {
+    public HttpRequest(String method, String uri, String path, Map<String, String> params, HttpHeaders headers, String body, String routingMode) {
         super(headers, body);
         this.method = method;
         this.uri = uri;
         this.path = path;
         this.params = params;
-        this.routingMode = routingMode;
+        this.routingMode = TransformationEdge.valueOf(routingMode);
     }
 
     public String getMethod() {

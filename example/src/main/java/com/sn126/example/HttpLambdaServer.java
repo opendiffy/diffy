@@ -4,27 +4,30 @@ import io.netty.handler.codec.http.HttpResponseStatus;
 import reactor.core.publisher.Mono;
 import reactor.netty.DisposableServer;
 import reactor.netty.http.server.HttpServer;
-
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 import java.io.File;
 import java.io.IOException;
 import java.util.function.Function;
 
 public class HttpLambdaServer {
+    private final Logger log = LoggerFactory.getLogger(HttpLambdaServer.class);
+
     private final DisposableServer server;
 
     public HttpLambdaServer(int port, Function<String, String> lambda) {
         server = HttpServer.create()
                 .port(port)
-                .handle((req, res) ->
-                    Mono.fromFuture(
-                        req.receive().aggregate().asString().toFuture().thenApply(lambda)
+                .handle((req, res) -> {
+                    log.info("Received traffic on port {}", port);
+                    return Mono.fromFuture(
+                            req.receive().aggregate().asString().toFuture().thenApply(lambda)
                     ).flatMap(responseBody ->
-                        res
-                                .header("UPPERCASE_TO_LOWERCASE", "must_convert")
-                            .sendString(Mono.justOrEmpty(responseBody))
-                            .then()
-                    )
-                ).bindNow();
+                            res.header("UPPERCASE_TO_LOWERCASE", "must_convert")
+                                    .sendString(Mono.justOrEmpty(responseBody))
+                                    .then()
+                    );
+                }).bindNow();
     }
 
     public static void main(String[] args) throws Exception {

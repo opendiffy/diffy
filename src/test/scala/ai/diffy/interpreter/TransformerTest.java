@@ -18,7 +18,7 @@ public class TransformerTest {
             Map<String, String> params = new HashMap<>();
             params.put("hello", "world");
             HttpHeaders headers = EmptyHttpHeaders.INSTANCE;
-            HttpRequest request = new HttpRequest("POST", "/json?Mixpanel", "/json",params,headers,"oh yeah!", TransformationEdge.all);
+            HttpRequest request = new HttpRequest("POST", "/json?Mixpanel", "/json",params,headers,"oh yeah!", TransformationEdge.all.toString());
             HttpRequest transformed = reqTx.apply(request);
             System.out.println("All done!");
             System.out.println("\n\nHere's the original:\n"+request);

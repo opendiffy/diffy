@@ -36,7 +36,7 @@ public class HttpEndpoint extends IndependentEndpoint<HttpRequest, HttpResponse>
             req.params(),
             req.requestHeaders(),
             body,
-            TransformationEdge.all
+            TransformationEdge.all.toString()
         ));
     };
 
