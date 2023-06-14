@@ -41,6 +41,10 @@ public class HttpRequest extends HttpMessage {
         return params;
     }
 
+    public TransformationEdge getRoutingMode() {
+        return routingMode;
+    }
+
     @Override
     public String toString() {
         return "path = "+ path+"\n"+"params =\n"+ params+"\n"+"message =\n"+ super.toString()+"\n";
