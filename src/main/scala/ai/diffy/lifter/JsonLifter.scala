@@ -58,6 +58,7 @@ object JsonLifter {
   }
 
   def decode(json: String): JsonNode = Mapper.readTree(json)
+  def decode[T](json: String, clss: Class[T]) = Mapper.readValue(json, clss)
   def encode(item: Any): String = Mapper.writer.writeValueAsString(item)
 
   def areMapInsteadofObjectKeys(fields: Set[String]): Boolean =

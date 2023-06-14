@@ -1,9 +1,7 @@
 package ai.diffy.lifter
 
-class FieldMap(self: Map[String, _]){
-  val value = self
-
+class FieldMap(val value: Map[String, _]){
   override def toString: String = {
-    self.toSeq.sortBy { case (k, _) => k }.toString
+    value.toSeq.sortBy { case (k, _) => k }.toString
   }
 }

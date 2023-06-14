@@ -1,20 +1,21 @@
 package ai.diffy
 
-import ai.diffy.analysis.{DifferencesFilterFactory, JoinedEndpoint}
-import ai.diffy.proxy.ReactorHttpDifferenceProxy
+import ai.diffy.analysis.{DifferencesFilterFactory, DynamicAnalyzer, JoinedEndpoint}
 import ai.diffy.repository.{DifferenceResultRepository, NoiseRepository}
 import org.springframework.beans.factory.annotation.Autowired
 import org.springframework.web.bind.annotation.{GetMapping, PathVariable, RequestParam, RestController}
 
-import scala.collection.convert.ImplicitConversions.`collection AsScalaIterable`
+import java.util.Date
+import scala.jdk.CollectionConverters._
 
 @RestController
 class ApiController(
     @Autowired noise: NoiseRepository,
     @Autowired repository: DifferenceResultRepository,
-    @Autowired proxy: ReactorHttpDifferenceProxy,
     @Autowired settings: Settings)
 {
+  val dynamicAnalyzer = new DynamicAnalyzer(repository)
+  lazy val proxy = dynamicAnalyzer.filter(0, new Date().getTime)
   val MissingEndpointException = Renderer.error("Specify an endpoint")
   val MissingEndpointPathException = Renderer.error("Specify an endpoint and path")
   val RequestPurgedException = Renderer.error("Request purged")
@@ -34,7 +35,7 @@ class ApiController(
         Renderer.fields(
           // Only show fields that are above the thresholds
           if (excludeNoise) {
-            val noisyFields = noise.findById(ep).map(_.noisyfields.toSeq).orElse(Nil)
+            val noisyFields = noise.findById(ep).map(_.noisyfields.asScala.toSeq).orElse(Nil)
             joinedEndpoint.fields.filter { case ((path, field)) =>
               thresholdFilter(field) && !noisyFields.exists(path.startsWith)
             }
@@ -153,7 +154,7 @@ class ApiController(
 
   @GetMapping(path = Array("/api/1/clear"))
   def clear() = {
-    proxy.clear()
+//    proxy.clear()
     Renderer.success("Diffs cleared")
   }
 
@@ -166,7 +167,7 @@ class ApiController(
         "relativeThreshold" -> settings.relativeThreshold,
         "absoluteThreshold" -> settings.absoluteThreshold,
         "protocol" -> "http",
-        "last_reset" -> proxy.lastReset.getTime)
+        "last_reset" -> proxy.end)
 
 
   private[this] def httpServiceToMap(target: String) = Map("target" -> target)
