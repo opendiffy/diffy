@@ -15,7 +15,7 @@ class ApiController(
     @Autowired settings: Settings)
 {
   val dynamicAnalyzer = new DynamicAnalyzer(repository)
-  lazy val proxy = dynamicAnalyzer.filter(0, new Date().getTime)
+  def proxy = dynamicAnalyzer.filter(0, new Date().getTime)
   val MissingEndpointException = Renderer.error("Specify an endpoint")
   val MissingEndpointPathException = Renderer.error("Specify an endpoint and path")
   val RequestPurgedException = Renderer.error("Request purged")

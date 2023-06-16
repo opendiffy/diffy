@@ -32,7 +32,8 @@ class DifferenceAnalyzer(
     request: Message,
     candidate: Message,
     primary: Message,
-    secondary: Message
+    secondary: Message,
+    idKnown: Option[String] = None
   ): Option[DifferenceResult] = {
     getEndpointName(request.endpoint, candidate.endpoint,
         primary.endpoint, secondary.endpoint) flatMap { endpointName =>
@@ -53,7 +54,7 @@ class DifferenceAnalyzer(
         (Difference(primary.result, secondary.result)
           .flattened map {case (k,v) => s"response.$k" -> v})
 
-      val id = new String(Random.alphanumeric.take(10).toArray);
+      val id = idKnown.getOrElse(new String(Random.alphanumeric.take(10).toArray))
       rawCounter.counter.count(endpointName, rawDiff)
       noiseCounter.counter.count(endpointName, noiseDiff ++ requestDiff)
 

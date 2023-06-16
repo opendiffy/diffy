@@ -26,7 +26,7 @@ class DynamicAnalyzer(repository: DifferenceResultRepository) {
       val primary = Message(Some(dr.endpoint), decodeFieldMap(dr.responses.primary))
       val secondary = Message(Some(dr.endpoint), decodeFieldMap(dr.responses.secondary))
       val candidate = Message(Some(dr.endpoint), decodeFieldMap(dr.responses.candidate))
-      analyzer.apply(request, candidate, primary, secondary)
+      analyzer.apply(request, candidate, primary, secondary, Some(dr.id))
     })
     Report(analyzer, joinedDifferences, collector, start, end)
   }
