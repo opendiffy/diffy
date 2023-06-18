@@ -25,7 +25,7 @@ export default function AppBarView(){
       <Typography variant="h6" color="inherit" sx={{ flexGrow: 1 }}>{info.name}</Typography>
           <DateTimeRangePicker 
             onChange={(range) => {
-              const [s, e] = Array.isArray(range) && range[1] ? range : [Date.now() - 24*3600*1000, Date.now()];
+              const [s, e] = (Array.isArray(range) && range[0] && range[1]) ? [range[0], range[1]] : [new Date(Date.now() - 24*3600*1000), new Date()];
               dispatch(setDateTimeRange({start: s.getTime(), end: e.getTime()}));
             }}
             value={[new Date(start), new Date(end)]}
