@@ -25,7 +25,11 @@ export default function AppBarView(){
       <Typography variant="h6" color="inherit" sx={{ flexGrow: 1 }}>{info.name}</Typography>
       <Tooltip title="Analyze a time range">
         <IconButton>
-          <DateTimeRangePicker onChange={(range) => dispatch(setDateTimeRange(range))} value={dateTimeRange} />
+          <DateTimeRangePicker 
+            onChange={(range) => dispatch(setDateTimeRange(range))}
+            value={dateTimeRange}
+            disableClock={true}
+          />
         </IconButton>
       </Tooltip>
       <Tooltip title={excludeNoise?"Show Noise":"Hide Noise"}>
