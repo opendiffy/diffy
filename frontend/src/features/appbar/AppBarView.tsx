@@ -18,14 +18,17 @@ import { openOverrideView } from '../overrides/overrideSlice';
 export default function AppBarView(){
   const info = fetchinfo();
   const excludeNoise = useAppSelector((state) => state.selections.noiseCancellationIsOn);
-  const dateTimeRange = useAppSelector((state) => state.selections.dateTimeRange).map(x => new Date(x));
+  const [start, end] = useAppSelector((state) => state.selections.dateTimeRange).map(x => new Date(x));
   const dispatch = useAppDispatch();
   return <AppBar position='static'>
     <Toolbar>
       <Typography variant="h6" color="inherit" sx={{ flexGrow: 1 }}>{info.name}</Typography>
           <DateTimeRangePicker 
-            onChange={(range) => dispatch(setDateTimeRange(range.map(x=>x.getTime())))}
-            value={dateTimeRange}
+            onChange={(range) => {
+              const [s,e] = Array.isArray(range) && range[1] ? range : [Date.now() - 24*3600*1000, Date.now()];
+              dispatch(setDateTimeRange([s, e]));
+            }}
+            value={[start, end]}
             disableClock={true}
           />
       <Tooltip title={excludeNoise?"Show Noise":"Hide Noise"}>
