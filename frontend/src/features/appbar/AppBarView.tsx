@@ -5,18 +5,29 @@ import AnalyticsIcon from '@mui/icons-material/Analytics';
 import AccountTreeIcon from '@mui/icons-material/AccountTree';
 import JavascriptIcon from '@mui/icons-material/Javascript';
 
+import DateTimeRangePicker from '@wojtekmaj/react-datetimerange-picker';
+import '@wojtekmaj/react-datetimerange-picker/dist/DateTimeRangePicker.css';
+import 'react-calendar/dist/Calendar.css';
+import 'react-clock/dist/Clock.css';
+
 import { fetchinfo } from "../info/infoApiSlice";
 import { useAppDispatch, useAppSelector } from '../../app/hooks'
-import { openInfoView, toggleNoiseCancellation } from '../selections/selectionsSlice';
+import { openInfoView, setDateTimeRange, toggleNoiseCancellation } from '../selections/selectionsSlice';
 import { openOverrideView } from '../overrides/overrideSlice';
 
 export default function AppBarView(){
   const info = fetchinfo();
   const excludeNoise = useAppSelector((state) => state.selections.noiseCancellationIsOn);
+  const dateTimeRange = useAppSelector((state) => state.selections.dateTimeRange);
   const dispatch = useAppDispatch();
   return <AppBar position='static'>
     <Toolbar>
       <Typography variant="h6" color="inherit" sx={{ flexGrow: 1 }}>{info.name}</Typography>
+      <Tooltip title="Analyze a time range">
+        <IconButton>
+          <DateTimeRangePicker onChange={(range) => dispatch(setDateTimeRange(range))} value={dateTimeRange} />
+        </IconButton>
+      </Tooltip>
       <Tooltip title={excludeNoise?"Show Noise":"Hide Noise"}>
         <IconButton color="inherit" aria-label="logs">
           <Switch

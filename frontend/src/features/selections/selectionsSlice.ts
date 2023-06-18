@@ -1,4 +1,5 @@
 import {createSlice, PayloadAction} from '@reduxjs/toolkit';
+type Range<T> = [T, T]
 interface Selections {
     noiseCancellationIsOn: boolean, // Noise cancellation from AppBarView
     infoIsOpen: boolean, // InfoView dialog
@@ -7,6 +8,7 @@ interface Selections {
     endpointName: string|undefined, // Selected endpoint from EnpointsView
     fieldPrefix: string|undefined, // Selected field prefix from FieldsView
     requestId: string|undefined, // Selected request id from DifferencesView
+    dateTimeRange: Range<Date>,
 }
 const initialState: Selections = {
     noiseCancellationIsOn: false,
@@ -15,7 +17,8 @@ const initialState: Selections = {
     requestId: undefined,
     infoIsOpen: false,
     deleteRequestAlertIsOpen: false,
-    requestIsOpen: false
+    requestIsOpen: false,
+    dateTimeRange: [new Date(0), new Date()]
 };
 const slice = createSlice({
     name: 'selections',
@@ -50,6 +53,9 @@ const slice = createSlice({
         },
         selectRequest(state, requestId) {
             state.requestId = requestId.payload;
+        },
+        setDateTimeRange(state, dateTimeRange){
+            state.dateTimeRange = dateTimeRange.payload;
         }
     }
 })
@@ -64,6 +70,7 @@ export const {
     closeRequestView,
     selectEndpoint,
     selectFieldPrefix,
-    selectRequest
+    selectRequest,
+    setDateTimeRange
 } = slice.actions;
 export default slice.reducer;

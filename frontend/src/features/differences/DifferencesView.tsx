@@ -11,7 +11,8 @@ export function DifferencesView(){
   const excludeNoise = useAppSelector((state) => state.selections.noiseCancellationIsOn);
   const selectedEndpoint = useAppSelector((state) => state.selections.endpointName) || 'unknown';
   const selectedFieldPrefix = useAppSelector((state) => state.selections.fieldPrefix) || 'unknown';
-  const differenceResults = useFetchDifferencesQuery({excludeNoise, selectedEndpoint, selectedFieldPrefix, includeWeights:true}, {pollingInterval: 10*1000}).data || {endpoint:'undefined', path:'undefined', requests:[]};
+  const [start, end] = useAppSelector((state) => state.selections.dateTimeRange).map(x=>x.getTime());
+  const differenceResults = useFetchDifferencesQuery({excludeNoise, selectedEndpoint, selectedFieldPrefix, includeWeights:true, start, end}, {pollingInterval: 10*1000}).data || {endpoint:'undefined', path:'undefined', requests:[]};
   if(!differenceResults.requests.length) {
     return <List subheader={<ListSubheader>Differences</ListSubheader>}>
       <ListItem><ListItemText>No differences.</ListItemText></ListItem>

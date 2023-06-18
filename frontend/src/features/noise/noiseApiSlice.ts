@@ -34,21 +34,21 @@ export const apiNoiseSlice = createApi({
                 },
                 invalidatesTags: ['Noise'],
             }),
-            fetchEndpoints: builder.query<Map<string, EndpointMeta>, boolean|void>({
-                query(excludeNoise=false){
-                    return `/endpoints?exclude_noise=${excludeNoise}`;
+            fetchEndpoints: builder.query<Map<string, EndpointMeta>, {excludeNoise:boolean, start:number, end:number}>({
+                query({excludeNoise, start, end}){
+                    return `/endpoints?exclude_noise=${excludeNoise}&start=${start}&end=${end}`;
                 },
                 providesTags: ['Noise']
             }),
             fetchFields: builder.query<Endpoint, FieldsQueryArgs>({
-                query({selectedEndpoint, includeWeights, excludeNoise}){
-                    return `/endpoints/${selectedEndpoint}/stats?include_weights=${includeWeights}&exclude_noise=${excludeNoise}`;
+                query({selectedEndpoint, includeWeights, excludeNoise, start, end}){
+                    return `/endpoints/${selectedEndpoint}/stats?include_weights=${includeWeights}&exclude_noise=${excludeNoise}&start=${start}&end=${end}`;
                 },
                 providesTags: ['Noise']
             }),
             fetchDifferences: builder.query<DifferenceResults, DifferencesQueryArgs>({
                 query(args){
-                    return `/endpoints/${args.selectedEndpoint}/fields/${args.selectedFieldPrefix}/results?include_weights=${args.includeWeights}&exclude_noise=${args.excludeNoise}`;
+                    return `/endpoints/${args.selectedEndpoint}/fields/${args.selectedFieldPrefix}/results?include_weights=${args.includeWeights}&exclude_noise=${args.excludeNoise}&start=${args.start}&end=${args.end}`;
                 },
                 providesTags: ['Noise']
             })

@@ -3,7 +3,7 @@ package ai.diffy
 import ai.diffy.analysis.{DifferencesFilterFactory, DynamicAnalyzer, JoinedEndpoint}
 import ai.diffy.repository.{DifferenceResultRepository, NoiseRepository}
 import org.springframework.beans.factory.annotation.Autowired
-import org.springframework.web.bind.annotation.{GetMapping, PathVariable, RequestParam, RestController}
+import org.springframework.web.bind.annotation.{GetMapping, PathVariable, PostMapping, RequestParam, RestController}
 
 import java.util.Date
 import scala.jdk.CollectionConverters._
@@ -15,7 +15,7 @@ class ApiController(
     @Autowired settings: Settings)
 {
   val dynamicAnalyzer = new DynamicAnalyzer(repository)
-  def proxy = dynamicAnalyzer.filter(0, new Date().getTime)
+  def proxy(start: Long, end: Long) = dynamicAnalyzer.filter(start, end)
   val MissingEndpointException = Renderer.error("Specify an endpoint")
   val MissingEndpointPathException = Renderer.error("Specify an endpoint and path")
   val RequestPurgedException = Renderer.error("Request purged")
@@ -49,9 +49,11 @@ class ApiController(
   @GetMapping(path = Array("/api/1/overview"))
   def getOverview(
      @RequestParam(name = "exclude_noise", defaultValue = "true") excludeNoise: Boolean,
-     @RequestParam(name = "include_weights", defaultValue = "false") includeWeights: Boolean
+     @RequestParam(name = "include_weights", defaultValue = "false") includeWeights: Boolean,
+     @RequestParam(name = "start", defaultValue = "0") start: Long,
+     @RequestParam(name = "end", defaultValue = "1701001001000") end: Long
  ) : Map[String, Any] = {
-    proxy.joinedDifferences.endpoints match { case eps =>
+    proxy(start, end).joinedDifferences.endpoints match { case eps =>
       eps.map { case (endpoint, diffs) =>
         endpoint -> endpointMap(endpoint, diffs, includeWeights, excludeNoise)
       }
@@ -60,12 +62,14 @@ class ApiController(
 
   @GetMapping(path = Array("/api/1/endpoints"))
   def getEndpoints(
-    @RequestParam(name = "exclude_noise", defaultValue = "false") excludeNoise: Boolean
+    @RequestParam(name = "exclude_noise", defaultValue = "false") excludeNoise: Boolean,
+    @RequestParam(name = "start", defaultValue = "0") start: Long,
+    @RequestParam(name = "end", defaultValue = "1701001001000") end: Long
   ): Map[String, Any] = {
     Renderer.endpoints(
-      proxy.joinedDifferences.raw.counter.endpoints filterNot  { case (ep, meta) => {
+      proxy(start, end).joinedDifferences.raw.counter.endpoints filterNot  { case (ep, meta) => {
         excludeNoise &&
-          getStats(ep, excludeNoise, false)
+          getStats(ep, excludeNoise, false, start, end)
             .getOrElse("fields", Map.empty)
             .asInstanceOf[Map[String, _]]
             .isEmpty
@@ -77,13 +81,15 @@ class ApiController(
   def getStats(
     @PathVariable(name = "endpoint") endpoint: String,
     @RequestParam(name = "exclude_noise", defaultValue = "true") excludeNoise: Boolean,
-    @RequestParam(name = "include_weights", defaultValue = "false") includeWeights: Boolean
+    @RequestParam(name = "include_weights", defaultValue = "false") includeWeights: Boolean,
+    @RequestParam(name = "start", defaultValue = "0") start: Long,
+    @RequestParam(name = "end", defaultValue = "1701001001000") end: Long
   ) = {
     if (endpoint.isEmpty) {
       MissingEndpointException
     } else {
       try {
-        proxy.joinedDifferences.endpoint(endpoint) match { case joinedEndpoint =>
+        proxy(start, end).joinedDifferences.endpoint(endpoint) match { case joinedEndpoint =>
           endpointMap(endpoint, joinedEndpoint, includeWeights, excludeNoise)
         }
       } catch {
@@ -96,11 +102,14 @@ class ApiController(
   def getResults(
     @PathVariable("endpoint") endpoint: String,
     @PathVariable("path") path: String,
-    @RequestParam(name = "include_request", defaultValue = "false") include_request: Boolean) = {
+    @RequestParam(name = "include_request", defaultValue = "false") include_request: Boolean,
+    @RequestParam(name = "start", defaultValue = "0") start: Long,
+    @RequestParam(name = "end", defaultValue = "1701001001000") end: Long
+                ) = {
     if(endpoint.isEmpty || path.isEmpty) {
       MissingEndpointPathException
     } else {
-      val drs = proxy.collector.prefix(analysis.Field(endpoint, path))
+      val drs = proxy(start, end).collector.prefix(analysis.Field(endpoint, path))
       Map(
         "endpoint" -> endpoint,
         "path" -> path,
@@ -118,12 +127,14 @@ class ApiController(
     @PathVariable("endpoint") endpoint: String,
     @PathVariable("path") path: String,
     @PathVariable("index") index: Int,
-    @RequestParam(name = "include_request", defaultValue = "true") includeRequest: Boolean
+    @RequestParam(name = "include_request", defaultValue = "true") includeRequest: Boolean,
+    @RequestParam(name = "start", defaultValue = "0") start: Long,
+    @RequestParam(name = "end", defaultValue = "1701001001000") end: Long
   ) = {
     if (endpoint.isEmpty || path.isEmpty) {
       IndexOutOfBoundsException
     } else {
-        proxy.collector.prefix(analysis.Field(endpoint, path)).toSeq.lift(index) match {
+        proxy(start, end).collector.prefix(analysis.Field(endpoint, path)).toSeq.lift(index) match {
           case Some(dr) =>
             Renderer.differenceResult(
               dr,
@@ -138,7 +149,9 @@ class ApiController(
   @GetMapping(path = Array("/api/1/requests/{id}"))
   def getRequest(
     @PathVariable("id") id: String,
-    @RequestParam(name = "include_request", defaultValue = "true") includeRequest: Boolean
+    @RequestParam(name = "include_request", defaultValue = "true") includeRequest: Boolean,
+    @RequestParam(name = "start", defaultValue = "0") start: Long,
+    @RequestParam(name = "end", defaultValue = "1701001001000") end: Long
   ) = {
     if(id.isEmpty) {
       RequestPurgedException
@@ -166,8 +179,7 @@ class ApiController(
         "secondary" -> httpServiceToMap(settings.secondary.toString),
         "relativeThreshold" -> settings.relativeThreshold,
         "absoluteThreshold" -> settings.absoluteThreshold,
-        "protocol" -> "http",
-        "last_reset" -> proxy.end)
+        "protocol" -> "http")
 
 
   private[this] def httpServiceToMap(target: String) = Map("target" -> target)

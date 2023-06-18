@@ -3,4 +3,6 @@ export interface DifferencesQueryArgs {
     selectedFieldPrefix: string;
     excludeNoise: boolean;
     includeWeights: boolean;
+    start: number;
+    end: number;
 }

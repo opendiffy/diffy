@@ -15,7 +15,8 @@ export function FieldsView(){
     const dispatch = useAppDispatch();
     const excludeNoise = useAppSelector((state) => state.selections.noiseCancellationIsOn);
     const selectedEndpoint = useAppSelector((state) => state.selections.endpointName) || 'unknown';
-    const endpoint = useFetchFieldsQuery({selectedEndpoint, excludeNoise, includeWeights: true}, {pollingInterval: 10*1000}).data || {fields: new Map<string, Metric>()};
+    const [start, end] = useAppSelector((state) => state.selections.dateTimeRange).map(x=>x.getTime());
+    const endpoint = useFetchFieldsQuery({selectedEndpoint, excludeNoise, includeWeights: true, start, end}, {pollingInterval: 10*1000}).data || {fields: new Map<string, Metric>()};
     const noisyPrefixes = useFetchNoiseQuery(selectedEndpoint).data || [];
     const [updateNoise, { isLoading: isUpdating }] = usePostNoiseMutation();
     if(!endpoint || !endpoint.fields || !Object.keys(endpoint.fields).length){

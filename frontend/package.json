@@ -17,6 +17,7 @@
     "@mui/material": "^5.10.10",
     "@reduxjs/toolkit": "^1.8.6",
     "@types/lodash": "^4.14.186",
+    "@wojtekmaj/react-datetimerange-picker": "^5.2.0",
     "ace-builds": "^1.12.5",
     "bootstrap": "^5.2.2",
     "d3-drag": "^3.0.0",
