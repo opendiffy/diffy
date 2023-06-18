@@ -8,7 +8,7 @@ interface Selections {
     endpointName: string|undefined, // Selected endpoint from EnpointsView
     fieldPrefix: string|undefined, // Selected field prefix from FieldsView
     requestId: string|undefined, // Selected request id from DifferencesView
-    dateTimeRange: Range<number>,
+    dateTimeRange: {start: number, end: number},
 }
 const initialState: Selections = {
     noiseCancellationIsOn: false,
@@ -18,7 +18,7 @@ const initialState: Selections = {
     infoIsOpen: false,
     deleteRequestAlertIsOpen: false,
     requestIsOpen: false,
-    dateTimeRange: [Date.now() - 24*3600*1000, Date.now()]
+    dateTimeRange: {start: Date.now() - 24*3600*1000, end: Date.now()}
 };
 const slice = createSlice({
     name: 'selections',
