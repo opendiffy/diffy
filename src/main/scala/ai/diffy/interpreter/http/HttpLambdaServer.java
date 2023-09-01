@@ -43,6 +43,9 @@ public class HttpLambdaServer {
                 ).bindNow();
     }
 
+    public void shutdown() {
+        server.disposeNow();
+    }
     public static void main(String[] args) throws Exception {
         HttpLambdaServer primary = new HttpLambdaServer(Integer.parseInt(args[0]), new File("src/main/scala/ai/diffy/interpreter/http/master.js"));
         HttpLambdaServer secondary = new HttpLambdaServer(Integer.parseInt(args[1]), new File("src/main/scala/ai/diffy/interpreter/http/master.js"));

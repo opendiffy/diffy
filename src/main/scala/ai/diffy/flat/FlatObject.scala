@@ -63,7 +63,7 @@ object FlatObject {
     case byteBuffer: ByteBuffer => lift(new String(byteBuffer.asReadOnlyBuffer().array))
     case jsonNode: JsonNode => lift(JsonLifter.lift(jsonNode))
     case null => FlatNull
-    case fm: FieldMap => lift(fm.value)
+    case fm: FieldMap => FlatStruct(lift(fm.value).asInstanceOf[FlatMap[FlatPrimitive[String], FlatObject]])
     case _ => FlatStruct(FlatMap(mkMap(a) map {case (k,v) => FlatPrimitive(k) -> lift(v)}))
   }
 }

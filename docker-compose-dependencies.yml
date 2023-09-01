@@ -63,7 +63,6 @@ services:
       - ./etc/promtail-local.yaml:/etc/promtail/promtail-local.yaml
       - ./data/logs:/app/logs
     depends_on:
-      - diffy
       - loki
 
   prometheus:
@@ -75,8 +74,6 @@ services:
       - --config.file=/etc/prometheus.yaml
     ports:
       - "9090:9090"
-    depends_on:
-      - diffy
 
   grafana:
     image: grafana/grafana:7.4.0-ubuntu

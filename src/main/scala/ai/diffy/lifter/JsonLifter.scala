@@ -62,7 +62,7 @@ object JsonLifter {
   def encode(item: Any): String = Mapper.writer.writeValueAsString(item)
 
   def areMapInsteadofObjectKeys(fields: Set[String]): Boolean =
-    fields.size > 20 || fields.exists{ field =>
+    fields.size > 50 || fields.exists{ field =>
       field.length > 100 ||
       field.matches("[0-9].*") || // starts with a digit
       !field.matches("[_a-zA-Z0-9]*") // contains non-alphanumeric characters

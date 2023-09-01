@@ -6,6 +6,7 @@ import ai.diffy.functional.endpoints.Endpoint;
 import ai.diffy.functional.endpoints.SeptaDependentEndpoint;
 import ai.diffy.functional.topology.Async;
 import ai.diffy.functional.topology.ControlFlowLogger;
+import ai.diffy.functional.topology.InvocationLogger;
 import ai.diffy.lifter.AnalysisRequest;
 import ai.diffy.lifter.HttpLifter;
 import ai.diffy.repository.DifferenceResultRepository;

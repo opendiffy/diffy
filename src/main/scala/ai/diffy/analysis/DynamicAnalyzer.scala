@@ -3,13 +3,26 @@ package ai.diffy.analysis
 import ai.diffy.analysis.DynamicAnalyzer.decodeFieldMap
 import ai.diffy.lifter.{FieldMap, JsonLifter, Message}
 import ai.diffy.repository.DifferenceResultRepository
+import com.fasterxml.jackson.databind.JsonNode
+import com.fasterxml.jackson.databind.node.ObjectNode
+import scala.jdk.CollectionConverters.MapHasAsScala
 
 /**
  * Filters a DifferenceAnalyzer using a specified time range to output another DifferenceAnalyzer
  */
 object DynamicAnalyzer {
   def decodeFieldMap(payload: String): FieldMap = {
-    JsonLifter.decode(s"{\"value\":$payload}", classOf[FieldMap])
+    objectNodeToFieldMap(JsonLifter.decode(payload).asInstanceOf[ObjectNode])
+  }
+  def objectNodeToFieldMap(objectNode: ObjectNode): FieldMap ={
+    val acc = new java.util.HashMap[String, Object]()
+    objectNode.fields().forEachRemaining(entry => {
+      acc.put(entry.getKey(), entry.getValue())
+    })
+    if(acc.containsKey("headers")) {
+      acc.put("headers", objectNodeToFieldMap(acc.get("headers").asInstanceOf[ObjectNode]))
+    }
+    new FieldMap(acc.asScala.toMap)
   }
 }
 class DynamicAnalyzer(repository: DifferenceResultRepository) {
