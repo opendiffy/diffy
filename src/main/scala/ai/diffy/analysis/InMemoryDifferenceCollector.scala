@@ -10,12 +10,12 @@ import scala.jdk.CollectionConverters.ListHasAsScala
 import scala.util.Try
 
 class InMemoryDifferenceCounter(name: String) extends DifferenceCounter {
-  lazy val receiver = MetricsReceiver.root.get(name)
+  lazy val receiver = MetricsReceiver.root.withNameToken(name)
 
   val endpointsMap: mutable.Map[String, InMemoryEndpointMetadata] = mutable.Map.empty
 
   protected[this] def endpointCollector(ep: String) =
-    endpointsMap.getOrElseUpdate(ep, new InMemoryEndpointMetadata(receiver.get(ep)))
+    endpointsMap.getOrElseUpdate(ep, new InMemoryEndpointMetadata(receiver.withAdditionalTags(Map("endpoint" -> ep))))
 
   override def endpoints: Map[String, EndpointMetadata] =
     endpointsMap.toMap filter { _._2.total > 0 }
@@ -29,8 +29,8 @@ class InMemoryDifferenceCounter(name: String) extends DifferenceCounter {
 }
 
 class InMemoryFieldMetadata(receiver: MetricsReceiver) extends FieldMetadata {
-  val differenceCounter = receiver.get("differences").counter
-  val siblingsCounter = receiver.get("siblings").counter
+  val differenceCounter = receiver.withNameToken("differences").counter
+  val siblingsCounter = receiver.withNameToken("siblings").counter
 
   val Seq(diffsAtomic,sibsAtomic) = Seq.fill(2)(new AtomicInteger(0))
   def differences = diffsAtomic.get()//differenceCounter.count().toInt
@@ -46,8 +46,8 @@ class InMemoryFieldMetadata(receiver: MetricsReceiver) extends FieldMetadata {
 }
 
 class InMemoryEndpointMetadata(receiver: MetricsReceiver) extends EndpointMetadata {
-  val totalCounter = receiver.get("all").counter
-  val differenceCounter = receiver.get("different").counter
+  val totalCounter = receiver.withNameToken("all").counter
+  val differenceCounter = receiver.withNameToken("different").counter
 
   val totalAtomic = new AtomicInteger(0)
   val differenceAtomic = new AtomicInteger(0)
@@ -59,7 +59,7 @@ class InMemoryEndpointMetadata(receiver: MetricsReceiver) extends EndpointMetada
 
   def getMetadata(field: String): InMemoryFieldMetadata = {
     if (!_fields.contains(field)) {
-      _fields += (field -> new InMemoryFieldMetadata(receiver.get(field)))
+      _fields += (field -> new InMemoryFieldMetadata(receiver.withAdditionalTags(Map("field" -> field))))
     }
     _fields(field)
   }
