@@ -17,6 +17,7 @@ service:
 serviceName : "Default Sample Service"
 
 allowHttpSideEffects: true
+maxHeaderSize : 33554432
 
 spring:
   mongodb:

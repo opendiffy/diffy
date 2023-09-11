@@ -9,7 +9,6 @@ import ai.diffy.functional.topology.Async;
 import ai.diffy.transformations.TransformationEdge;
 import io.netty.handler.codec.http.HttpHeaderNames;
 import io.netty.handler.codec.http.HttpHeaderValues;
-import io.netty.handler.codec.http.HttpHeaders;
 import io.netty.handler.codec.http.HttpMethod;
 import reactor.core.publisher.Mono;
 import reactor.netty.ByteBufMono;
@@ -59,22 +58,28 @@ public class HttpEndpoint extends IndependentEndpoint<HttpRequest, HttpResponse>
     public Endpoint<HttpServerRequest, CompletableFuture<HttpResponse>> withSeverRequestBuffer(){
         return Endpoint.from(this.getName(), () -> (serverRequest -> requestBuffer.apply(serverRequest).thenApply(this::apply)));
     }
-    public static HttpEndpoint from(String name, String host, int port) {
+    private static HttpEndpoint from(String name, String host, int port, int maxHeader) {
         final HttpClient client = HttpClient
-                .create().host(host).port(port);
+                .create().host(host).port(port)
+                .httpResponseDecoder(httpResponseDecoderSpec ->
+                        httpResponseDecoderSpec
+                                .maxHeaderSize(maxHeader));
         return new HttpEndpoint(name, client);
     }
-    public static HttpEndpoint from(String name, String baseUrl) {
+    private static HttpEndpoint from(String name, String baseUrl, int maxHeader) {
         final HttpClient client = HttpClient
-                .create().baseUrl(baseUrl);
+                .create().baseUrl(baseUrl)
+                .httpResponseDecoder(httpResponseDecoderSpec ->
+                        httpResponseDecoderSpec
+                                .maxHeaderSize(maxHeader));
         return new HttpEndpoint(name, client);
     }
 
-    public static HttpEndpoint from(String name, Downstream downstream) {
+    public static HttpEndpoint from(String name, Downstream downstream, int maxHeader) {
         if(downstream instanceof BaseUrl){
-            return from(name, ((BaseUrl) downstream).baseUrl());
+            return from(name, ((BaseUrl) downstream).baseUrl(), maxHeader);
         }
         HostPort hostport = (HostPort)downstream;
-        return from(name, hostport.host(), hostport.port());
+        return from(name, hostport.host(), hostport.port(), maxHeader);
     }
 }

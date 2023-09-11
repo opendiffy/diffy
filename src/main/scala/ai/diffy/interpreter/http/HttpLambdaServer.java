@@ -28,6 +28,10 @@ public class HttpLambdaServer {
         lambda = new Lambda<HttpRequest, HttpResponse>(HttpResponse.class, httpLambda).suppressThrowable();
         server = HttpServer.create()
                 .port(port)
+                .httpRequestDecoder(httpRequestDecoderSpec ->
+                        httpRequestDecoderSpec
+                                .maxChunkSize(32*1024*1024)
+                                .maxHeaderSize(32*1024*1024))
                 .handle((req, res) ->
                     Mono.fromFuture(
                         HttpEndpoint.RequestBuffer

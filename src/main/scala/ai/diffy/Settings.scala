@@ -22,6 +22,7 @@ class Settings(
                 @Value("${rootUrl:}") val rootUrl: String = "",
                 @Value("${allowHttpSideEffects:false}") val allowHttpSideEffects: Boolean = false,
                 @Value("${excludeHttpHeadersComparison:false}") val excludeHttpHeadersComparison: Boolean = false,
+                @Value("${maxHeaderSize:8192}") val maxHeaderSize: Int = 8192,
                 @Value("${resource.mapping:}") resourceMappings: String = "",
                 @Value("${responseMode:primary}") mode: String = ResponseMode.primary.name(),
                 @Value("${dockerComposeLocal:false}") val dockerComposeLocal: Boolean = false)

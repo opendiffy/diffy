@@ -93,14 +93,17 @@ public class ReactorHttpDifferenceProxy {
          */
         primary = Async.common(HttpEndpoint.from(
                 "primary",
-                settings.primary()
+                settings.primary(),
+                settings.maxHeaderSize()
         ));
         secondary = Async.common(HttpEndpoint.from(
                 "secondary",
-                settings.secondary()
+                settings.secondary(),
+                settings.maxHeaderSize()
         ));
         candidate = Async.common(HttpEndpoint.from(
-                "candidate", settings.candidate()
+                "candidate", settings.candidate(),
+                settings.maxHeaderSize()
         ));
         analyzer = Async.common(Endpoint.from(
             "analyzerWithRepo",
@@ -140,6 +143,8 @@ public class ReactorHttpDifferenceProxy {
          */
         server = HttpServer.create()
                 .port(settings.servicePort())
+                .httpRequestDecoder(httpRequestDecoderSpec ->
+                        httpRequestDecoderSpec.maxHeaderSize(settings.maxHeaderSize()))
                 .handle(this::selectHandler)
                 .bindNow();
     }
