@@ -29,6 +29,5 @@ RUN mv agent /agent
 # production image
 FROM maven:3.8-eclipse-temurin-17-focal
 COPY --from=builder /target/diffy.jar /diffy.jar
-COPY --from=builder /agent/opentelemetry-javaagent.jar /opentelemetry-javaagent.jar
-ENTRYPOINT ["java", "-javaagent:opentelemetry-javaagent.jar", "-jar", "diffy.jar"]
+ENTRYPOINT ["java", "-jar", "diffy.jar"]
 CMD []

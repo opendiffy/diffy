@@ -31,14 +31,16 @@ public class Lambda<Request, Response> implements UnsafeFunction<Request, Respon
         this(clsResponse, Source.create("js", lambda));
     }
     public Lambda(Class<Response> clsResponse,  Source lambda){
-        Value parser = context.get().eval(parserSource);
-        Value stringify = context.get().eval(stringifySource);
-        Bijection<String, Value> parseJson = Bijection.of(parser::execute, (obj) -> stringify.execute(obj).asString());
-        stringify.execute(parser.execute("{}")); // warmup
-        Value transformation = context.get().eval(lambda);
-        UnsafeFunction<Request, String> stringifyRequest = mapper::writeValueAsString;
-        UnsafeFunction<String, Response> parseResponse = str -> mapper.readValue(str, clsResponse);
-        this.applier = stringifyRequest.andThen(parseJson.wrap(transformation::execute)).andThen(parseResponse);
+        synchronized (context.get()) {
+            Value parser = context.get().eval(parserSource);
+            Value stringify = context.get().eval(stringifySource);
+            Bijection<String, Value> parseJson = Bijection.of(parser::execute, (obj) -> stringify.execute(obj).asString());
+            stringify.execute(parser.execute("{}")); // warmup
+            Value transformation = context.get().eval(lambda);
+            UnsafeFunction<Request, String> stringifyRequest = mapper::writeValueAsString;
+            UnsafeFunction<String, Response> parseResponse = str -> mapper.readValue(str, clsResponse);
+            this.applier = stringifyRequest.andThen(parseJson.wrap(transformation::execute)).andThen(parseResponse);
+        }
     }
 
     @Override
