@@ -13,8 +13,15 @@ lib_managed/
 .DS_Store
 .ensime
 .ivyjars
+.classpath
+.factorypath
+.project
+package-lock.json
+package.json
 .vscode/
 .metals/
+.bloop/
+data/results*
 example/ai/diffy/examples/http/
 data/logs/
 data/loki-data/
@@ -24,13 +31,14 @@ data/tempo-data/
 frontend/node_modules
 frontend/.pnp
 frontend/.pnp.js
-
+node_modules
 # testing
 frontend/coverage
 
 # production
 frontend/dist
 frontend/node
+frontend/yarn.lock
 
 # misc
 frontend/.vscode

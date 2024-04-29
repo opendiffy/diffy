@@ -28,7 +28,7 @@ import java.io.InputStreamReader;
 public class IntegrationTest {
     RestTemplate restTemplate = new RestTemplate();
     @Autowired
-    Settings settings;
+    ai.diffy.Settings settings;
 
     @Autowired
     ReactorHttpDifferenceProxy proxy;

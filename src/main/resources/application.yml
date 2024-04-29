@@ -16,10 +16,20 @@ service:
 
 serviceName : "Default Sample Service"
 
+
 spring:
-  mongodb:
-    embedded:
-      version: "5.0.6"
+  datasource:
+    url: jdbc:h2:file:./data/results.db
+    username: sa
+    password: password
+    driverClassName: org.h2.Driver
+  jpa:
+    database-platform: org.hibernate.dialect.H2Dialect
+    hibernate:
+      ddl-auto: update
+
+
+
 management:
   endpoints:
     web:
