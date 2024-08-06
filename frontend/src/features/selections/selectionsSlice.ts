@@ -18,7 +18,7 @@ const initialState: Selections = {
     infoIsOpen: false,
     deleteRequestAlertIsOpen: false,
     requestIsOpen: false,
-    dateTimeRange: {start: Date.now() - 24*3600*1000, end: Date.now()}
+    dateTimeRange: {start: Date.now() - 5*60*1000, end: Date.now()} // last 5 minute
 };
 const slice = createSlice({
     name: 'selections',
