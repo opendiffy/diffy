@@ -1,7 +1,7 @@
 import _ from 'lodash';
 
 import { List, ListItem, ListItemText, ListSubheader, Switch, Stack, Tooltip, Typography, IconButton} from '@mui/material';
-import {TreeView, TreeItem} from '@mui/lab';
+import { SimpleTreeView, TreeItem } from '@mui/x-tree-view';
 import {ExpandMore, ChevronRight} from '@mui/icons-material';
 
 import { useAppSelector, useAppDispatch } from '../../app/hooks';
@@ -37,7 +37,7 @@ export function FieldsView(){
     function renderTree(node: FieldNode, tree: any, noDiff: boolean) {
         return <TreeItem
           key={node.id}
-          nodeId={node.id}
+          itemId={node.id}
           label={label(selectedEndpoint, node, tree, noDiff)}
           onClick={() => dispatch(selectFieldPrefix(node.id))}
           disabled={ disabledNode === node.id }
@@ -89,19 +89,23 @@ export function FieldsView(){
         return `${metric.name}: ${metric.differences} diffs | ${metric.noise/(metric.differences)*100.00}% noise/diffs`
       }
     return       (<List subheader={<ListSubheader>Fields</ListSubheader>}>
-          <TreeView
-      defaultCollapseIcon={<ExpandMore />}
-      defaultExpanded={['request']}
-      defaultExpandIcon={<ChevronRight />}
-    >
-      {request && renderTree(request, tree, true)}
-    </TreeView>
-    <TreeView
-      defaultCollapseIcon={<ExpandMore />}
-      defaultExpanded={['response']}
-      defaultExpandIcon={<ChevronRight />}
-    >
+      <SimpleTreeView
+        slots={{
+          expandIcon: ExpandMore,
+          collapseIcon: ChevronRight,
+        }}
+        defaultExpandedItems={['request']}
+      >
+        {request && renderTree(request, tree, true)}
+      </SimpleTreeView>
+      <SimpleTreeView
+        slots={{
+          expandIcon: ExpandMore,
+          collapseIcon: ChevronRight,
+        }}
+        defaultExpandedItems={['request']}
+      >
       {response && renderTree(response, tree, false)}
-    </TreeView>
+    </SimpleTreeView>
   </List>);
 }
