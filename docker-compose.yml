@@ -1,6 +1,20 @@
 version: "3.8"
 
 services:
+  mongodb:
+    image: mongo
+    container_name: mongodb
+    environment:
+      - MONGO_INITDB_ROOT_USERNAME=root
+      - MONGO_INITDB_ROOT_PASSWORD=pass12345
+    ports:
+      - 27017:27017
+    healthcheck:
+      test: echo 'db.stats().ok' | mongo localhost:27017/test --quiet
+      interval: 10s
+      timeout: 10s
+      retries: 10
+    restart: unless-stopped
 
   loki:
     image: grafana/loki:2.2.0
@@ -56,6 +70,11 @@ services:
       - "8880:8880"
 #    env_file: "./diffy.env"
     environment:
+      spring.data.mongodb.authentication-database: admin
+      spring.data.mongodb.host: "mongodb"
+      spring.data.mongodb.port: 27017
+      spring.data.mongodb.username: root
+      spring.data.mongodb.password: pass12345
       candidate: "candidate:5000"
       master.primary: "primary:5000"
       master.secondary: "secondary:5000"
@@ -86,6 +105,7 @@ services:
       - ./data/logs:/app/logs
     depends_on:
       - tempo
+      - mongodb
       - primary
       - secondary
       - candidate
