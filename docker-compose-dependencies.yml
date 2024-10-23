@@ -1,6 +1,20 @@
 version: "3.8"
 
 services:
+  mongodb:
+    image: mongo
+    container_name: mongodb
+    environment:
+      - MONGO_INITDB_ROOT_USERNAME=root
+      - MONGO_INITDB_ROOT_PASSWORD=pass12345
+    ports:
+      - 27017:27017
+    healthcheck:
+      test: echo 'db.stats().ok' | mongo localhost:27017/test --quiet
+      interval: 10s
+      timeout: 10s
+      retries: 10
+    restart: unless-stopped
 
   loki:
     image: grafana/loki:2.2.0
