@@ -8,13 +8,13 @@
 )](https://github.com/opendiffy/diffy/actions/workflows/maven_macos_13.yml)
 [![Build status](https://github.com/opendiffy/diffy/actions/workflows/maven_macos_12.yml/badge.svg
 )](https://github.com/opendiffy/diffy/actions/workflows/maven_macos_12.yml)
-[![Build status](https://github.com/opendiffy/diffy/actions/workflows/maven_macos_11.yml/badge.svg
-)](https://github.com/opendiffy/diffy/actions/workflows/maven_macos_11.yml)
 [![Build status](https://github.com/opendiffy/diffy/actions/workflows/maven_macos_latest.yml/badge.svg
 )](https://github.com/opendiffy/diffy/actions/workflows/maven_macos_latest.yml)
 
 [![Build status](https://github.com/opendiffy/diffy/actions/workflows/maven_windows_latest.yml/badge.svg
 )](https://github.com/opendiffy/diffy/actions/workflows/maven_windows_latest.yml)
+[![Build status](https://github.com/opendiffy/diffy/actions/workflows/maven_windows_2022.yml/badge.svg
+)](https://github.com/opendiffy/diffy/actions/workflows/maven_windows_2022.yml)
 [![Build status](https://github.com/opendiffy/diffy/actions/workflows/maven_windows_2019.yml/badge.svg
 )](https://github.com/opendiffy/diffy/actions/workflows/maven_windows_2019.yml)
 
