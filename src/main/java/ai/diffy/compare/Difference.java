@@ -86,6 +86,7 @@ public interface Difference {
 
         if (isPrimitive(l) && Objects.equals(l, r)) return new NoDifference<>(l);
         if (isPrimitive(l) && l.getClass() == r.getClass()) return new PrimitiveDifference<>(l, r);
+        if (l instanceof List<?> ls && r instanceof List<?> rs && ls.equals(rs)) return new NoDifference<>(ls);
         if (l instanceof List<?> ls && r instanceof List<?> rs) return diffSeq((List<Object>) ls, (List<Object>) rs);
         if (l instanceof Set<?> ls && r instanceof Set<?> rs) return diffSet((Set<Object>) ls, (Set<Object>) rs);
         if (l instanceof FieldMap lm && r instanceof FieldMap rm) return diffObjectMap(lm, rm);
