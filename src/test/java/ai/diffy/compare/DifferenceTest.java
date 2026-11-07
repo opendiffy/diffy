@@ -61,6 +61,42 @@ public class DifferenceTest {
     }
 
     @Test
+    void reorderedObjectArraysAreOrderingDifferences() {
+        Map<String, Difference> differences =
+                Difference.apply("[{\"a\":1},{\"a\":2}]", "[{\"a\":2},{\"a\":1}]").flattened();
+
+        assertTrue(differences.containsKey("value.OrderingDifference"), differences::toString);
+        assertFalse(differences.containsKey("value.a.PrimitiveDifference"), differences::toString);
+    }
+
+    @Test
+    void reorderedNestedObjectArraysAreOrderingDifferences() {
+        String left = "{\"items\":[{\"id\":1,\"tags\":[\"x\"]},{\"id\":2,\"tags\":[]}]}";
+        String right = "{\"items\":[{\"id\":2,\"tags\":[]},{\"id\":1,\"tags\":[\"x\"]}]}";
+        Map<String, Difference> differences = Difference.apply(left, right).flattened();
+
+        assertTrue(differences.containsKey("value.items.OrderingDifference"), differences::toString);
+    }
+
+    @Test
+    void identicalObjectArraysRetainFieldLevelNoDifferences() {
+        String json = "{\"items\":[{\"id\":1,\"tags\":[]},{\"id\":2,\"tags\":[\"x\"]}]}";
+        Map<String, Difference> differences = Difference.apply(json, json).flattened();
+
+        assertInstanceOf(NoDifference.class, differences.get("value.items.id.NoDifference"));
+        assertInstanceOf(NoDifference.class, differences.get("value.items.tags.NoDifference"));
+        assertTrue(differences.values().stream().allMatch(difference -> difference instanceof NoDifference));
+    }
+
+    @Test
+    void changedObjectArraysStillReportFieldDifferences() {
+        Map<String, Difference> differences =
+                Difference.apply("[{\"a\":1},{\"a\":2}]", "[{\"a\":1},{\"a\":3}]").flattened();
+
+        assertTrue(differences.containsKey("value.a.PrimitiveDifference"), differences::toString);
+    }
+
+    @Test
     public void payloadTest() throws IOException {
         FileSystemResource payload = new FileSystemResource("src/test/resources/payload.json");
         String json = FileCopyUtils.copyToString(new InputStreamReader(payload.getInputStream()));
