@@ -86,7 +86,7 @@ public interface Difference {
 
         if (isPrimitive(l) && Objects.equals(l, r)) return new NoDifference<>(l);
         if (isPrimitive(l) && l.getClass() == r.getClass()) return new PrimitiveDifference<>(l, r);
-        if (l instanceof List<?> ls && r instanceof List<?> rs && ls.equals(rs)) return new NoDifference<>(ls);
+        if (l instanceof List<?> ls && r instanceof List<?> rs && ls.equals(rs)) return diffEqualSeq((List<Object>) ls, (List<Object>) rs);
         if (l instanceof List<?> ls && r instanceof List<?> rs) return diffSeq((List<Object>) ls, (List<Object>) rs);
         if (l instanceof Set<?> ls && r instanceof Set<?> rs) return diffSet((Set<Object>) ls, (Set<Object>) rs);
         if (l instanceof FieldMap lm && r instanceof FieldMap rm) return diffObjectMap(lm, rm);
@@ -102,6 +102,19 @@ public interface Difference {
         Set<A> rnl = new HashSet<>(right);
         rnl.removeAll(left);
         return new SetDifference<>(lnr, rnl);
+    }
+
+    /**
+     * Equal lists have no difference. Lists of structured elements are still walked
+     * element by element so that field-level NoDifference metadata is retained.
+     */
+    static Difference diffEqualSeq(List<Object> left, List<Object> right) {
+        if (left.stream().noneMatch(e -> e instanceof FieldMap)) return new NoDifference<>(left);
+        List<Difference> diffs = new ArrayList<>();
+        for (int i = 0; i < left.size(); i++) {
+            diffs.add(apply(left.get(i), right.get(i)));
+        }
+        return new IndexedDifference(diffs);
     }
 
     @SuppressWarnings("unchecked")
